@@ -1,22 +1,12 @@
 body {
   font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
   background-color: #f4f4f9;
 }
-.container {
-  text-align: center;
-  max-width: 600px;
-  width: 100%;
-  padding: 20px;
-  background: #fff;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+
+.search-movies-container {
+  justify-content: center;
 }
+
 input[type="text"] {
   width: 100%;
   padding: 10px;
@@ -32,4 +22,39 @@ input[type="text"] {
   max-width: 100%;
   border-radius: 4px;
   margin-bottom: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Float four columns side by side */
+.column {
+  float: left;
+  width: 25%;
+  padding: 0 10px;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Responsive columns */
+@media screen and (max-width: 600px) {
+  .column {
+    width: 100%;
+    display: block;
+    margin-bottom: 20px;
+  }
+}
+
+/* Style the counter cards */
+.card {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  text-align: center;
+  background-color: #f1f1f1;
 }
