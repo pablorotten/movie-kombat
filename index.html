@@ -10,115 +10,49 @@
   <script src="movie-kombat.js"></script>
 </head>
 <body>
-<div class="container search-container mx-auto">
-  <h1><a href="index.html" style="text-decoration: none; color: inherit;">Movie Kombat</a></h1>
-  <input type="text" id="apiKeyInput" placeholder="Enter your OMDB API key..."/>
+<header class="flex items-center p-4 bg-gray-800 text-white">
+  <img src="img/movie-kombat-logo.png" alt="Movie Kombat Logo" class="h-8 w-8 mr-2" />
+  <h1 class="text-2xl font-bold">Movie Kombat</h1>
+</header>
+
+<div class="max-w-3xl mx-auto text-center mt-16">
+    <h1 class="text-4xl font-bold text-gray-900 leading-tight mb-2 pb-4 relative">
+        <span class="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">Add your movies</span>
+        <span class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></span>
+    </h1>
+    <p class="text-lg text-gray-800 mb-8">Search and add 8 🎬 movies</p>
+</div>
+
+<div class="max-w-sm mx-auto" >
+
+  <button onclick="toggleAccordion(1)" class="w-full flex justify-between items-center py-5 text-slate-800">
+    <span>OMDB API key</span>
+    <span id="icon-1" class="text-slate-800 transition-transform duration-300">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4">
+        <path fill-rule="evenodd" d="M11.78 9.78a.75.75 0 0 1-1.06 0L8 7.06 5.28 9.78a.75.75 0 0 1-1.06-1.06l3.25-3.25a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06Z" clip-rule="evenodd" />
+      </svg>
+    </span>
+  </button>
+  <div id="content-1" class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+  <div class="relative">
+    <input type="password" id="apiKeyInput" placeholder="Enter your OMDB API key..."
+           class="pr-10"/>
+    <button type="button" id="toggleApiKey" class="absolute right-2 top-2 text-gray-600">
+      👁️
+    </button>
+  </div>
+  </div>
   <input type="text" id="movieInput" placeholder="Enter movie title..."/>
   <div id="movieInfo" class="movie-info"></div>
-  <button type="button"
+  <button id="addMovieButton" type="button"
           class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
     Add movie
   </button>
 </div>
 
 <div class="container mx-auto">
-
-  <div class="grid mb-8 border border-gray-200 rounded-lg shadow-xs dark:border-gray-700 md:mb-12 md:grid-cols-6 bg-white dark:bg-gray-800">
-
-    <figure class="flex flex-col items-center justify-center p-8 text-center bg-white border-b border-gray-200 rounded-t-lg md:rounded-t-none md:rounded-ss-lg md:border-e dark:bg-gray-800 dark:border-gray-700">
-      <blockquote class="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Movie name</h3>
-      </blockquote>
-      <figcaption class="flex items-center justify-center ">
-        <img class=""
-             src="img/poster-placeholder.png"
-             alt="profile picture">
-      </figcaption>
-    </figure>
-
-    <figure class="flex flex-col items-center justify-center p-8 text-center bg-white border-b border-gray-200 rounded-t-lg md:rounded-t-none md:rounded-ss-lg md:border-e dark:bg-gray-800 dark:border-gray-700">
-      <blockquote class="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Movie name</h3>
-      </blockquote>
-      <figcaption class="flex items-center justify-center ">
-        <img class=""
-             src="img/poster-placeholder.png"
-             alt="profile picture">
-      </figcaption>
-    </figure>
-
-
-    <figure class="flex flex-col items-center justify-center p-8 text-center bg-white border-b border-gray-200 rounded-t-lg md:rounded-t-none md:rounded-ss-lg md:border-e dark:bg-gray-800 dark:border-gray-700">
-      <blockquote class="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Movie name</h3>
-      </blockquote>
-      <figcaption class="flex items-center justify-center ">
-        <img class=""
-             src="img/poster-placeholder.png"
-             alt="profile picture">
-      </figcaption>
-    </figure>
-
-
-    <figure class="flex flex-col items-center justify-center p-8 text-center bg-white border-b border-gray-200 rounded-t-lg md:rounded-t-none md:rounded-ss-lg md:border-e dark:bg-gray-800 dark:border-gray-700">
-      <blockquote class="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Movie name</h3>
-      </blockquote>
-      <figcaption class="flex items-center justify-center ">
-        <img class=""
-             src="img/poster-placeholder.png"
-             alt="profile picture">
-      </figcaption>
-    </figure>
-
-
-    <figure class="flex flex-col items-center justify-center p-8 text-center bg-white border-b border-gray-200 rounded-t-lg md:rounded-t-none md:rounded-ss-lg md:border-e dark:bg-gray-800 dark:border-gray-700">
-      <blockquote class="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Movie name</h3>
-      </blockquote>
-      <figcaption class="flex items-center justify-center ">
-        <img class=""
-             src="img/poster-placeholder.png"
-             alt="profile picture">
-      </figcaption>
-    </figure>
-
-
-    <figure class="flex flex-col items-center justify-center p-8 text-center bg-white border-b border-gray-200 rounded-t-lg md:rounded-t-none md:rounded-ss-lg md:border-e dark:bg-gray-800 dark:border-gray-700">
-      <blockquote class="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Movie name</h3>
-      </blockquote>
-      <figcaption class="flex items-center justify-center ">
-        <img class=""
-             src="img/poster-placeholder.png"
-             alt="profile picture">
-      </figcaption>
-    </figure>
-
-
-    <figure class="flex flex-col items-center justify-center p-8 text-center bg-white border-b border-gray-200 rounded-t-lg md:rounded-t-none md:rounded-ss-lg md:border-e dark:bg-gray-800 dark:border-gray-700">
-      <blockquote class="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Movie name</h3>
-      </blockquote>
-      <figcaption class="flex items-center justify-center ">
-        <img class=""
-             src="img/poster-placeholder.png"
-             alt="profile picture">
-      </figcaption>
-    </figure>
-
-
-    <figure class="flex flex-col items-center justify-center p-8 text-center bg-white border-b border-gray-200 rounded-t-lg md:rounded-t-none md:rounded-ss-lg md:border-e dark:bg-gray-800 dark:border-gray-700">
-      <blockquote class="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Movie name</h3>
-      </blockquote>
-      <figcaption class="flex items-center justify-center ">
-        <img class=""
-             src="img/poster-placeholder.png"
-             alt="profile picture">
-      </figcaption>
-    </figure>
-
+  <div id="movieGrid" class="grid mb-8 border border-gray-200 rounded-lg shadow-xs dark:border-gray-700 md:mb-12 md:grid-cols-6 bg-white dark:bg-gray-800">
+    <!-- Movie cards will be added here -->
   </div>
 </div>
 
