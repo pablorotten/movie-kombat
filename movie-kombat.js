@@ -6,11 +6,7 @@ window.onload = function () {
   const movieGrid = document.getElementById("movieGrid");
   let typingTimeout;
 
-  let placeholderMovieData = {
-    Title: "Your Movie Title",
-    Poster: "img/poster-placeholder.png"
-  };
-
+  let resultMovieData = {};
 
   document
     .getElementById("toggleApiKey")
@@ -74,19 +70,17 @@ window.onload = function () {
         "movieLink"
       ).href = `https://www.imdb.com/title/${movieData.imdbID}`;
       document.getElementById("movieLink").innerText = "View on IMDB";
+      resultMovieData.Title = movieData.Title;
+      resultMovieData.Poster = movieData.Poster;
     } catch (error) {
       console.error("Error loading movie info template:", error);
       movieInfoContainer.innerHTML = "<p>Failed to load movie details.</p>";
     }
   }
 
-    displayMovieInfo(placeholderMovieData);
-
-
   async function addMovieToGrid() {
-    const moviePoster = movieInfoContainer.querySelector("#moviePoster")?.src;
-    const movieTitle = movieInfoContainer.querySelector("#movieTitle")?.innerText;
-
+    const moviePoster = resultMovieData.Poster;
+    const movieTitle = resultMovieData.Title;
 
     if (!moviePoster || !movieTitle) {
       alert("No movie found. Please search for a movie first.");
@@ -109,6 +103,8 @@ window.onload = function () {
 
     // Append to movie grid
     movieGrid.appendChild(movieCard);
+    resultMovieData.Title = movieTitle;
+    resultMovieData.Poster = moviePoster;
   }
 
   apiKeyInput.addEventListener("input", () => {
