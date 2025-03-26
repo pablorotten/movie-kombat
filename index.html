@@ -23,7 +23,7 @@
     <p class="text-lg text-gray-800 mb-8">Search and add 8 🎬 movies</p>
 </div>
 
-<div class="max-w-sm mx-auto" >
+<div class="max-w-xl mx-auto" >
 
   <button onclick="toggleAccordion(1)" class="w-full flex justify-between items-center py-5 text-slate-800">
     <span>OMDB API key</span>
@@ -42,12 +42,17 @@
     </button>
   </div>
   </div>
-  <input type="text" id="movieInput" placeholder="Enter movie title..."/>
-  <div id="movieInfo" class="movie-info"></div>
-  <button id="addMovieButton" type="button"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-    Add movie
-  </button>
+  <div class="flex items-center max-w-sm mx-auto">
+    <div class="relative w-full">
+        <input type="text" id="movieInput" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search branch name..." required />
+    </div>
+    <button type="button" id="addMovieButton" class="p-2.5 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+        Add
+        <span class="sr-only">Search</span>
+    </button>
+  </div>
+  <!-- Search result here -->
+  <div id="movieInfo"></div>
 </div>
 
 <div class="container mx-auto">

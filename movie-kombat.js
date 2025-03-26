@@ -6,8 +6,10 @@ window.onload = function () {
   const movieGrid = document.getElementById("movieGrid");
   let typingTimeout;
 
-  // Add movies placeholder
-
+  let placeholderMovieData = {
+    Title: "Your Movie Title",
+    Poster: "img/poster-placeholder.png"
+  };
 
 
   document
@@ -51,27 +53,40 @@ window.onload = function () {
     }
   }
 
-  function displayMovieInfo(movieData) {
-    if (movieData.Response === "True") {
-      movieInfoContainer.innerHTML = `
-        <img src="${movieData.Poster}" alt="${movieData.Title} Poster">
-        <h2>${movieData.Title} (${movieData.Year})</h2>
-        <p><strong>Genre:</strong> ${movieData.Genre}</p>
-        <p><strong>Director:</strong> ${movieData.Director}</p>
-        <p><strong>Actors:</strong> ${movieData.Actors}</p>
-        <p><strong>Plot:</strong> ${movieData.Plot}</p>
-        <p><strong>IMDB Rating:</strong> ${movieData.imdbRating}</p>
-        <p><a href="https://www.imdb.com/title/${movieData.imdbID}" target="_blank">https://www.imdb.com/title/${movieData.imdbID}</a></p>
-      `;
-    } else {
-      movieInfoContainer.innerHTML =
-        "<p>Movie not found. Please check the title.</p>";
+  async function displayMovieInfo(movieData) {
+    try {
+      const response = await fetch("movie-info.html");
+      const template = await response.text();
+
+      movieInfoContainer.innerHTML = template;
+
+      document.getElementById("moviePoster").src = movieData.Poster;
+      document.getElementById("moviePoster").alt = `${movieData.Title} Poster`;
+      document.getElementById(
+        "movieTitle"
+      ).innerText = `${movieData.Title} (${movieData.Year})`;
+      document.getElementById("movieGenre").innerText = movieData.Genre;
+      document.getElementById("movieDirector").innerText = movieData.Director;
+      document.getElementById("movieActors").innerText = movieData.Actors;
+      document.getElementById("moviePlot").innerText = movieData.Plot;
+      document.getElementById("movieRating").innerText = movieData.imdbRating;
+      document.getElementById(
+        "movieLink"
+      ).href = `https://www.imdb.com/title/${movieData.imdbID}`;
+      document.getElementById("movieLink").innerText = "View on IMDB";
+    } catch (error) {
+      console.error("Error loading movie info template:", error);
+      movieInfoContainer.innerHTML = "<p>Failed to load movie details.</p>";
     }
   }
 
+    displayMovieInfo(placeholderMovieData);
+
+
   async function addMovieToGrid() {
-    const moviePoster = movieInfoContainer.querySelector("img")?.src;
-    const movieTitle = movieInfoContainer.querySelector("h2")?.innerText;
+    const moviePoster = movieInfoContainer.querySelector("#moviePoster")?.src;
+    const movieTitle = movieInfoContainer.querySelector("#movieTitle")?.innerText;
+
 
     if (!moviePoster || !movieTitle) {
       alert("No movie found. Please search for a movie first.");

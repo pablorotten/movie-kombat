@@ -13,14 +13,18 @@ input[type="text"], input[type="password"] {
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  margin-bottom: 20px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 .movie-info {
   text-align: left;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 .movie-info img {
   max-width: 100%;
   border-radius: 4px;
+  margin-top: 10px;
   margin-bottom: 10px;
 }
 
