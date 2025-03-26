@@ -105,6 +105,11 @@ window.onload = function () {
     movieGrid.appendChild(movieCard);
     resultMovieData.Title = movieTitle;
     resultMovieData.Poster = moviePoster;
+
+    // Clear the movie info container
+    movieInfoContainer.innerHTML = "";
+    movieInput.value = "";
+    movieInput.focus();
   }
 
   apiKeyInput.addEventListener("input", () => {
@@ -138,6 +143,11 @@ window.onload = function () {
   });
 
   addMovieButton.addEventListener("click", addMovieToGrid);
+  movieInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      addMovieToGrid();
+    }
+  });
 };
 
 function toggleAccordion(index) {
