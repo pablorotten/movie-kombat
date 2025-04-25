@@ -1,50 +1,56 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import movieKombatLogo from "./assets/movie-kombat-logo.svg";
+import "./App.css";
+
+function addMovie() {
+  console.log("Add movie button clicked with parameter:");
+}
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <header className="flex items-center p-4 bg-gray-800 text-white">
+        <img
+          src={movieKombatLogo}
+          alt="Movie Kombat Logo"
+          className="h-8 w-8 mr-2"
+        />
+        <h1 className="text-2xl font-bold">Movie Kombat</h1>
+      </header>
+
+      <div className="max-w-3xl mx-auto text-center mt-16">
+        <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-2 pb-4 relative">
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
+            Add your movies
+          </span>
+          <span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></span>
+        </h1>
+        <p className="text-lg mb-8">Search and add 8 🎬 movies</p>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-      </p>
-      <h2>Tailwind test:</h2>
-      <div className="space-y-4 text-center font-mono text-xs font-bold text-white">
-        <div className="hidden w-96 rounded-lg bg-blue-500 px-4 py-2 sm:block">
-          w-96
+
+      <div className="max-w-xl mx-auto">
+        <div className="flex items-center max-w-sm mx-auto">
+          <div className="relative w-full">
+            <input
+              type="text"
+              id="movieInput"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              placeholder="Search movie..."
+              required
+            />
+          </div>
+          <button
+            type="button"
+            id="addMovieButton"
+            onClick={addMovie}
+            className="p-2.5 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+          >
+            Add
+            <span className="sr-only">Search</span>
+          </button>
         </div>
-        <div className="hidden w-80 rounded-lg bg-blue-500 px-4 py-2 sm:block">
-          w-80
-        </div>
-        <div className="hidden w-64 rounded-lg bg-blue-500 px-4 py-2 sm:block">
-          w-64
-        </div>
-        <div className="w-48 rounded-lg bg-blue-500 px-4 py-2">w-48</div>
-        <div className="w-40 rounded-lg bg-blue-500 px-4 py-2">w-40</div>
-        <div className="w-32 rounded-lg bg-blue-500 px-4 py-2">w-32</div>
-        <div className="w-24 rounded-lg bg-blue-500 px-4 py-2">w-24</div>
       </div>
     </>
   );
 }
 
-export default App
+export default App;
