@@ -1,30 +1,18 @@
 import { useState } from "react";
 import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import "./App.css";
+import MovieCard from "./components/MovieCard";
+import movieImg from "./assets/movie.png";
+
 
 function App() {
-  const [movie, setSelectedTopic] = useState<string | undefined>();
+  
+  const [movieList, setMovieList] = useState<string[]>([]);
 
-  function handleAddMovie(movieData: string) {
-    setSelectedTopic(movieData);
+  function handleAddMovie(movieTitle: string) {
+    const newList = [...movieList, movieTitle];
+    setMovieList(newList);
   }
-
-  const movieCard = (
-    <figure className="flex flex-col items-center justify-center p-8 text-center bg-white border-b border-gray-200 rounded-t-lg md:rounded-t-none md:rounded-ss-lg md:border-e dark:bg-gray-800 dark:border-gray-700">
-      <blockquote className="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {movie}
-        </h3>
-      </blockquote>
-      <figcaption className="flex items-center justify-center">
-        <img
-          className=""
-          src="img/poster-placeholder.png"
-          alt="profile picture"
-        />
-      </figcaption>
-    </figure>
-  );
 
   return (
     <>
@@ -75,7 +63,9 @@ function App() {
           id="movieGrid"
           className="grid mb-8 border border-gray-200 rounded-lg shadow-xs dark:border-gray-700 md:mb-12 md:grid-cols-6 bg-white dark:bg-gray-800"
         >
-          {movieCard}
+          {movieList.map((movie, index) => ( 
+            <MovieCard key={index} title={movie} poster={movieImg} />
+          ))}
         </div>
       </div>
     </>
