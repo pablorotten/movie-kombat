@@ -1,113 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/src/assets/movie-kombat-logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Movie Kombat</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="icon" type="image/x-icon" href="/img/favicon.ico" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="movie-kombat.js"></script>
   </head>
   <body>
-    <header class="flex items-center p-4 bg-gray-800 text-white">
-      <img
-        src="img/movie-kombat-logo.png"
-        alt="Movie Kombat Logo"
-        class="h-8 w-8 mr-2"
-      />
-      <h1 class="text-2xl font-bold">Movie Kombat</h1>
-    </header>
-
-    <div class="max-w-3xl mx-auto text-center mt-16">
-      <h1
-        class="text-4xl font-bold text-gray-900 leading-tight mb-2 pb-4 relative"
-      >
-        <span
-          class="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500"
-          >Add your movies</span
-        >
-        <span
-          class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"
-        ></span>
-      </h1>
-      <p class="text-lg text-gray-800 mb-8">Search and add 8 🎬 movies</p>
-    </div>
-
-    <div class="max-w-xl mx-auto">
-      <button
-        onclick="toggleAccordion(1)"
-        class="w-full flex justify-between items-center py-5 text-slate-800"
-      >
-        <span>OMDB API key</span>
-        <span
-          id="icon-1"
-          class="text-slate-800 transition-transform duration-300"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 16 16"
-            fill="currentColor"
-            class="w-4 h-4"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M11.78 9.78a.75.75 0 0 1-1.06 0L8 7.06 5.28 9.78a.75.75 0 0 1-1.06-1.06l3.25-3.25a.75.75 0 0 1 1.06 0l3.25 3.25a.75.75 0 0 1 0 1.06Z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        </span>
-      </button>
-      <div
-        id="content-1"
-        class="max-h-0 overflow-hidden transition-all duration-300 ease-in-out"
-      >
-        <div class="relative">
-          <input
-            type="password"
-            id="apiKeyInput"
-            placeholder="Enter your OMDB API key..."
-            class="pr-10"
-          />
-          <button
-            type="button"
-            id="toggleApiKey"
-            class="absolute right-2 top-2 text-gray-600"
-          >
-            👁️
-          </button>
-        </div>
-      </div>
-      <div class="flex items-center max-w-sm mx-auto">
-        <div class="relative w-full">
-          <input
-            type="text"
-            id="movieInput"
-            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-            placeholder="Search movie..."
-            required
-          />
-        </div>
-        <button
-          type="button"
-          id="addMovieButton"
-          class="p-2.5 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        >
-          Add
-          <span class="sr-only">Search</span>
-        </button>
-      </div>
-      <!-- Search result here -->
-      <div id="movieInfo"></div>
-    </div>
-
-    <div class="container mx-auto">
-      <div
-        id="movieGrid"
-        class="grid mb-8 border border-gray-200 rounded-lg shadow-xs dark:border-gray-700 md:mb-12 md:grid-cols-6 bg-white dark:bg-gray-800"
-      >
-        <!-- Movie cards will be added here -->
-      </div>
-    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
