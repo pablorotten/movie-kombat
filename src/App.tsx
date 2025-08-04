@@ -1,38 +1,74 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import "./App.css";
 import MovieCard from "./components/MovieCard";
-import movieImg from "./assets/movie.png";
+import { Movie } from "./types"; // Import our type
 
+// IMPORTANT: Replace with your actual OMDB API Key
+const API_KEY = "YOUR_OMDB_API_KEY";
 
 function App() {
-  
-  const [movieList, setMovieList] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
+  const [movieList, setMovieList] = useState<Movie[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleAddMovie(movieTitle: string) {
-    const newList = [...movieList, movieTitle];
-    setMovieList(newList);
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setSearchedMovie(null);
+      setError(null);
+      return;
+    }
+
+    const fetchMovie = async () => {
+      setIsLoading(true);
+      setError(null);
+      setSearchedMovie(null);
+
+      try {
+        const response = await fetch(
+          `https://www.omdbapi.com/?apikey=${API_KEY}&t=${searchTerm}`
+        );
+        if (!response.ok) throw new Error("Network response was not ok.");
+        
+        const data = await response.json();
+
+        if (data.Response === "True") {
+          setSearchedMovie(data);
+        } else {
+          setError(data.Error);
+        }
+      } catch (err: any) {
+        setError(err.message || "An unexpected error occurred.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const timerId = setTimeout(fetchMovie, 500);
+
+    return () => clearTimeout(timerId);
+  }, [searchTerm]);
+
+  function handleAddMovie() {
+    // Only add if a movie was found and it's not already in the list
+    if (searchedMovie && !movieList.find(m => m.imdbID === searchedMovie.imdbID)) {
+      setMovieList([...movieList, searchedMovie]);
+      setSearchedMovie(null); // Clear the search result
+      setSearchTerm(""); // Clear the input field
+    }
   }
 
   return (
     <>
       <header className="flex items-center p-4 bg-gray-800 text-white">
-        <img
-          src={movieKombatLogo}
-          alt="Movie Kombat Logo"
-          className="h-8 w-8 mr-2"
-        />
+        <img src={movieKombatLogo} alt="Movie Kombat Logo" className="h-8 w-8 mr-2" />
         <h1 className="text-2xl font-bold">Movie Kombat</h1>
       </header>
 
       <div className="max-w-3xl mx-auto text-center mt-16">
-        <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-2 pb-4 relative">
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
-            Add your movies
-          </span>
-          <span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></span>
-        </h1>
-        <p className="text-lg mb-8">Search and add 8 🎬 movies</p>
+        {/* ... header text ... */}
       </div>
 
       <div className="max-w-xl mx-auto">
@@ -40,31 +76,46 @@ function App() {
           <div className="relative w-full">
             <input
               type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               id="movieInput"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5"
               placeholder="Search movie..."
-              required
             />
           </div>
-          <button
-            type="button"
-            id="addMovieButton"
-            onClick={() => handleAddMovie("Added movie")}
-            className="p-2.5 ms-2 text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-          >
-            Add
-            <span className="sr-only">Search</span>
-          </button>
         </div>
-        <div id="movieInfo"></div>
+        
+        {/* Search Result Display */}
+        <div id="movieInfo" className="text-center p-4">
+          {isLoading && <p>Loading...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+          {searchedMovie && (
+            <div className="border p-4 rounded-lg shadow-md mt-4">
+              <img src={searchedMovie.Poster} alt={searchedMovie.Title} className="mx-auto h-48"/>
+              <h3 className="text-lg font-bold mt-2">{searchedMovie.Title} ({searchedMovie.Year})</h3>
+              <button
+                type="button"
+                onClick={handleAddMovie}
+                className="mt-4 p-2.5 w-full text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800"
+              >
+                Add to List
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+
       <div className="container mx-auto">
         <div
           id="movieGrid"
-          className="grid mb-8 border border-gray-200 rounded-lg shadow-xs dark:border-gray-700 md:mb-12 md:grid-cols-6 bg-white dark:bg-gray-800"
+          className="grid mb-8 border border-gray-200 rounded-lg shadow-sm md:mb-12 md:grid-cols-4 lg:grid-cols-6 bg-white dark:bg-gray-800"
         >
-          {movieList.map((movie, index) => ( 
-            <MovieCard key={index} title={movie} poster={movieImg} />
+          {movieList.map((movie) => (
+            <MovieCard 
+              key={movie.imdbID} // Use the unique imdbID for the key!
+              title={movie.Title} 
+              poster={movie.Poster} 
+            />
           ))}
         </div>
       </div>
