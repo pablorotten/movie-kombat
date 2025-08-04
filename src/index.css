@@ -30,24 +30,35 @@ a:hover {
   min-height: 100vh;
 } */
 
-
+/* Keep your base button style for common properties */
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: border-color 0.25s, background-color 0.25s, color 0.25s;
 }
-button:hover {
+
+/* Primary Button (Option 1) */
+.btn-primary {
+  background-color: #646cff;
+  color: #ffffff;
+  border: 1px solid transparent;
+}
+.btn-primary:hover {
+  background-color: #535bf2;
+}
+
+/* Secondary Button (Option 2 or 3) */
+.btn-secondary {
+  background-color: #3a3a3a;
+  color: rgba(255, 255, 255, 0.87);
+  border: 1px solid #3a3a3a;
+}
+.btn-secondary:hover {
   border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
 @media (prefers-color-scheme: light) {

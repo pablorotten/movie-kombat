@@ -2,19 +2,45 @@ import { useState, useEffect } from "react";
 import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import "./App.css";
 import MovieCard from "./components/MovieCard";
-import { Movie } from "./types"; // Import our type
-
-// IMPORTANT: Replace with your actual OMDB API Key
-const API_KEY = "YOUR_OMDB_API_KEY";
+import { Movie } from "./types";
 
 function App() {
+  // State for API Key and Accordion
+  const [apiKey, setApiKey] = useState<string>("");
+  const [isAccordionOpen, setIsAccordionOpen] = useState<boolean>(false);
+
+  // State for Movie Search
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
   const [movieList, setMovieList] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Effect 1: Load API key from localStorage on initial component mount
   useEffect(() => {
+    const storedApiKey = localStorage.getItem("omdbApiKey");
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+    } else {
+      // If no key, open the accordion to prompt the user
+      setIsAccordionOpen(true);
+    }
+  }, []);
+
+  // Effect 2: Save API key to localStorage whenever it changes
+  useEffect(() => {
+    if (apiKey) {
+      localStorage.setItem("omdbApiKey", apiKey);
+    }
+  }, [apiKey]);
+
+  // Effect 3: Fetch data when searchTerm or apiKey changes
+  useEffect(() => {
+    if (!apiKey) {
+      setError("Please enter your OMDB API key.");
+      return;
+    }
+
     if (searchTerm.trim() === "") {
       setSearchedMovie(null);
       setError(null);
@@ -28,10 +54,10 @@ function App() {
 
       try {
         const response = await fetch(
-          `https://www.omdbapi.com/?apikey=${API_KEY}&t=${searchTerm}`
+          `https://www.omdbapi.com/?apikey=${apiKey}&t=${searchTerm}`
         );
         if (!response.ok) throw new Error("Network response was not ok.");
-        
+
         const data = await response.json();
 
         if (data.Response === "True") {
@@ -47,52 +73,101 @@ function App() {
     };
 
     const timerId = setTimeout(fetchMovie, 500);
-
     return () => clearTimeout(timerId);
-  }, [searchTerm]);
+  }, [searchTerm, apiKey]);
 
   function handleAddMovie() {
-    // Only add if a movie was found and it's not already in the list
-    if (searchedMovie && !movieList.find(m => m.imdbID === searchedMovie.imdbID)) {
+    if (
+      searchedMovie &&
+      !movieList.find((m) => m.imdbID === searchedMovie.imdbID)
+    ) {
       setMovieList([...movieList, searchedMovie]);
-      setSearchedMovie(null); // Clear the search result
-      setSearchTerm(""); // Clear the input field
+      setSearchedMovie(null);
+      setSearchTerm("");
     }
   }
 
   return (
     <>
       <header className="flex items-center p-4 bg-gray-800 text-white">
-        <img src={movieKombatLogo} alt="Movie Kombat Logo" className="h-8 w-8 mr-2" />
+        <img
+          src={movieKombatLogo}
+          alt="Movie Kombat Logo"
+          className="h-8 w-8 mr-2"
+        />
         <h1 className="text-2xl font-bold">Movie Kombat</h1>
       </header>
 
       <div className="max-w-3xl mx-auto text-center mt-16">
-        {/* ... header text ... */}
+        {/* Header text */}
       </div>
 
-      <div className="max-w-xl mx-auto">
-        <div className="flex items-center max-w-sm mx-auto">
-          <div className="relative w-full">
+      {/* --- NEW API Key Section --- */}
+      <div className="max-w-xl mx-auto px-4">
+        <button
+          onClick={() => setIsAccordionOpen(!isAccordionOpen)}
+          className="w-full flex justify-between items-center p-3 text-slate-300 hover:bg-gray-700 hover:text-white rounded-lg transition-colors duration-200 font-semibold"
+        >
+          <span>OMDB API key</span>
+          <span
+            className={`transform transition-transform duration-300 ${
+              isAccordionOpen ? "rotate-180" : ""
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </span>
+        </button>
+        {isAccordionOpen && (
+          <div className="pb-4">
             <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              id="movieInput"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5"
-              placeholder="Search movie..."
+              type="password"
+              id="apiKeyInput"
+              placeholder="Enter your OMDB API key..."
+              value={apiKey}
+              onChange={(e) => setApiKey(e.target.value)}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             />
           </div>
+        )}
+      </div>
+
+      <div className="max-w-xl mx-auto px-4">
+        <div className="flex items-center w-full mx-auto mt-4">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            id="movieInput"
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            placeholder="Search movie..."
+            disabled={!apiKey} // Disable input if no API key
+          />
         </div>
-        
-        {/* Search Result Display */}
+
         <div id="movieInfo" className="text-center p-4">
           {isLoading && <p>Loading...</p>}
           {error && <p className="text-red-500">{error}</p>}
           {searchedMovie && (
             <div className="border p-4 rounded-lg shadow-md mt-4">
-              <img src={searchedMovie.Poster} alt={searchedMovie.Title} className="mx-auto h-48"/>
-              <h3 className="text-lg font-bold mt-2">{searchedMovie.Title} ({searchedMovie.Year})</h3>
+              <img
+                src={searchedMovie.Poster}
+                alt={searchedMovie.Title}
+                className="mx-auto h-48"
+              />
+              <h3 className="text-lg font-bold mt-2">
+                {searchedMovie.Title} ({searchedMovie.Year})
+              </h3>
               <button
                 type="button"
                 onClick={handleAddMovie}
@@ -111,10 +186,10 @@ function App() {
           className="grid mb-8 border border-gray-200 rounded-lg shadow-sm md:mb-12 md:grid-cols-4 lg:grid-cols-6 bg-white dark:bg-gray-800"
         >
           {movieList.map((movie) => (
-            <MovieCard 
-              key={movie.imdbID} // Use the unique imdbID for the key!
-              title={movie.Title} 
-              poster={movie.Poster} 
+            <MovieCard
+              key={movie.imdbID}
+              title={movie.Title}
+              poster={movie.Poster}
             />
           ))}
         </div>
