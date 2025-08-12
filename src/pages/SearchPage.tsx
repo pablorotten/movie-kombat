@@ -80,7 +80,7 @@ export default function SearchPage() {
           </span>
           <span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></span>
         </h1>
-        <p className="text-lg text-gray-800 mb-8">Search and add up to 8 🎬 movies</p>
+        <p className="text-lg text-white-800 mb-8">Search and add up to 8 🎬 movies</p>
       </div>
 
       <div className="max-w-xl mx-auto px-4">
