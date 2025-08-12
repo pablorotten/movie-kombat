@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
+import MovieCard from "../components/MovieCard";
 
 export default function SearchPage() {
-  const { addMovie } = useMovies();
+  const { addMovie, movieList } = useMovies(); // Also get the movieList
 
   // State for this page
   const [apiKey, setApiKey] = useState<string>("");
@@ -46,7 +47,9 @@ export default function SearchPage() {
       setError(null);
       setSearchedMovie(null);
       try {
-        const response = await fetch(`https://www.omdbapi.com/?apikey=${apiKey}&t=${searchTerm}`);
+        const response = await fetch(
+          `https://www.omdbapi.com/?apikey=${apiKey}&t=${searchTerm}`
+        );
         const data = await response.json();
         if (data.Response === "True") {
           setSearchedMovie(data);
@@ -80,7 +83,9 @@ export default function SearchPage() {
           </span>
           <span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></span>
         </h1>
-        <p className="text-lg text-white-800 mb-8">Search and add up to 8 🎬 movies</p>
+        <p className="text-lg text-white-800 mb-8">
+          Search and add up to 8 🎬 movies
+        </p>
       </div>
 
       <div className="max-w-xl mx-auto px-4">
@@ -89,9 +94,22 @@ export default function SearchPage() {
           className="w-full flex justify-between items-center p-3 text-slate-300 hover:bg-gray-700 hover:text-white rounded-lg transition-colors duration-200 font-semibold"
         >
           <span>OMDB API key</span>
-          <span className={`transform transition-transform duration-300 ${isAccordionOpen ? "rotate-180" : ""}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-              <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+          <span
+            className={`transform transition-transform duration-300 ${
+              isAccordionOpen ? "rotate-180" : ""
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                clipRule="evenodd"
+              />
             </svg>
           </span>
         </button>
@@ -125,15 +143,43 @@ export default function SearchPage() {
           {error && <p className="text-red-500">{error}</p>}
           {searchedMovie && (
             <div className="border p-4 rounded-lg shadow-md mt-4 dark:border-gray-600">
-              <img src={searchedMovie.Poster} alt={searchedMovie.Title} className="mx-auto h-48" />
-              <h3 className="text-lg font-bold mt-2">{searchedMovie.Title} ({searchedMovie.Year})</h3>
-              <button type="button" onClick={handleAddMovie} className="btn-primary mt-4 p-2.5 w-full text-sm">
+              <img
+                src={searchedMovie.Poster}
+                alt={searchedMovie.Title}
+                className="mx-auto h-48"
+              />
+              <h3 className="text-lg font-bold mt-2">
+                {searchedMovie.Title} ({searchedMovie.Year})
+              </h3>
+              <button
+                type="button"
+                onClick={handleAddMovie}
+                className="btn-primary mt-4 p-2.5 w-full text-sm"
+              >
                 Add to List
               </button>
             </div>
           )}
         </div>
       </div>
+      {/* Add this entire block to the bottom of SearchPage.tsx */}
+
+      {movieList.length > 0 && (
+        <div className="container mx-auto px-4 mt-12">
+          <h2 className="text-2xl font-bold text-center mb-6">
+            My Added Movies ({movieList.length})
+          </h2>
+          <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-6">
+            {movieList.map((movie) => (
+              <MovieCard
+                key={movie.imdbID}
+                title={movie.Title}
+                poster={movie.Poster}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }
