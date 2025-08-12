@@ -1,6 +1,5 @@
 import { useMovies } from '../context/MovieContext';
 import MovieCard from '../components/MovieCard';
-import { Link } from 'react-router-dom';
 
 export default function MovieListPage() {
   const { movieList } = useMovies(); // Get the list from our context!
