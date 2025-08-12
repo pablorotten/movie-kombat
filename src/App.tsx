@@ -3,6 +3,8 @@ import movieKombatLogo from './assets/movie-kombat-logo.svg';
 import SearchPage from './pages/SearchPage';
 import MovieListPage from './pages/MovieList';
 import { useMovies } from './context/MovieContext';
+import "./App.css";
+
 
 function App() {
   const { movieList } = useMovies();
