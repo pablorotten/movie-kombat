@@ -89,20 +89,27 @@ function App() {
 
   return (
     <>
-      <header className="flex items-center p-4 bg-gray-800 text-white">
-        <img
-          src={movieKombatLogo}
-          alt="Movie Kombat Logo"
-          className="h-8 w-8 mr-2"
-        />
-        <h1 className="text-2xl font-bold">Movie Kombat</h1>
+      <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
+        <div className="flex items-center">
+          <img
+            src={movieKombatLogo}
+            alt="Movie Kombat Logo"
+            className="h-8 w-8 mr-2"
+          />
+          <h1 className="text-2xl font-bold">Movie Kombat</h1>
+        </div>
+
+        {/* --- HERE IS THE NEW DUMMY BUTTON --- */}
+        <button type="button" className="btn-secondary">
+          Show movie list
+        </button>
       </header>
 
       <div className="max-w-3xl mx-auto text-center mt-16">
         {/* Header text */}
       </div>
 
-      {/* --- NEW API Key Section --- */}
+      {/* --- API Key Section --- */}
       <div className="max-w-xl mx-auto px-4">
         <button
           onClick={() => setIsAccordionOpen(!isAccordionOpen)}
@@ -171,7 +178,7 @@ function App() {
               <button
                 type="button"
                 onClick={handleAddMovie}
-                className="mt-4 p-2.5 w-full text-sm font-medium text-white bg-blue-700 rounded-lg border border-blue-700 hover:bg-blue-800"
+                className="btn-primary mt-4 p-2.5 w-full text-sm"
               >
                 Add to List
               </button>
