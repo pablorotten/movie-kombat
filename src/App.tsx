@@ -5,7 +5,7 @@ import TournamentPage from "./pages/TournamentPage";
 import Button from "./components/Button";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
-import TournamentIcon from "./assets/tournament.svg?react";
+import TournamentIcon from "./assets/tournament.svg";
 
 function App() {
   const navigate = useNavigate();
