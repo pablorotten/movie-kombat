@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useMovies } from '../context/MovieContext';
 import { BracketMatch, TournamentOption } from '../components/Tournament/TournamentModels';
 import { createInitialStages, getStageName } from '../utils/tournamentUtils';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // 👈 Add useNavigate
+import Button from '../components/Button'; // 👈 Add your custom Button
 
 // A simplified component to show the two movie choices
 const TournamentMatchup = ({ match, onChooseWinner }: { match: BracketMatch, onChooseWinner: (winner: TournamentOption) => void }) => {
@@ -32,6 +33,8 @@ const TournamentMatchup = ({ match, onChooseWinner }: { match: BracketMatch, onC
 
 export default function TournamentPage() {
   const { movieList } = useMovies();
+  const navigate = useNavigate(); // 👈 Add this line
+
   
   const [stages, setStages] = useState<BracketMatch[][]>([]);
   const [currentStage, setCurrentStage] = useState(0);
@@ -95,18 +98,19 @@ export default function TournamentPage() {
     }
   };
 
-  if (movieList.length < 2) {
-    return (
-      <div className="text-center p-8">
-        <h1 className="text-2xl font-bold mb-4">Tournament Mode</h1>
-        <p className="text-lg text-gray-400">You need to add at least 2 movies to start a tournament.</p>
-        <Link to="/" className="btn-primary mt-6 inline-block">
+if (movieList.length < 2) {
+  return (
+    <div className="text-center p-8">
+      <h1 className="text-2xl font-bold mb-4">Tournament Mode</h1>
+      <p className="text-lg text-gray-400">You need to add at least 2 movies to start a tournament.</p>
+      <div className="flex justify-center p-4">
+        <Button variant="danger" onClick={() => navigate('/')}>
           &larr; Back to Search
-        </Link>
+        </Button>
       </div>
-    );
-  }
-
+    </div>
+  );
+}
   if (stages.length === 0) {
     return <div className="text-center p-8">Loading Tournament...</div>;
   }

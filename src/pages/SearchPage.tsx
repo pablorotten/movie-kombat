@@ -152,6 +152,7 @@ export default function SearchPage() {
               <h3 className="text-lg font-bold mt-2">
                 {searchedMovie.Title} ({searchedMovie.Year})
               </h3>
+        <div className="flex justify-center p-4">
               <Button
                 variant="success"
                 size="large"
@@ -160,6 +161,7 @@ export default function SearchPage() {
               >
                 Add to List
               </Button>
+            </div>
             </div>
           )}
         </div>
@@ -170,8 +172,8 @@ export default function SearchPage() {
             fullWidth={true}
           >
             Test
-          </Button>
-        </div> */}
+          </Button> */}
+        {/* </div> */}
       </div>
       {/* Add this entire block to the bottom of SearchPage.tsx */}
 
