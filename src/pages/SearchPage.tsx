@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
+import Button from '../components/Button'; // <-- ADD THIS LINE
 
 export default function SearchPage() {
   const { addMovie, movieList } = useMovies(); // Also get the movieList
@@ -151,16 +152,26 @@ export default function SearchPage() {
               <h3 className="text-lg font-bold mt-2">
                 {searchedMovie.Title} ({searchedMovie.Year})
               </h3>
-              <button
-                type="button"
+              <Button
+                variant="success"
+                size="large"
                 onClick={handleAddMovie}
-                className="btn-primary mt-4 p-2.5 w-full text-sm"
+                fullWidth={true}
               >
                 Add to List
-              </button>
+              </Button>
             </div>
           )}
         </div>
+        {/* <div className="flex justify-center p-4">
+          <Button
+            variant="primary"
+            size="large"
+            fullWidth={true}
+          >
+            Test
+          </Button>
+        </div> */}
       </div>
       {/* Add this entire block to the bottom of SearchPage.tsx */}
 
