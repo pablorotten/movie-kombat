@@ -27,11 +27,9 @@ function App() {
           variant="success"
           size="small"
           fullWidth={true}
-          // This works
-          // icon={<span role="img" aria-label="star">⭐</span>}
           icon={
             <span className="inline-block" aria-label="star">
-              <img src={TournamentIcon} />
+              <img src={TournamentIcon} className="w-4 h-4"/>
             </span>
           }
           onClick={() => navigate("/list")}
