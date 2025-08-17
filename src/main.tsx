@@ -7,7 +7,7 @@ import { MovieProvider } from './context/MovieContext.tsx'; // Import our new pr
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename="/movie-kombat/">
+    <BrowserRouter>
       <MovieProvider>
         <App />
       </MovieProvider>
