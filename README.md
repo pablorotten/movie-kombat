@@ -1,5 +1,5 @@
 # Movie-Kombat
-🔗 https://pablorotten.github.io/movie-kombat/
+🔗 https://pablorotten.github.io/
 
 ## Launch the app
 
