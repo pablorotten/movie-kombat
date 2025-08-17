@@ -36,7 +36,7 @@ export default function SearchPage() {
           setError(data.Error);
         }
       } catch (err) {
-        setError("An unexpected error occurred.");
+        setError("An unexpected error occurred: " + err);
       } finally {
         setIsLoading(false);
       }

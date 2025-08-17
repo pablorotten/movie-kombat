@@ -13,15 +13,23 @@ import ApiKeyIcon from "./assets/api-key.svg"; // Import the key icon
 const ApiKeyModal = ({
   isOpen,
   onClose,
-  apiKey,
+  apiKey = "",
   setApiKey,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  apiKey: string;
+  apiKey?: string;
   setApiKey: (key: string) => void;
 }) => {
+  const [inputValue, setInputValue] = useState(apiKey);
+
+
   if (!isOpen) return null;
+
+  const handleSave = () => {
+    setApiKey(inputValue);
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
@@ -31,12 +39,12 @@ const ApiKeyModal = ({
         </h2>
         <input
           type="text"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
           className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5 mb-4"
           placeholder="Enter your OMDB API key..."
         />
-        <Button variant="primary" onClick={onClose}>
+        <Button variant="primary" onClick={handleSave}>
           Save and Close
         </Button>
       </div>
@@ -55,7 +63,6 @@ function App() {
       <ApiKeyModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        apiKey={apiKey}
         setApiKey={setApiKey}
       />
       <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
