@@ -14,6 +14,7 @@ export default function SearchPage() {
   const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const DEFAULT_API_KEY = "b5875a85";
 
   // Effect to load API key from localStorage
   useEffect(() => {
@@ -35,8 +36,7 @@ export default function SearchPage() {
   // Effect to fetch movie data
   useEffect(() => {
     if (!apiKey) {
-      setError("Please enter your OMDB API key.");
-      return;
+      setApiKey(DEFAULT_API_KEY);
     }
     if (searchTerm.trim() === "") {
       setSearchedMovie(null);

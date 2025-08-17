@@ -3,7 +3,7 @@
 export interface Movie {
   Title: string;
   Year: string;
-  imdbID: string;
+  imdbID: string;// TODO: add link to winner
   Type: string;
   Poster: string;
 }
