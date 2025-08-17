@@ -1,26 +1,41 @@
-import { createContext, useState, useContext, ReactNode } from 'react';
-import { Movie } from '../types'; // Make sure this path is correct
+import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { Movie } from '../types';
 
-// Define the shape of our shared data
 interface MovieContextType {
   movieList: Movie[];
   addMovie: (movie: Movie) => void;
+  apiKey: string; // Add apiKey to the context
+  setApiKey: (key: string) => void; // Add a function to update it
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
 
-// This component will hold the state and provide it to our app
 export function MovieProvider({ children }: { children: ReactNode }) {
   const [movieList, setMovieList] = useState<Movie[]>([]);
+  
+  const DEFAULT_API_KEY = "b5875a85";
+  const [apiKey, setApiKey] = useState<string>(DEFAULT_API_KEY);
+
+  // Effect to load API key from localStorage on initial mount
+  useEffect(() => {
+    const storedApiKey = localStorage.getItem("omdbApiKey");
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+    }
+  }, []);
+
+  // Effect to save API key to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("omdbApiKey", apiKey);
+  }, [apiKey]);
 
   const addMovie = (movie: Movie) => {
-    // Check for duplicates before adding
     if (!movieList.find((m) => m.imdbID === movie.imdbID)) {
       setMovieList((prevList) => [...prevList, movie]);
     }
   };
 
-  const value = { movieList, addMovie };
+  const value = { movieList, addMovie, apiKey, setApiKey }; // Expose new values
 
   return (
     <MovieContext.Provider value={value}>
@@ -29,7 +44,6 @@ export function MovieProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// This is a helper hook to make it easy to access the data
 export function useMovies() {
   const context = useContext(MovieContext);
   if (context === undefined) {
