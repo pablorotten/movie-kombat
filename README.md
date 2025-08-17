@@ -1,5 +1,5 @@
 # Movie-Kombat
-🔗 https://pablorotten.github.io/
+🔗 https://movie-kombat.vercel.app/
 
 ## Launch the app
 
