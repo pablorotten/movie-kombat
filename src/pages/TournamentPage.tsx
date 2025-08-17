@@ -157,7 +157,7 @@ export default function TournamentPage() {
             🏆 The Winner Is! 🏆
           </h1>
 
-          {/* IMDb link */}
+          {/* IMDb link - #Issue 19 */}
           <div className="flex justify-center">
             <a
               href={`https://www.imdb.com/title/${winner.id}/`}
