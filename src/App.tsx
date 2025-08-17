@@ -55,7 +55,7 @@ const ApiKeyModal = ({
 function App() {
   const navigate = useNavigate();
   // Get everything we need from the context
-  const { movieList, apiKey, setApiKey } = useMovies();
+  const { movieList, setApiKey } = useMovies();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
