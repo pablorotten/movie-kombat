@@ -153,12 +153,12 @@ export default function TournamentPage() {
     <div className="container mx-auto p-4 md:p-8">
       {winner ? (
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4 text-black">
+          <h1 className="text-4xl font-bold mb-4 text-black dark:text-white">
             🏆 The Winner Is! 🏆
           </h1>
 
           {/* IMDb link - #Issue 19 */}
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-4">
             <a
               href={`https://www.imdb.com/title/${winner.id}/`}
               target="_blank"
@@ -174,7 +174,9 @@ export default function TournamentPage() {
           </div>
 
           <div className="flex flex-col items-center gap-4 max-w-sm mx-auto">
-            <h3 className="text-3xl font-bold text-black">{winner.title}</h3>
+            <h3 className="text-3xl font-bold text-black dark:text-white">
+              {winner.title}
+            </h3>
             <img
               src={winner.poster}
               alt={winner.title}
