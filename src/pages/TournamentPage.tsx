@@ -7,8 +7,8 @@ import {
   TournamentOption,
 } from "../components/Tournament/TournamentModels";
 import { createInitialStages, getStageName } from "../utils/tournamentUtils";
-import { useNavigate } from "react-router-dom"; // 👈 Add useNavigate
-import Button from "../components/Button"; // 👈 Add your custom Button
+import { useNavigate } from "react-router-dom";
+import Button from "../components/Button";
 
 // A simplified component to show the two movie choices
 const TournamentMatchup = ({
@@ -22,7 +22,7 @@ const TournamentMatchup = ({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start">
       {/* First Movie */}
       <div className="flex flex-col items-center gap-4">
-        <h3 className="text-xl font-bold text-center h-16">
+        <h3 className="text-xl font-bold text-center h-8">
           {match.first.title}
         </h3>
         <img
@@ -30,16 +30,16 @@ const TournamentMatchup = ({
           alt={match.first.title}
           className="rounded-lg shadow-lg max-h-96"
         />
-        <button
-          onClick={() => onChooseWinner(match.first)}
-          className="btn-primary w-full mt-2"
-        >
-          Choose
-        </button>
+
+        <div className="mt-4">
+          <Button variant="primary" onClick={() => onChooseWinner(match.first)}>
+            Choose
+          </Button>
+        </div>
       </div>
       {/* Second Movie */}
       <div className="flex flex-col items-center gap-4">
-        <h3 className="text-xl font-bold text-center h-16">
+        <h3 className="text-xl font-bold text-center h-8">
           {match.second.title}
         </h3>
         <img
@@ -47,12 +47,11 @@ const TournamentMatchup = ({
           alt={match.second.title}
           className="rounded-lg shadow-lg max-h-96"
         />
-        <button
-          onClick={() => onChooseWinner(match.second)}
-          className="btn-primary w-full mt-2"
-        >
-          Choose
-        </button>
+        <div className="mt-4">
+          <Button variant="primary" onClick={() => onChooseWinner(match.first)}>
+            Choose
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -185,12 +184,10 @@ export default function TournamentPage() {
 
             <Button
               variant="success"
-              onClick={
-                () =>{
-                  setMovieList([]); // Clear all movies
-                  navigate("/")
-                }
-              }
+              onClick={() => {
+                setMovieList([]); // Clear all movies
+                navigate("/");
+              }}
             >
               Start a New Tournament
             </Button>
