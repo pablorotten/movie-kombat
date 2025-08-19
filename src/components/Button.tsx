@@ -55,6 +55,8 @@ const Button: React.FC<ButtonProps> = ({
   size = "medium",
   ...props
 }) => {
+  const isDisabled = disabled || loading;
+
   return (
     <div
       className={`${CONTAINER_VARIANTS[variant]} w-fit rounded-xl relative h-fit shadow-[0px_5px_8px_-2px_rgba(0,0,0,0.9)]`}
@@ -63,14 +65,15 @@ const Button: React.FC<ButtonProps> = ({
         className={`flex justify-center items-center  
         shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1),0_2px_2px_rgba(0,0,0,0.1)] 
         text-white font-bold text-shadow-[2px_2px_0_#000]
-        active:translate-y-1 transition-all relative  active:bottom-1
+        transition-all relative
         after:content-[''] after:absolute after:inset-0 after:w-full after:h-full after:shadow-[inset_0_-1px_7px_-1px_#FFF] after:rounded-xl after:mix-blend-soft-light
         ${VARIANT_STYLES[variant]}
         ${SIZE_STYLES[size]}
         ${fullWidth ? "w-full" : ""}
-        ${disabled && !loading ? "opacity-100 cursor-not-allowed" : ""}
+        ${isDisabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
+        ${!isDisabled ? "active:translate-y-1 active:bottom-1" : ""}
         ${loading ? "brightness-100" : ""}`}
-        disabled={disabled || loading}
+        disabled={isDisabled}
         {...props}
       >
         <span
