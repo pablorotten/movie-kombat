@@ -7,7 +7,7 @@ import {
   TournamentOption,
 } from "../components/Tournament/TournamentModels";
 import { createInitialStages, getStageName } from "../utils/tournamentUtils";
-import { Link, useNavigate } from "react-router-dom"; // 👈 Add useNavigate
+import { useNavigate } from "react-router-dom"; // 👈 Add useNavigate
 import Button from "../components/Button"; // 👈 Add your custom Button
 
 // A simplified component to show the two movie choices
@@ -59,7 +59,7 @@ const TournamentMatchup = ({
 };
 
 export default function TournamentPage() {
-  const { movieList } = useMovies();
+  const { movieList, setMovieList } = useMovies(); // <-- Add setMovieList
   const navigate = useNavigate(); // 👈 Add this line
 
   const [stages, setStages] = useState<BracketMatch[][]>([]);
@@ -183,9 +183,17 @@ export default function TournamentPage() {
               className="rounded-lg shadow-2xl"
             />
 
-            <Link to="/" className="btn-secondary mt-6">
+            <Button
+              variant="success"
+              onClick={
+                () =>{
+                  setMovieList([]); // Clear all movies
+                  navigate("/")
+                }
+              }
+            >
               Start a New Tournament
-            </Link>
+            </Button>
           </div>
         </div>
       ) : (
