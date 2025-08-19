@@ -4,8 +4,9 @@ import { Movie } from '../types';
 interface MovieContextType {
   movieList: Movie[];
   addMovie: (movie: Movie) => void;
-  apiKey: string; // Add apiKey to the context
-  setApiKey: (key: string) => void; // Add a function to update it
+  apiKey: string;
+  setApiKey: (key: string) => void;
+  setMovieList: React.Dispatch<React.SetStateAction<Movie[]>>; // <-- Add this line
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -16,7 +17,6 @@ export function MovieProvider({ children }: { children: ReactNode }) {
   const DEFAULT_API_KEY = "b5875a85";
   const [apiKey, setApiKey] = useState<string>(DEFAULT_API_KEY);
 
-  // Effect to load API key from localStorage on initial mount
   useEffect(() => {
     const storedApiKey = localStorage.getItem("omdbApiKey");
     if (storedApiKey) {
@@ -24,7 +24,6 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Effect to save API key to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("omdbApiKey", apiKey);
   }, [apiKey]);
@@ -35,7 +34,7 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const value = { movieList, addMovie, apiKey, setApiKey }; // Expose new values
+  const value = { movieList, addMovie, apiKey, setApiKey, setMovieList };
 
   return (
     <MovieContext.Provider value={value}>
