@@ -95,7 +95,7 @@ function App() {
               <img src={TournamentIcon} className="w-4 h-4" />
             </span>
           }
-          onClick={() => navigate("/list")}
+          onClick={() => navigate("/tournament")}
           disabled={
             movieList.length <= 3 ||
             (movieList.length & (movieList.length - 1)) !== 0
@@ -113,7 +113,7 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<SearchPage />} />
-          <Route path="/list" element={<TournamentPage />} />
+          <Route path="/tournament" element={<TournamentPage />} />
         </Routes>
       </main>
     </>
