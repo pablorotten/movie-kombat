@@ -23,7 +23,6 @@ const ApiKeyModal = ({
 }) => {
   const [inputValue, setInputValue] = useState(apiKey);
 
-
   if (!isOpen) return null;
 
   const handleSave = () => {
@@ -97,6 +96,10 @@ function App() {
             </span>
           }
           onClick={() => navigate("/list")}
+          disabled={
+            movieList.length <= 3 ||
+            (movieList.length & (movieList.length - 1)) !== 0
+          } // Disable if not a power of 2 or empty
         >
           Start Tournament
           {movieList.length > 0 && (
