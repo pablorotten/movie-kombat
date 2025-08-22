@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
-import Button from '../components/Button';
+import Button from "../components/Button";
 
 export default function SearchPage() {
-  const { addMovie, movieList, apiKey } = useMovies(); // Get apiKey from context
+  const { addMovie, movieList, apiKey, removeMovie } = useMovies();
 
   // State for this page is now much simpler
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -85,12 +85,21 @@ export default function SearchPage() {
           {error && <p className="text-red-500">{error}</p>}
           {searchedMovie && (
             <div className="border p-4 rounded-lg shadow-md mt-4 dark:border-gray-600">
-              <img src={searchedMovie.Poster} alt={searchedMovie.Title} className="mx-auto h-48" />
+              <img
+                src={searchedMovie.Poster}
+                alt={searchedMovie.Title}
+                className="mx-auto h-48"
+              />
               <h3 className="text-lg font-bold mt-2">
                 {searchedMovie.Title} ({searchedMovie.Year})
               </h3>
               <div className="flex justify-center p-4">
-                <Button variant="success" size="medium" onClick={handleAddMovie} fullWidth={true}>
+                <Button
+                  variant="success"
+                  size="medium"
+                  onClick={handleAddMovie}
+                  fullWidth={true}
+                >
                   Add to List
                 </Button>
               </div>
@@ -98,7 +107,7 @@ export default function SearchPage() {
           )}
         </div>
       </div>
-      
+
       {movieList.length > 0 && (
         <div className="container mx-auto px-4 mt-12">
           <h2 className="text-2xl font-bold text-center mb-6">
@@ -110,6 +119,8 @@ export default function SearchPage() {
                 key={movie.imdbID}
                 title={movie.Title}
                 poster={movie.Poster}
+                imdbID={movie.imdbID} // Pass the ID
+                onDelete={removeMovie} // Pass the delete function
               />
             ))}
           </div>

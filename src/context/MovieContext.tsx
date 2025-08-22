@@ -4,9 +4,10 @@ import { Movie } from '../types';
 interface MovieContextType {
   movieList: Movie[];
   addMovie: (movie: Movie) => void;
+  removeMovie: (imdbID: string) => void;
   apiKey: string;
   setApiKey: (key: string) => void;
-  setMovieList: React.Dispatch<React.SetStateAction<Movie[]>>; // <-- Add this line
+  setMovieList: React.Dispatch<React.SetStateAction<Movie[]>>;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -34,7 +35,13 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const value = { movieList, addMovie, apiKey, setApiKey, setMovieList };
+  const removeMovie = (imdbID: string) => {
+    setMovieList((currentMovies) =>
+      currentMovies.filter((movie) => movie.imdbID !== imdbID)
+    );
+  };
+
+  const value = { movieList, addMovie, removeMovie, setApiKey, setMovieList, apiKey };
 
   return (
     <MovieContext.Provider value={value}>
