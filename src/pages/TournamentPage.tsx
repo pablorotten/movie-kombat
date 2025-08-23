@@ -1,5 +1,3 @@
-// src/pages/TournamentPage.tsx
-
 import { useEffect, useState } from "react";
 import { useMovies } from "../context/MovieContext";
 import {
@@ -10,7 +8,6 @@ import { createInitialStages, getStageName } from "../utils/tournamentUtils";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 
-// A simplified component to show the two movie choices
 const TournamentMatchup = ({
   match,
   onChooseWinner,
@@ -48,7 +45,7 @@ const TournamentMatchup = ({
           className="rounded-lg shadow-lg max-h-96"
         />
         <div className="mt-4">
-          <Button variant="primary" onClick={() => onChooseWinner(match.first)}>
+          <Button variant="primary" onClick={() => onChooseWinner(match.second)}>
             Choose
           </Button>
         </div>
@@ -58,8 +55,8 @@ const TournamentMatchup = ({
 };
 
 export default function TournamentPage() {
-  const { movieList, setMovieList } = useMovies(); // <-- Add setMovieList
-  const navigate = useNavigate(); // 👈 Add this line
+  const { movieList, setMovieList } = useMovies();
+  const navigate = useNavigate();
 
   const [stages, setStages] = useState<BracketMatch[][]>([]);
   const [currentStage, setCurrentStage] = useState(0);
