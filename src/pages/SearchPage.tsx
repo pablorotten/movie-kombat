@@ -3,6 +3,8 @@ import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
+import arrowsExpandIcon from "../assets/arrows-angle-expand-svgrepo-com.svg";
+import arrowsContractIcon from "../assets/arrows-angle-contract-svgrepo-com.svg";
 
 export default function SearchPage() {
   const { addMovie, movieList, apiKey, removeMovie } = useMovies();
@@ -112,49 +114,55 @@ export default function SearchPage() {
       {/* The entire API Key accordion section is GONE */}
 
       <div className="max-w-xl mx-auto px-4">
-        <div className="flex items-center w-full mx-auto mt-4 gap-2">
+        <div className="w-full mx-auto mt-4">
           {!useTextarea ? (
-            <>
+            <div className="relative">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-12"
                 placeholder="Search movie..."
-                onFocus={() => setUseTextarea(false)}
               />
-              <Button
-                variant="secondary"
-                size="small"
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition"
                 onClick={() => setUseTextarea(true)}
                 title="Switch to list mode"
               >
-                List
-              </Button>
-            </>
+                <img
+                  src={arrowsExpandIcon}
+                  alt="List mode"
+                  className="w-5 h-5"
+                />
+              </button>
+            </div>
           ) : (
-            <>
+            <div className="relative">
               <textarea
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-12 resize-none"
                 placeholder="Enter one movie per line..."
                 rows={4}
-                onFocus={() => setUseTextarea(true)}
               />
-              <Button
-                variant="secondary"
-                size="small"
+              <button
+                type="button"
+                className="absolute right-2 top-2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition"
                 onClick={() => setUseTextarea(false)}
                 title="Switch to single search"
               >
-                Single
-              </Button>
-            </>
+                <img
+                  src={arrowsContractIcon}
+                  alt="Single mode"
+                  className="w-5 h-5"
+                />
+              </button>
+            </div>
           )}
         </div>
         {useTextarea && (
-          <div className="flex justify-end mt-2">
+          <div className="flex justify-center mt-2">
             <Button
               variant="success"
               size="small"
