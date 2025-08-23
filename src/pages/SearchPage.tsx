@@ -128,7 +128,7 @@ export default function SearchPage() {
                 type="button"
                 className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition"
                 onClick={() => setUseTextarea(true)}
-                title="Switch to list mode"
+                title="Search multiple movies"
               >
                 <img
                   src={arrowsExpandIcon}
@@ -150,7 +150,7 @@ export default function SearchPage() {
                 type="button"
                 className="absolute right-2 top-2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition"
                 onClick={() => setUseTextarea(false)}
-                title="Switch to single search"
+                title="Search only 1 movie"
               >
                 <img
                   src={arrowsContractIcon}
