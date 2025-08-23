@@ -3,6 +3,8 @@ import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
+import arrowsExpandIcon from "../assets/arrows-angle-expand-svgrepo-com.svg";
+import arrowsContractIcon from "../assets/arrows-angle-contract-svgrepo-com.svg";
 
 export default function SearchPage() {
   const { addMovie, movieList, apiKey, removeMovie } = useMovies();
@@ -13,8 +15,11 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Effect to fetch movie data
+  // New state to toggle between input and textarea
+  const [useTextarea, setUseTextarea] = useState(false);
+
   useEffect(() => {
+    if (useTextarea) return; // Don't fetch for textarea mode
     if (searchTerm.trim() === "") {
       setSearchedMovie(null);
       setError(null);
@@ -25,7 +30,6 @@ export default function SearchPage() {
       setError(null);
       setSearchedMovie(null);
       try {
-        // The fetch call now uses the apiKey from context
         const response = await fetch(
           `https://www.omdbapi.com/?apikey=${apiKey}&t=${searchTerm}`
         );
@@ -43,13 +47,53 @@ export default function SearchPage() {
     };
     const timerId = setTimeout(fetchMovie, 500);
     return () => clearTimeout(timerId);
-  }, [searchTerm, apiKey]); // Depends on the shared apiKey
+  }, [searchTerm, apiKey, useTextarea]);
 
   function handleAddMovie() {
     if (searchedMovie) {
       addMovie(searchedMovie);
       setSearchedMovie(null);
       setSearchTerm("");
+    }
+  }
+
+  // Handler for textarea mode (search multiple movies)
+  async function handleTextareaSearch() {
+    const titles = searchTerm
+      .split("\n")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    if (titles.length === 0) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    const notFound: string[] = [];
+    for (const title of titles) {
+      try {
+        const response = await fetch(
+          `https://www.omdbapi.com/?apikey=${apiKey}&t=${encodeURIComponent(
+            title
+          )}`
+        );
+        const data = await response.json();
+        if (data.Response === "True") {
+          addMovie(data);
+        } else {
+          notFound.push(title);
+        }
+      } catch {
+        notFound.push(title);
+      }
+    }
+
+    setIsLoading(false);
+    setSearchTerm("");
+    setUseTextarea(false);
+
+    if (notFound.length > 0) {
+      setError(`These movies were not found: ${notFound.join(", ")}`);
     }
   }
 
@@ -70,15 +114,64 @@ export default function SearchPage() {
       {/* The entire API Key accordion section is GONE */}
 
       <div className="max-w-xl mx-auto px-4">
-        <div className="flex items-center w-full mx-auto mt-4">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            placeholder="Search movie..."
-          />
+        <div className="w-full mx-auto mt-4">
+          {!useTextarea ? (
+            <div className="relative">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-12"
+                placeholder="Search movie..."
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition"
+                onClick={() => setUseTextarea(true)}
+                title="Search multiple movies"
+              >
+                <img
+                  src={arrowsExpandIcon}
+                  alt="List mode"
+                  className="w-5 h-5"
+                />
+              </button>
+            </div>
+          ) : (
+            <div className="relative">
+              <textarea
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-12 resize-none"
+                placeholder="Enter one movie per line..."
+                rows={4}
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition"
+                onClick={() => setUseTextarea(false)}
+                title="Search only 1 movie"
+              >
+                <img
+                  src={arrowsContractIcon}
+                  alt="Single mode"
+                  className="w-5 h-5"
+                />
+              </button>
+            </div>
+          )}
         </div>
+        {useTextarea && (
+          <div className="flex justify-center mt-2">
+            <Button
+              variant="success"
+              size="small"
+              onClick={handleTextareaSearch}
+            >
+              Search List
+            </Button>
+          </div>
+        )}
 
         <div className="text-center p-4">
           {isLoading && <p>Loading...</p>}
