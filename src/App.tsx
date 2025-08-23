@@ -1,4 +1,4 @@
-import { useState } from "react"; // Import useState
+import { useState } from "react";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import SearchPage from "./pages/SearchPage";
@@ -7,7 +7,7 @@ import Button from "./components/Button";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
 import TournamentIcon from "./assets/tournament.svg";
-import ApiKeyIcon from "./assets/api-key.svg"; // Import the key icon
+import ApiKeyIcon from "./assets/api-key.svg";
 
 // A simple modal component for the API key input
 const ApiKeyModal = ({
@@ -53,7 +53,6 @@ const ApiKeyModal = ({
 
 function App() {
   const navigate = useNavigate();
-  // Get everything we need from the context
   const { movieList, setApiKey } = useMovies();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -74,7 +73,7 @@ function App() {
             />
             <h1 className="text-2xl font-bold">Movie Kombat</h1>
           </Link>
-          {/* New discrete button to open the modal */}
+
           <button
             onClick={() => setIsModalOpen(true)}
             title="Set custom API Key"
