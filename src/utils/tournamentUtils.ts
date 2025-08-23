@@ -1,5 +1,3 @@
-// src/utils/tournamentUtils.ts
-
 import { BracketMatch, TournamentOption } from "../components/Tournament/TournamentModels";
 import { Movie } from "../types";
 
