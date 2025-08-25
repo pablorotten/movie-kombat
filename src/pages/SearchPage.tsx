@@ -5,6 +5,7 @@ import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import arrowsExpandIcon from "../assets/arrows-angle-expand-svgrepo-com.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract-svgrepo-com.svg";
+import placeholderPoster from '../assets/movie-placeholder/1.jpeg';
 
 export default function SearchPage() {
   const { addMovie, movieList, apiKey, removeMovie } = useMovies();
@@ -47,53 +48,61 @@ export default function SearchPage() {
     return () => clearTimeout(timerId);
   }, [searchTerm, apiKey, useTextarea]);
 
-  function handleAddMovie() {
-    if (searchedMovie) {
-      addMovie(searchedMovie);
-      setSearchedMovie(null);
-      setSearchTerm("");
+// In SearchPage.tsx
+
+function handleAddMovie() {
+  if (searchedMovie) {
+    // Create a copy of the movie to add
+    const movieToAdd = { ...searchedMovie };
+
+    // If the poster is "N/A", replace it with your placeholder
+    if (movieToAdd.Poster === "N/A") {
+      movieToAdd.Poster = placeholderPoster;
     }
+
+    addMovie(movieToAdd); // Add the corrected movie object
+    setSearchedMovie(null);
+    setSearchTerm("");
   }
+}
 
-  // Handler for textarea mode (search multiple movies)
-  async function handleTextareaSearch() {
-    const titles = searchTerm
-      .split("\n")
-      .map((t) => t.trim())
-      .filter(Boolean);
+  // Handler for textarea mode (search multiple movies)// In SearchPage.tsx
 
-    if (titles.length === 0) return;
+async function handleTextareaSearch() {
+  const titles = searchTerm.split("\n").map((t) => t.trim()).filter(Boolean);
+  if (titles.length === 0) return;
 
-    setIsLoading(true);
-    setError(null);
+  setIsLoading(true);
+  setError(null);
+  const notFound: string[] = [];
 
-    const notFound: string[] = [];
-    for (const title of titles) {
-      try {
-        const response = await fetch(
-          `https://www.omdbapi.com/?apikey=${apiKey}&t=${encodeURIComponent(
-            title
-          )}`
-        );
-        const data = await response.json();
-        if (data.Response === "True") {
-          addMovie(data);
-        } else {
-          notFound.push(title);
+  for (const title of titles) {
+    try {
+      const response = await fetch(
+        `https://www.omdbapi.com/?apikey=${apiKey}&t=${encodeURIComponent(title)}`
+      );
+      const data = await response.json();
+      if (data.Response === "True") {
+        // If the poster is "N/A", replace it here as well
+        if (data.Poster === "N/A") {
+          data.Poster = placeholderPoster;
         }
-      } catch {
+        addMovie(data);
+      } else {
         notFound.push(title);
       }
-    }
-
-    setIsLoading(false);
-    setSearchTerm("");
-    setUseTextarea(false);
-
-    if (notFound.length > 0) {
-      setError(`These movies were not found: ${notFound.join(", ")}`);
+    } catch {
+      notFound.push(title);
     }
   }
+
+  setIsLoading(false);
+  setSearchTerm("");
+  setUseTextarea(false);
+  if (notFound.length > 0) {
+    setError(`These movies were not found: ${notFound.join(", ")}`);
+  }
+}
 
 const LoadingSpinner = () => (
   <div role="status" className="flex justify-center items-center">
@@ -184,11 +193,11 @@ const LoadingSpinner = () => (
           {error && <p className="text-red-500">{error}</p>}
           {searchedMovie && (
             <div className="border p-4 rounded-lg shadow-md mt-4 dark:border-gray-600">
-              <img
-                src={searchedMovie.Poster}
-                alt={searchedMovie.Title}
-                className="mx-auto h-48"
-              />
+           <img 
+              src={searchedMovie.Poster === "N/A" ? placeholderPoster : searchedMovie.Poster} 
+              alt={searchedMovie.Title} 
+              className="mx-auto h-48" 
+            />
               <h3 className="text-lg font-bold mt-2">
                 {searchedMovie.Title} ({searchedMovie.Year})
               </h3>
