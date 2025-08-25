@@ -7,6 +7,7 @@ import {
 import { createInitialStages, getStageName } from "../utils/tournamentUtils";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
+import PosterImage from "../components/PosterImage";
 
 const TournamentMatchup = ({
   match,
@@ -16,18 +17,20 @@ const TournamentMatchup = ({
   onChooseWinner: (winner: TournamentOption) => void;
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start">
+    <div className="grid grid-cols-2 gap-4 md:gap-8 items-start">
       {/* First Movie */}
       <div className="flex flex-col items-center gap-4">
         <h3 className="text-xl font-bold text-center h-8">
           {match.first.title}
         </h3>
-        <img
-          src={match.first.poster}
-          alt={match.first.title}
-          className="rounded-lg shadow-lg max-h-96"
-        />
-
+        {/* Container for the first movie's poster */}
+        <div className="w-full max-w-xs mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 shadow-lg">
+          <PosterImage
+            className="w-full h-full object-cover"
+            src={match.first.poster}
+            alt={match.first.title}
+          />
+        </div>
         <div className="mt-4">
           <Button variant="primary" onClick={() => onChooseWinner(match.first)}>
             Choose
@@ -39,13 +42,18 @@ const TournamentMatchup = ({
         <h3 className="text-xl font-bold text-center h-8">
           {match.second.title}
         </h3>
-        <img
-          src={match.second.poster}
-          alt={match.second.title}
-          className="rounded-lg shadow-lg max-h-96"
-        />
+        <div className="w-full max-w-xs mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 shadow-lg">
+          <PosterImage
+            className="w-full h-full object-cover"
+            src={match.second.poster}
+            alt={match.second.title}
+          />
+        </div>
         <div className="mt-4">
-          <Button variant="primary" onClick={() => onChooseWinner(match.second)}>
+          <Button
+            variant="primary"
+            onClick={() => onChooseWinner(match.second)}
+          >
             Choose
           </Button>
         </div>
@@ -153,7 +161,6 @@ export default function TournamentPage() {
             🏆 The Winner Is! 🏆
           </h1>
 
-          {/* IMDb link - #Issue 19 */}
           <div className="flex justify-center mb-4">
             <a
               href={`https://www.imdb.com/title/${winner.id}/`}

@@ -1,4 +1,6 @@
 import Button from "../components/Button";
+import PosterImage from "../components/PosterImage";
+
 interface MovieCardProps {
   title: string;
   poster: string;
@@ -19,8 +21,15 @@ export default function MovieCard({
           {title}
         </h3>
       </blockquote>
-      <figcaption className="flex items-center justify-center">
-        <img className="rounded-lg" src={poster} alt={`${title} poster`} />
+      <figcaption className="flex items-center justify-center w-full">
+        {/* Container with a 2:3 aspect ratio */}
+        <div className="w-full aspect-[2/3] rounded-lg overflow-hidden bg-gray-700">
+          <PosterImage
+            className="w-full h-full object-cover"
+            src={poster}
+            alt={`${title} poster`}
+          />
+        </div>
       </figcaption>
       {/* Delete Button */}
 
