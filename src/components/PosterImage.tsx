@@ -8,20 +8,22 @@ interface PosterImageProps {
 }
 
 export default function PosterImage({ src, alt, className }: PosterImageProps) {
-  // This function will run if the image from `src` fails to load
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    // To prevent an infinite loop if the placeholder also fails,
-    // we can add a check.
     if (!e.currentTarget.src.includes('placeholder')) {
       e.currentTarget.src = getFirstPlaceholder();
     }
   };
 
+  // Check if the image source is one of our local placeholders.
+  // The path for imported local images will contain '/assets/'.
+  const isPlaceholder = src && src.includes('/assets/movie-placeholder');
+
   return (
     <img
       src={src}
       alt={alt}
-      className={className}
+      // Conditionally add the grayscale and opacity classes
+      className={`${className} ${isPlaceholder ? 'filter grayscale opacity-75' : ''}`}
       onError={handleImageError}
     />
   );
