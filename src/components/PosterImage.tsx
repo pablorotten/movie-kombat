@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getFirstPlaceholder } from '../utils/placeholderUtils';
 
 interface PosterImageProps {
@@ -8,21 +8,26 @@ interface PosterImageProps {
 }
 
 export default function PosterImage({ src, alt, className }: PosterImageProps) {
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    if (!e.currentTarget.src.includes('placeholder')) {
-      e.currentTarget.src = getFirstPlaceholder();
-    }
+  // Use state to manage the image source, initialized with the prop
+  const [imageSrc, setImageSrc] = useState(src);
+
+  // Keep the state in sync if the prop changes
+  useEffect(() => {
+    setImageSrc(src);
+  }, [src]);
+
+  const handleImageError = () => {
+    // When an error occurs, update the state to the placeholder
+    setImageSrc(getFirstPlaceholder());
   };
 
-  // Check if the image source is one of our local placeholders.
-  // The path for imported local images will contain '/assets/'.
-  const isPlaceholder = src && src.includes('/assets/movie-placeholder');
+  // Now, the placeholder check is based on the CURRENT image source
+  const isPlaceholder = imageSrc && imageSrc.includes('placeholder');
 
   return (
     <img
-      src={src}
+      src={imageSrc} // Use the state variable here
       alt={alt}
-      // Conditionally add the grayscale and opacity classes
       className={`${className} ${isPlaceholder ? 'filter grayscale opacity-75' : ''}`}
       onError={handleImageError}
     />
