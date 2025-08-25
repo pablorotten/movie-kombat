@@ -17,7 +17,7 @@ const TournamentMatchup = ({
   onChooseWinner: (winner: TournamentOption) => void;
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 items-start">
+    <div className="grid grid-cols-2 gap-4 md:gap-8 items-start">
       {/* First Movie */}
       <div className="flex flex-col items-center gap-4">
         <h3 className="text-xl font-bold text-center h-8">
