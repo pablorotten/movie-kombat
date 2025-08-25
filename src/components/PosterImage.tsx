@@ -1,5 +1,5 @@
 import React from 'react';
-import { getRandomPlaceholder } from '../utils/placeholderUtils';
+import { getFirstPlaceholder } from '../utils/placeholderUtils';
 
 interface PosterImageProps {
   src?: string;
@@ -8,14 +8,15 @@ interface PosterImageProps {
 }
 
 export default function PosterImage({ src, alt, className }: PosterImageProps) {
-  // This function will run ONLY if the image from `src` fails to load
+  // This function will run if the image from `src` fails to load
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    // Replace the broken image source with a random placeholder
-    e.currentTarget.src = getRandomPlaceholder();
+    // To prevent an infinite loop if the placeholder also fails,
+    // we can add a check.
+    if (!e.currentTarget.src.includes('placeholder')) {
+      e.currentTarget.src = getFirstPlaceholder();
+    }
   };
 
-  // The component now directly uses the `src` prop.
-  // We trust that the placeholder was already assigned when the movie was added.
   return (
     <img
       src={src}

@@ -7,6 +7,7 @@ import {
 import { createInitialStages, getStageName } from "../utils/tournamentUtils";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
+import PosterImage from "../components/PosterImage";
 
 const TournamentMatchup = ({
   match,
@@ -24,10 +25,10 @@ const TournamentMatchup = ({
         </h3>
         {/* Container for the first movie's poster */}
         <div className="w-full max-w-xs mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 shadow-lg">
-          <img
+          <PosterImage
+            className="w-full h-full object-cover"
             src={match.first.poster}
             alt={match.first.title}
-            className="w-full h-full object-cover"
           />
         </div>
         <div className="mt-4">
@@ -42,10 +43,10 @@ const TournamentMatchup = ({
           {match.second.title}
         </h3>
         <div className="w-full max-w-xs mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 shadow-lg">
-          <img
+          <PosterImage
+            className="w-full h-full object-cover"
             src={match.second.poster}
             alt={match.second.title}
-            className="w-full h-full object-cover"
           />
         </div>
         <div className="mt-4">
