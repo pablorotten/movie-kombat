@@ -22,12 +22,14 @@ const TournamentMatchup = ({
         <h3 className="text-xl font-bold text-center h-8">
           {match.first.title}
         </h3>
-        <img
-          src={match.first.poster}
-          alt={match.first.title}
-          className="rounded-lg shadow-lg max-h-96"
-        />
-
+        {/* Container for the first movie's poster */}
+        <div className="w-full max-w-xs mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 shadow-lg">
+          <img
+            src={match.first.poster}
+            alt={match.first.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
         <div className="mt-4">
           <Button variant="primary" onClick={() => onChooseWinner(match.first)}>
             Choose
@@ -39,13 +41,18 @@ const TournamentMatchup = ({
         <h3 className="text-xl font-bold text-center h-8">
           {match.second.title}
         </h3>
-        <img
-          src={match.second.poster}
-          alt={match.second.title}
-          className="rounded-lg shadow-lg max-h-96"
-        />
+        <div className="w-full max-w-xs mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 shadow-lg">
+          <img
+            src={match.second.poster}
+            alt={match.second.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
         <div className="mt-4">
-          <Button variant="primary" onClick={() => onChooseWinner(match.second)}>
+          <Button
+            variant="primary"
+            onClick={() => onChooseWinner(match.second)}
+          >
             Choose
           </Button>
         </div>

@@ -202,11 +202,13 @@ export default function SearchPage() {
           {error && <p className="text-red-500">{error}</p>}
           {searchedMovie && (
             <div className="border p-4 rounded-lg shadow-md mt-4 dark:border-gray-600">
-              <img
-                src={searchedMovie.Poster}
-                alt={searchedMovie.Title}
-                className="mx-auto h-48"
-              />
+              <div className="w-48 mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700">
+                <img
+                  className="w-full h-full object-cover"
+                  src={searchedMovie.Poster}
+                  alt={searchedMovie.Title}
+                />
+              </div>
               <h3 className="text-lg font-bold mt-2">
                 {searchedMovie.Title} ({searchedMovie.Year})
               </h3>
