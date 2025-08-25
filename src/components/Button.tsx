@@ -19,9 +19,9 @@ const CONTAINER_VARIANTS: Record<string, string> = {
   default: "bg-gray-950",
   primary: "bg-blue-900",
   secondary: "bg-purple-900",
-  success: "bg-green-800", // better green instead of lime
-  warning: "bg-amber-800", // more yellow-orange instead of orange
-  danger: "bg-red-800", // less saturated red, not white
+  success: "bg-green-800",
+  warning: "bg-amber-800",
+  danger: "bg-red-800",
 };
 
 const VARIANT_STYLES: Record<string, string> = {
