@@ -57,7 +57,6 @@ function App() {
   const navigate = useNavigate();
   const {
     movieList,
-    apiKey,
     setApiKey,
     arePostersVisible,
     togglePostersVisibility,
@@ -95,7 +94,7 @@ function App() {
 
         <button
           onClick={togglePostersVisibility}
-          title={arePostersVisible ? "Hide Posters" : "Show Posters"}
+          title={arePostersVisible ? "Blind Posters" : "Show Posters"}
           className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
         >
           {arePostersVisible ? (

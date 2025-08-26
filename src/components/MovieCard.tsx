@@ -15,7 +15,7 @@ export default function MovieCard({
   imdbID,
   onDelete,
 }: MovieCardProps) {
-  const { arePostersVisible } = useMovies(); // 👈 Get the visibility state
+  useMovies();
   return (
     <figure className="relative flex flex-col items-center justify-center p-8 text-center bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <blockquote className="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
@@ -23,18 +23,17 @@ export default function MovieCard({
           {title}
         </h3>
       </blockquote>
-      {arePostersVisible && (
-        <figcaption className="flex items-center justify-center w-full">
-          {/* Container with a 2:3 aspect ratio */}
-          <div className="w-full aspect-[2/3] rounded-lg overflow-hidden bg-gray-700">
-            <PosterImage
-              className="w-full h-full object-cover"
-              src={poster}
-              alt={`${title} poster`}
-            />
-          </div>
-        </figcaption>
-      )}
+
+      <figcaption className="flex items-center justify-center w-full">
+        {/* Container with a 2:3 aspect ratio */}
+        <div className="w-full aspect-[2/3] rounded-lg overflow-hidden bg-gray-700">
+          <PosterImage
+            className="w-full h-full object-cover"
+            src={poster}
+            alt={`${title} poster`}
+          />
+        </div>
+      </figcaption>
 
       {/* Delete Button */}
 

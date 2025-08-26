@@ -4,7 +4,7 @@ import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import arrowsExpandIcon from "../assets/arrows-angle-expand-svgrepo-com.svg";
-import arrowsContractIcon from "../assets/arrows-angle-contract-svgrepo-com.svg";
+import arrowsContractIcon from "../assets/arrows-angle-contract--com.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
 import PosterImage from "../components/PosterImage";
 
@@ -38,6 +38,7 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [useTextarea, setUseTextarea] = useState(false);
 
+  // This logic is for the single search result preview
   useEffect(() => {
     if (useTextarea) return;
     if (searchTerm.trim() === "") {
@@ -55,7 +56,6 @@ export default function SearchPage() {
         );
         const data = await response.json();
         if (data.Response === "True") {
-          // This logic is for the single search result preview
           if (data.Poster === "N/A") {
             data.Poster = getPlaceholder();
           }
