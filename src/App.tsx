@@ -55,12 +55,8 @@ const ApiKeyModal = ({
 
 function App() {
   const navigate = useNavigate();
-  const {
-    movieList,
-    setApiKey,
-    arePostersVisible,
-    togglePostersVisibility,
-  } = useMovies();
+  const { movieList, setApiKey, arePostersVisible, togglePostersVisibility } =
+    useMovies();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -87,7 +83,7 @@ function App() {
             className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
           >
             <span className="inline-block" aria-label="star">
-              <img src={ApiKeyIcon} className="w-4 h-4" />
+              <img src={ApiKeyIcon} className="w-4 h-4 dark" />
             </span>
           </button>
         </div>
@@ -95,15 +91,15 @@ function App() {
         <button
           onClick={togglePostersVisibility}
           title={arePostersVisible ? "Blind Posters" : "Show Posters"}
-          className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
+          className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300 btn-primary"
         >
           {arePostersVisible ? (
             <span className="inline-block" aria-label="star">
-              <img src={EyeCloseIcon} className="w-6 h-6" />
+              <img src={EyeCloseIcon} className="w-6 h-6 dark:invert" />
             </span>
           ) : (
             <span className="inline-block" aria-label="star">
-              <img src={EyeOpenIcon} className="w-6 h-6" />
+              <img src={EyeOpenIcon} className="w-6 h-6 dark:invert" />
             </span>
           )}
         </button>

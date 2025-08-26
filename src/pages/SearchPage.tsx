@@ -3,8 +3,8 @@ import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
-import arrowsExpandIcon from "../assets/arrows-angle-expand-svgrepo-com.svg";
-import arrowsContractIcon from "../assets/arrows-angle-contract--com.svg";
+import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
+import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
 import PosterImage from "../components/PosterImage";
 
