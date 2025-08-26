@@ -7,7 +7,7 @@ import Button from "./components/Button";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
 import TournamentIcon from "./assets/tournament.svg";
-import ApiKeyIcon from "./assets/api-key.svg";
+// import ApiKeyIcon from "./assets/api-key.svg";
 import EyeOpenIcon from "./assets/eye-open.svg";
 import EyeCloseIcon from "./assets/eye-close.svg";
 
@@ -77,7 +77,8 @@ function App() {
             <h1 className="text-2xl font-bold">Movie Kombat</h1>
           </Link>
 
-          <button
+          {/* set API key modal. Disabled for now */}
+          {/* <button
             onClick={() => setIsModalOpen(true)}
             title="Set custom API Key"
             className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
@@ -85,7 +86,7 @@ function App() {
             <span className="inline-block" aria-label="star">
               <img src={ApiKeyIcon} className="w-4 h-4 dark" />
             </span>
-          </button>
+          </button> */}
         </div>
 
         <button
