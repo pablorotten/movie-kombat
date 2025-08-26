@@ -5,7 +5,7 @@ import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import arrowsExpandIcon from "../assets/arrows-angle-expand-svgrepo-com.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract-svgrepo-com.svg";
-import { getFirstPlaceholder } from "../utils/placeholderUtils";
+import { getPlaceholder } from "../utils/placeholderUtils";
 import PosterImage from "../components/PosterImage";
 
 const LoadingSpinner = () => (
@@ -57,7 +57,7 @@ export default function SearchPage() {
         if (data.Response === "True") {
           // This logic is for the single search result preview
           if (data.Poster === "N/A") {
-            data.Poster = getFirstPlaceholder();
+            data.Poster = getPlaceholder();
           }
           setSearchedMovie(data);
         } else {
@@ -104,7 +104,7 @@ export default function SearchPage() {
         const data = await response.json();
         if (data.Response === "True") {
           if (data.Poster === "N/A") {
-            data.Poster = getFirstPlaceholder();
+            data.Poster = getPlaceholder();
           }
           addMovie(data);
         } else {

@@ -8,6 +8,8 @@ import { useMovies } from "./context/MovieContext";
 import "./App.css";
 import TournamentIcon from "./assets/tournament.svg";
 import ApiKeyIcon from "./assets/api-key.svg";
+import EyeOpenIcon from "./assets/eye-open.svg";
+import EyeCloseIcon from "./assets/eye-close.svg";
 
 // A simple modal component for the API key input
 const ApiKeyModal = ({
@@ -53,7 +55,13 @@ const ApiKeyModal = ({
 
 function App() {
   const navigate = useNavigate();
-  const { movieList, setApiKey } = useMovies();
+  const {
+    movieList,
+    apiKey,
+    setApiKey,
+    arePostersVisible,
+    togglePostersVisibility,
+  } = useMovies();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -84,6 +92,22 @@ function App() {
             </span>
           </button>
         </div>
+
+        <button
+          onClick={togglePostersVisibility}
+          title={arePostersVisible ? "Hide Posters" : "Show Posters"}
+          className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
+        >
+          {arePostersVisible ? (
+            <span className="inline-block" aria-label="star">
+              <img src={EyeCloseIcon} className="w-6 h-6" />
+            </span>
+          ) : (
+            <span className="inline-block" aria-label="star">
+              <img src={EyeOpenIcon} className="w-6 h-6" />
+            </span>
+          )}
+        </button>
 
         <Button
           variant="success"
