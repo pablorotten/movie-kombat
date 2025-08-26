@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { getFirstPlaceholder } from '../utils/placeholderUtils';
+import { useState, useEffect } from "react";
+import { getPlaceholder } from "../utils/placeholderUtils";
+import { useMovies } from "../context/MovieContext";
 
 interface PosterImageProps {
   src?: string;
@@ -8,6 +9,7 @@ interface PosterImageProps {
 }
 
 export default function PosterImage({ src, alt, className }: PosterImageProps) {
+  const { arePostersVisible } = useMovies();
   const [imageSrc, setImageSrc] = useState(src);
 
   useEffect(() => {
@@ -15,16 +17,20 @@ export default function PosterImage({ src, alt, className }: PosterImageProps) {
   }, [src]);
 
   const handleImageError = () => {
-    setImageSrc(getFirstPlaceholder());
+    setImageSrc(getPlaceholder());
   };
 
-  const isPlaceholder = imageSrc && imageSrc.includes('placeholder');
+  const isPlaceholder = imageSrc === getPlaceholder() || !arePostersVisible;
+  const displaySrc = isPlaceholder ? getPlaceholder() : imageSrc;
 
   return (
     <img
-      src={imageSrc}
+      src={displaySrc}
       alt={alt}
-      className={`${className} ${isPlaceholder ? 'filter opacity-75 blur-xs' : ''}`}
+      className={`${className} ${
+        isPlaceholder ? "filter opacity-75 blur-[2px]" : ""
+      }`}
+      // If the image is broken (fails to load), show the placeholder
       onError={handleImageError}
     />
   );

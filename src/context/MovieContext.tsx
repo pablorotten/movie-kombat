@@ -8,15 +8,17 @@ interface MovieContextType {
   apiKey: string;
   setApiKey: (key: string) => void;
   setMovieList: React.Dispatch<React.SetStateAction<Movie[]>>;
+  arePostersVisible: boolean;
+  togglePostersVisibility: () => void;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
 
 export function MovieProvider({ children }: { children: ReactNode }) {
   const [movieList, setMovieList] = useState<Movie[]>([]);
-  
   const DEFAULT_API_KEY = "b5875a85";
   const [apiKey, setApiKey] = useState<string>(DEFAULT_API_KEY);
+  const [arePostersVisible, setArePostersVisible] = useState(true);
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem("omdbApiKey");
@@ -41,7 +43,11 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const value = { movieList, addMovie, removeMovie, setApiKey, setMovieList, apiKey };
+  const togglePostersVisibility = () => {
+    setArePostersVisible(prevState => !prevState);
+  };
+
+  const value = { movieList, addMovie, removeMovie, setApiKey, setMovieList, apiKey, arePostersVisible, togglePostersVisibility };
 
   return (
     <MovieContext.Provider value={value}>
