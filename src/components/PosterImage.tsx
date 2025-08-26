@@ -24,7 +24,7 @@ export default function PosterImage({ src, alt, className }: PosterImageProps) {
     <img
       src={imageSrc}
       alt={alt}
-      className={`${className} ${isPlaceholder ? 'filter opacity-75 blur-xs' : ''}`}
+      className={`${className} ${isPlaceholder ? 'filter opacity-75 blur-[2px]' : ''}`}
       onError={handleImageError}
     />
   );
