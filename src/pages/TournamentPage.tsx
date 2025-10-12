@@ -29,6 +29,7 @@ const TournamentMatchup = ({
             className="w-full h-full object-cover"
             src={match.first.poster}
             alt={match.first.title}
+            title={match.first.title}
           />
         </div>
         <div className="mt-4">
@@ -47,6 +48,7 @@ const TournamentMatchup = ({
             className="w-full h-full object-cover"
             src={match.second.poster}
             alt={match.second.title}
+            title={match.second.title}
           />
         </div>
         <div className="mt-4">

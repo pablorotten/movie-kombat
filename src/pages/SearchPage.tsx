@@ -206,6 +206,7 @@ export default function SearchPage() {
                   className="w-full h-full object-cover"
                   src={searchedMovie.Poster}
                   alt={searchedMovie.Title}
+  title={searchedMovie.Title}
                 />
               </div>
               <h3 className="text-lg font-bold mt-2">

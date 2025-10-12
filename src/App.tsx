@@ -53,11 +53,27 @@ const ApiKeyModal = ({
   );
 };
 
+const shuffleArray = <T,>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 function App() {
   const navigate = useNavigate();
-  const { movieList, setApiKey, arePostersVisible, togglePostersVisibility } =
+  const { movieList, setMovieList, setApiKey, arePostersVisible, togglePostersVisibility } =
     useMovies();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Add this function to handle tournament start with shuffle
+  const handleStartTournament = () => {
+    const shuffledMovies = shuffleArray(movieList);
+    setMovieList(shuffledMovies);
+    navigate("/tournament");
+  };
 
   return (
     <>
@@ -114,7 +130,7 @@ function App() {
               <img src={TournamentIcon} className="w-4 h-4" />
             </span>
           }
-          onClick={() => navigate("/tournament")}
+          onClick={handleStartTournament}
           disabled={
             movieList.length <= 3 ||
             (movieList.length & (movieList.length - 1)) !== 0

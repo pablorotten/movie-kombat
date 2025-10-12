@@ -4,11 +4,6 @@
 ## Launch the app
 
 ```sh
- npm run dev
-```
-
-## Deploy
-
-```sh
-npm run deploy
+npm install
+npm run dev
 ```
