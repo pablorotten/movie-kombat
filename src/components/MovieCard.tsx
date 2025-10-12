@@ -27,11 +27,12 @@ export default function MovieCard({
       <figcaption className="flex items-center justify-center w-full">
         {/* Container with a 2:3 aspect ratio */}
         <div className="w-full aspect-[2/3] rounded-lg overflow-hidden bg-gray-700">
-          <PosterImage
-            className="w-full h-full object-cover"
-            src={poster}
-            alt={`${title} poster`}
-          />
+<PosterImage
+  className="w-full h-full object-cover"
+  src={poster}
+  alt={`${title} poster`}
+  title={title} // Add this line
+/>
         </div>
       </figcaption>
 
