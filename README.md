@@ -1,5 +1,6 @@
 # Movie-Kombat
-🔗 https://movie-kombat.vercel.app/
+
+https://movie-kombat.vercel.app/
 
 ## Launch the app
 
