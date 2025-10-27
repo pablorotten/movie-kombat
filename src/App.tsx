@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import SearchPage from "./pages/SearchPage";
 import TournamentPage from "./pages/TournamentPage";
@@ -64,12 +64,28 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { movieList, setMovieList, setApiKey, arePostersVisible, togglePostersVisibility } =
     useMovies();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Add this function to handle tournament start with shuffle
   const handleStartTournament = () => {
+    // Check if we're already on the tournament page
+    if (location.pathname === "/tournament") {
+      const confirmed = window.confirm(
+        "Do you really want to create a new tournament? Current tournament will be gone."
+      );
+      
+      if (confirmed) {
+        // Clear all movies and go back to search page
+        setMovieList([]);
+        navigate("/");
+      }
+      return;
+    }
+
+    // Normal flow: shuffle movies and start tournament
     const shuffledMovies = shuffleArray(movieList);
     setMovieList(shuffledMovies);
     navigate("/tournament");
