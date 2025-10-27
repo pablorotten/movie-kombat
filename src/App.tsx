@@ -4,6 +4,7 @@ import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import SearchPage from "./pages/SearchPage";
 import TournamentPage from "./pages/TournamentPage";
 import Button from "./components/Button";
+import Dialog from "./components/Dialog";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
 import TournamentIcon from "./assets/tournament.svg";
@@ -68,20 +69,13 @@ function App() {
   const { movieList, setMovieList, setApiKey, arePostersVisible, togglePostersVisibility } =
     useMovies();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
     // Add this function to handle tournament start with shuffle
   const handleStartTournament = () => {
     // Check if we're already on the tournament page
     if (location.pathname === "/tournament") {
-      const confirmed = window.confirm(
-        "Do you really want to create a new tournament? Current tournament will be gone."
-      );
-      
-      if (confirmed) {
-        // Clear all movies and go back to search page
-        setMovieList([]);
-        navigate("/");
-      }
+      setIsConfirmDialogOpen(true);
       return;
     }
 
@@ -91,6 +85,12 @@ function App() {
     navigate("/tournament");
   };
 
+  const handleConfirmNewTournament = () => {
+    // Clear all movies and go back to search page
+    setMovieList([]);
+    navigate("/");
+  };
+
   return (
     <>
       <ApiKeyModal
@@ -98,6 +98,22 @@ function App() {
         onClose={() => setIsModalOpen(false)}
         setApiKey={setApiKey}
       />
+      
+      <Dialog
+        open={isConfirmDialogOpen}
+        onClose={() => setIsConfirmDialogOpen(false)}
+        title="Start New Tournament?"
+        onConfirm={handleConfirmNewTournament}
+        onCancel={() => setIsConfirmDialogOpen(false)}
+        confirmText="Yes, Start New"
+        cancelText="Cancel"
+        confirmVariant="danger"
+      >
+        <p>
+          Current tournament progress will be lost
+        </p>
+      </Dialog>
+
       <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2">
