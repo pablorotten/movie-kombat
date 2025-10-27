@@ -3,6 +3,7 @@ import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
+import Dialog from "../components/Dialog";
 import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
@@ -37,6 +38,8 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [useTextarea, setUseTextarea] = useState(false);
+  const [notFoundMovies, setNotFoundMovies] = useState<string[]>([]);
+  const [isNotFoundDialogOpen, setIsNotFoundDialogOpen] = useState(false);
 
   // This logic is for the single search result preview
   useEffect(() => {
@@ -118,12 +121,33 @@ export default function SearchPage() {
     setSearchTerm("");
     setUseTextarea(false);
     if (notFound.length > 0) {
-      setError(`These movies were not found: ${notFound.join(", ")}`);
+      setNotFoundMovies(notFound);
+      setIsNotFoundDialogOpen(true);
     }
   }
 
   return (
     <>
+      <Dialog
+        open={isNotFoundDialogOpen}
+        onClose={() => setIsNotFoundDialogOpen(false)}
+        title="Movies Not Found"
+        onCancel={() => setIsNotFoundDialogOpen(false)}
+        cancelText="Close"
+      >
+        <p className="mb-3">The following movies could not be found:</p>
+        <ul className="list-disc list-inside space-y-1 text-sm bg-gray-100 dark:bg-gray-700 p-3 rounded">
+          {notFoundMovies.map((movie, index) => (
+            <li key={index} className="text-gray-800 dark:text-gray-200">
+              {movie}
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+          Please check the spelling and try again.
+        </p>
+      </Dialog>
+
       <div className="max-w-3xl mx-auto text-center mt-16">
         <h1 className="text-4xl font-bold leading-tight mb-2 pb-4 relative">
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
