@@ -13,6 +13,7 @@ import { getPlaceholder } from '../utils/placeholderUtils';
 import { Movie } from '../types';
 import { selectedCountries, getFlagComponent } from '../constants/countries';
 import { ProviderLogo } from './ProviderLogo';
+import { getGenreWithEmoji } from '../utils/genreUtils';
 
 interface TMDBCategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
@@ -27,9 +28,11 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
   const [error, setError] = useState<string | null>(null);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isProviderDropdownOpen, setIsProviderDropdownOpen] = useState(false);
+  const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const providerDropdownRef = useRef<HTMLDivElement>(null);
+  const genreDropdownRef = useRef<HTMLDivElement>(null);
 
   // Static data from TMDB JSON files
   const [genres] = useState<Genre[]>(getGenres());
@@ -49,6 +52,9 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
       }
       if (providerDropdownRef.current && !providerDropdownRef.current.contains(event.target as Node)) {
         setIsProviderDropdownOpen(false);
+      }
+      if (genreDropdownRef.current && !genreDropdownRef.current.contains(event.target as Node)) {
+        setIsGenreDropdownOpen(false);
       }
     };
 
@@ -191,18 +197,65 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Genre *
             </label>
-            <select
-              value={selectedGenre}
-              onChange={(e) => setSelectedGenre(e.target.value === '' ? '' : Number(e.target.value))}
-              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select genre</option>
-              {genres.map((genre) => (
-                <option key={genre.id} value={genre.id}>
-                  {genre.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={genreDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsGenreDropdownOpen(!isGenreDropdownOpen)}
+                className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    if (!selectedGenre) {
+                      return <span>Select genre</span>;
+                    }
+                    const genre = genres.find(g => g.id === Number(selectedGenre));
+                    return (
+                      <span>{genre ? getGenreWithEmoji(genre.name) : 'Select genre'}</span>
+                    );
+                  })()}
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${isGenreDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isGenreDropdownOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedGenre('');
+                      setIsGenreDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2 ${
+                      !selectedGenre ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                    }`}
+                  >
+                    <span className="text-sm text-gray-900 dark:text-white">Select genre</span>
+                  </button>
+                  {genres.map((genre) => (
+                    <button
+                      key={genre.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedGenre(genre.id);
+                        setIsGenreDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2 ${
+                        selectedGenre === genre.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                      }`}
+                    >
+                      <span className="text-sm text-gray-900 dark:text-white">{getGenreWithEmoji(genre.name)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col">

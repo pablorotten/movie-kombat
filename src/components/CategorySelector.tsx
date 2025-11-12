@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { getRegions, Region, getGenres, getPopularProviders, discoverMovies, convertTMDBToAppMovie, Genre, Provider } from '../services/tmdbService';
 import { Movie } from '../types';
 import { countryFlagComponents } from '../constants/countries';
+import { getGenreWithEmoji } from '../utils/genreUtils';
 
 interface CategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
@@ -85,9 +86,9 @@ const GenreSelect = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2 min-w-[150px] flex items-center gap-2 justify-between hover:bg-gray-50 dark:hover:bg-gray-600"
+        className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2 min-w-[140px] flex items-center gap-2 justify-between hover:bg-gray-50 dark:hover:bg-gray-600"
       >
-        <span>{selectedGenre ? selectedGenre.name : 'Select genre'}</span>
+        <span>{selectedGenre ? getGenreWithEmoji(selectedGenre.name) : 'Select genre'}</span>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
@@ -124,7 +125,74 @@ const GenreSelect = ({
                   value === genre.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                 }`}
               >
-                {genre.name}
+                {getGenreWithEmoji(genre.name)}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// Custom dropdown component for providers
+const ProviderSelect = ({ 
+  value, 
+  onChange, 
+  providers 
+}: { 
+  value: number | ''; 
+  onChange: (value: number | '') => void; 
+  providers: Provider[]
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedProvider = providers.find(p => p.provider_id === value);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2 min-w-[140px] flex items-center gap-2 justify-between hover:bg-gray-50 dark:hover:bg-gray-600"
+      >
+        <span>{selectedProvider ? selectedProvider.provider_name : 'All Providers'}</span>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      
+      {isOpen && (
+        <>
+          <div 
+            className="fixed inset-0 z-10" 
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
+            <button
+              type="button"
+              onClick={() => {
+                onChange('');
+                setIsOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 first:rounded-t-lg ${
+                !value ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+              }`}
+            >
+              All Providers
+            </button>
+            {providers.map((provider) => (
+              <button
+                key={provider.provider_id}
+                type="button"
+                onClick={() => {
+                  onChange(provider.provider_id);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600 last:rounded-b-lg ${
+                  value === provider.provider_id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                }`}
+              >
+                {provider.provider_name}
               </button>
             ))}
           </div>
@@ -228,18 +296,11 @@ export default function CategorySelector({ onSelectMovies, tmdbBearerToken }: Ca
 
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium whitespace-nowrap">Provider:</label>
-            <select
+            <ProviderSelect
               value={selectedProvider}
-              onChange={(e) => setSelectedProvider(e.target.value === '' ? '' : Number(e.target.value))}
-              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2 min-w-[140px]"
-            >
-              <option value="">All Providers</option>
-              {providers.map((provider) => (
-                <option key={provider.provider_id} value={provider.provider_id}>
-                  {provider.provider_name}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedProvider}
+              providers={providers}
+            />
           </div>
 
           <div className="flex items-center gap-2">
