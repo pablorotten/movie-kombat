@@ -188,31 +188,32 @@ export default function TournamentPage() {
               alt={winner.title}
               className="rounded-lg shadow-2xl"
             />
-
-            <Button
-              variant="success"
-              onClick={() => {
-                setMovieList([]); // Clear all movies
-                navigate("/");
-              }}
-            >
-              Start a New Tournament
-            </Button>
+            <div className="flex justify-center mb-4">
+              <Button
+                variant="success"
+                onClick={() => {
+                  setMovieList([]); // Clear all movies
+                  navigate("/");
+                }}
+              >
+                Start a New Tournament
+              </Button>
+            </div>
           </div>
 
-          
           {/* Show final bracket with winner */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-center mb-4">Final Tournament Bracket</h2>
+            <h2 className="text-2xl font-bold text-center mb-4">
+              Final Tournament Bracket
+            </h2>
             <div className="flex justify-center">
-              <BracketVisualization 
+              <BracketVisualization
                 stages={stages}
                 currentStage={stages.length - 1}
                 currentRound={0}
               />
             </div>
           </div>
-
         </div>
       ) : (
         currentMatch && (
@@ -228,12 +229,14 @@ export default function TournamentPage() {
                 onChooseWinner={handleChooseWinner}
               />
             </div>
-            
+
             {/* Tournament Bracket Visualization */}
             <div className="mt-12">
-              <h2 className="text-2xl font-bold text-center mb-4">Tournament Bracket</h2>
+              <h2 className="text-2xl font-bold text-center mb-4">
+                Tournament Bracket
+              </h2>
               <div className="flex justify-center">
-                <BracketVisualization 
+                <BracketVisualization
                   stages={stages}
                   currentStage={currentStage}
                   currentRound={currentRound}

@@ -42,40 +42,27 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
     );
   };
 
-  const renderMatch = (match: BracketMatch, stageIndex: number, matchIndex: number, spanRows: number = 1) => {
+  const renderMatch = (match: BracketMatch, stageIndex: number, matchIndex: number) => {
     const isCurrentMatch = stageIndex === currentStage && matchIndex === currentRound;
     const isFinished = match.winnerTitle !== '';
     const isWinnerFirst = match.winnerTitle === match.first.title;
     const isWinnerSecond = match.winnerTitle === match.second.title;
-    
-    const gridRowSpan = spanRows > 1 ? `span ${spanRows} / span ${spanRows}` : undefined;
 
     return (
       <div
         key={`${stageIndex}-${matchIndex}`}
-        className={`relative ${spanRows > 1 ? (matchIndex % 2 === 0 ? 'items-start' : 'items-end') : ''}`}
-        style={{ gridRow: gridRowSpan }}
+        className="flex items-center justify-center h-full"
       >
         <div 
-          className="grid"
-          style={{ gridTemplateRows: `repeat(${spanRows}, minmax(0, 1fr))` }}
+          className={`bg-slate-800 border rounded-md transition-all w-full mx-0.5 ${
+            isCurrentMatch && !isFinished ? 'border-blue-500 bg-blue-900/30 ring-2 ring-blue-500/50' : 
+            isFinished ? 'border-green-600 bg-slate-800' :
+            'border-slate-600 hover:border-blue-500'
+          }`}
         >
-          <div 
-            className={`bg-slate-800 border rounded-md m-0.5 transition-all ${
-              isCurrentMatch && !isFinished ? 'border-blue-500 bg-blue-900/30 ring-2 ring-blue-500/50' : 
-              isFinished ? 'border-green-600 bg-slate-800' :
-              'border-slate-600 hover:border-blue-500'
-            }`}
-            style={{ 
-              gridRow: spanRows > 1 ? 
-                (spanRows === 8 ? '4 / span 2' : spanRows === 4 ? '2 / span 2' : '1 / span 2') 
-                : undefined 
-            }}
-          >
-            <div className="p-2 cursor-pointer">
-              {renderTeam(match.first, isWinnerFirst, isWinnerSecond)}
-              {renderTeam(match.second, isWinnerSecond, isWinnerFirst)}
-            </div>
+          <div className="p-2 cursor-pointer">
+            {renderTeam(match.first, isWinnerFirst, isWinnerSecond)}
+            {renderTeam(match.second, isWinnerSecond, isWinnerFirst)}
           </div>
         </div>
       </div>
@@ -83,21 +70,15 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
   };
 
   const renderRound = (round: BracketMatch[], stageIndex: number) => {
-    const totalStages = stages.length;
-    const matchesPerRound = round.length;
-    const rowSpan = Math.max(1, 8 / matchesPerRound);
-    const isFinalRound = stageIndex === totalStages - 1;
+    const isFinalRound = stageIndex === stages.length - 1;
 
     return (
       <div 
         key={stageIndex}
-        className={`grid gap-1 ${isFinalRound ? 'pr-0' : 'px-2'}`}
-        style={{ 
-          gridTemplateRows: 'repeat(8, minmax(0, 1fr))',
-        }}
+        className={`flex flex-col justify-evenly h-full ${isFinalRound ? 'pr-0' : 'px-2'}`}
       >
         {round.map((match, matchIndex) => 
-          renderMatch(match, stageIndex, matchIndex, rowSpan)
+          renderMatch(match, stageIndex, matchIndex)
         )}
       </div>
     );
