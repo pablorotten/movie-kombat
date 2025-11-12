@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { getRegions, Region, getGenres, getPopularProviders, discoverMovies, convertTMDBToAppMovie, Genre, Provider } from '../services/tmdbService';
 import { Movie } from '../types';
-// Import flag icons
-import { BE, DE, ES, FR, NL, US } from 'country-flag-icons/react/3x2';
+import { countryFlagComponents } from '../constants/countries';
 
 interface CategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
@@ -81,16 +80,6 @@ const getTMDBProviders = (): Provider[] => {
 // Get popular regions for easier selection
 const getPopularRegions = (): (Region & { FlagComponent: React.ComponentType<{ className?: string }> })[] => {
   const allRegions = getRegions();
-  
-  // Map of country codes to flag components (alphabetically by country name)
-  const countryFlagComponents: { [key: string]: React.ComponentType<{ className?: string }> } = {
-    'BE': BE, // Belgium
-    'FR': FR, // France  
-    'DE': DE, // Germany
-    'NL': NL, // Netherlands
-    'ES': ES, // Spain
-    'US': US  // United States
-  };
   
   const popularRegionCodes = Object.keys(countryFlagComponents);
   

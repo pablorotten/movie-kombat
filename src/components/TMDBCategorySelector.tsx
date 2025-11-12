@@ -11,8 +11,7 @@ import {
 } from '../services/tmdbService';
 import { getPlaceholder } from '../utils/placeholderUtils';
 import { Movie } from '../types';
-// Import flag icons for popular countries
-import { BE, DE, ES, FR, NL, US } from 'country-flag-icons/react/3x2';
+import { selectedCountries, getFlagComponent } from '../constants/countries';
 
 interface TMDBCategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
@@ -32,24 +31,6 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
   const [genres] = useState<Genre[]>(getGenres());
   const [providers] = useState<Provider[]>(getPopularProviders());
   const [regions] = useState<Region[]>(getRegions());
-
-  // Map of country codes to flag components (alphabetically by country name)
-  const countryFlagComponents: { [key: string]: React.ComponentType<{ className?: string }> } = {
-    'BE': BE, // Belgium
-    'FR': FR, // France
-    'DE': DE, // Germany
-    'NL': NL, // Netherlands
-    'ES': ES, // Spain
-    'US': US  // United States
-  };
-
-  // Selected countries list (alphabetically by country name)
-  const selectedCountries = ['BE', 'FR', 'DE', 'NL', 'ES', 'US'];
-
-  // Function to get flag component for a country code
-  const getFlagComponent = (countryCode: string): React.ComponentType<{ className?: string }> | null => {
-    return countryFlagComponents[countryCode] || null;
-  };
 
   // Get filtered regions for only our selected countries
   const getFilteredRegions = () => {
