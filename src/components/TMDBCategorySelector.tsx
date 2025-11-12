@@ -12,6 +12,7 @@ import {
 import { getPlaceholder } from '../utils/placeholderUtils';
 import { Movie } from '../types';
 import { selectedCountries, getFlagComponent } from '../constants/countries';
+import { ProviderLogo } from './ProviderLogo';
 
 interface TMDBCategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
@@ -25,7 +26,10 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [isProviderDropdownOpen, setIsProviderDropdownOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
+  const providerDropdownRef = useRef<HTMLDivElement>(null);
 
   // Static data from TMDB JSON files
   const [genres] = useState<Genre[]>(getGenres());
@@ -37,11 +41,14 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
     return regions.filter(region => selectedCountries.includes(region.iso_3166_1));
   };
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
         setIsCountryDropdownOpen(false);
+      }
+      if (providerDropdownRef.current && !providerDropdownRef.current.contains(event.target as Node)) {
+        setIsProviderDropdownOpen(false);
       }
     };
 
@@ -152,17 +159,34 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
 
   return (
     <div className="max-w-5xl mx-auto px-4 mt-6">
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 border border-blue-200 dark:border-gray-600 shadow-lg">
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-            🎬 Discover Movies with TMDB
-          </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Find movies by genre, streaming platform, and country using The Movie Database
-          </p>
-        </div>
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 rounded-xl border border-blue-200 dark:border-gray-600 shadow-lg">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="w-full p-6 text-left hover:bg-blue-100 dark:hover:bg-gray-600 transition-colors rounded-xl"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
+                🎬 Discover Movies with TMDB
+              </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+            </div>
+            <svg
+              className={`w-6 h-6 text-gray-600 dark:text-gray-300 transition-transform ${
+                isExpanded ? 'rotate-180' : ''
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
+
+        {isExpanded && (
+          <div className="px-6 pb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Genre *
@@ -185,18 +209,82 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Streaming Platform
             </label>
-            <select
-              value={selectedProvider}
-              onChange={(e) => setSelectedProvider(e.target.value === '' ? '' : Number(e.target.value))}
-              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Any platform</option>
-              {providers.map((provider) => (
-                <option key={provider.provider_id} value={provider.provider_id}>
-                  {provider.provider_name}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={providerDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsProviderDropdownOpen(!isProviderDropdownOpen)}
+                className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    if (!selectedProvider) {
+                      return <span>Any platform</span>;
+                    }
+                    const provider = providers.find(p => p.provider_id === Number(selectedProvider));
+                    return (
+                      <>
+                        {provider?.logo_path && (
+                          <ProviderLogo
+                            logoPath={provider.logo_path}
+                            providerName={provider.provider_name}
+                            className="w-5 h-5"
+                          />
+                        )}
+                        <span>{provider?.provider_name || 'Any platform'}</span>
+                      </>
+                    );
+                  })()}
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${isProviderDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isProviderDropdownOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProvider('');
+                      setIsProviderDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2 ${
+                      !selectedProvider ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                    }`}
+                  >
+                    <div className="w-5 h-5 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                      *
+                    </div>
+                    <span className="text-sm text-gray-900 dark:text-white">Any platform</span>
+                  </button>
+                  {providers.map((provider) => (
+                    <button
+                      key={provider.provider_id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedProvider(provider.provider_id);
+                        setIsProviderDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2 ${
+                        selectedProvider === provider.provider_id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                      }`}
+                    >
+                      <ProviderLogo
+                        logoPath={provider.logo_path}
+                        providerName={provider.provider_name}
+                        className="w-5 h-5 flex-shrink-0"
+                      />
+                      <span className="text-sm text-gray-900 dark:text-white">{provider.provider_name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col">
@@ -279,18 +367,20 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
           </div>
         </div>
 
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
 
-        {selectedGenre && !error && !isLoading && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-lg text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              {getAvailableMoviesText()}
-            </div>
+            {selectedGenre && !error && !isLoading && (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-lg text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  {getAvailableMoviesText()}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
