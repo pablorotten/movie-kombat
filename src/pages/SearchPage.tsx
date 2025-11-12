@@ -4,6 +4,8 @@ import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import Dialog from "../components/Dialog";
+import CategorySelector from "../components/CategorySelector";
+import TMDBCategorySelector from "../components/TMDBCategorySelector";
 import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
@@ -32,7 +34,7 @@ const LoadingSpinner = () => (
 );
 
 export default function SearchPage() {
-  const { addMovie, movieList, apiKey, removeMovie } = useMovies();
+  const { addMovie, movieList, apiKey, removeMovie, tmdbApiKey } = useMovies();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -126,6 +128,53 @@ export default function SearchPage() {
     }
   }
 
+  // Load movies from selected movie titles or movie objects (used by CategorySelector and TMDBCategorySelector)
+  async function handleSelectMovies(movieData: string[] | Movie[]) {
+    if (movieData.length === 0) return;
+
+    // Check if we received Movie objects (from TMDB) or strings (from old selector)
+    if (typeof movieData[0] === 'object') {
+      // Direct movie objects from TMDB selector
+      const movies = movieData as Movie[];
+      movies.forEach(movie => addMovie(movie));
+      return;
+    }
+
+    // Handle string titles (from old selector)
+    const movieTitles = movieData as string[];
+    
+    setIsLoading(true);
+    setError(null);
+    const notFound: string[] = [];
+
+    for (const title of movieTitles) {
+      try {
+        const response = await fetch(
+          `https://www.omdbapi.com/?apikey=${apiKey}&t=${encodeURIComponent(
+            title
+          )}`
+        );
+        const data = await response.json();
+        if (data.Response === "True") {
+          if (data.Poster === "N/A") {
+            data.Poster = getPlaceholder();
+          }
+          addMovie(data);
+        } else {
+          notFound.push(title);
+        }
+      } catch {
+        notFound.push(title);
+      }
+    }
+
+    setIsLoading(false);
+    if (notFound.length > 0) {
+      setNotFoundMovies(notFound);
+      setIsNotFoundDialogOpen(true);
+    }
+  }
+
   return (
     <>
       <Dialog
@@ -148,17 +197,22 @@ export default function SearchPage() {
         </p>
       </Dialog>
 
-      <div className="max-w-3xl mx-auto text-center mt-16">
-        <h1 className="text-4xl font-bold leading-tight mb-2 pb-4 relative">
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
-            Add your movies
-          </span>
-          <span className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500"></span>
-        </h1>
-        <p className="text-lg text-gray-400 mb-8">
-          Search and add movies to start a tournament
-        </p>
-      </div>
+ 
+
+      {/* Movie discovery options */}
+      {tmdbApiKey ? (
+        // TMDB-powered discovery (preferred when API key is available)
+        <TMDBCategorySelector 
+          onSelectMovies={handleSelectMovies} 
+          tmdbBearerToken={tmdbApiKey}
+        />
+      ) : (
+        // Fallback to static category selector
+        <CategorySelector 
+          onSelectMovies={handleSelectMovies}
+          tmdbBearerToken={tmdbApiKey} 
+        />
+      )}
 
       <div className="max-w-xl mx-auto px-4">
         <div className="w-full mx-auto mt-4">

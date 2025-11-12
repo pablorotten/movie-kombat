@@ -8,47 +8,86 @@ import Dialog from "./components/Dialog";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
 import TournamentIcon from "./assets/tournament.svg";
-// import ApiKeyIcon from "./assets/api-key.svg";
+// // import ApiKeyIcon from "./assets/api-key.svg";
 import EyeOpenIcon from "./assets/eye-open.svg";
 import EyeCloseIcon from "./assets/eye-close.svg";
 
-// A simple modal component for the API key input
+// A simple modal component for API keys
 const ApiKeyModal = ({
   isOpen,
   onClose,
-  apiKey = "",
-  setApiKey,
+  omdbApiKey = "",
+  tmdbApiKey = "",
+  setOmdbApiKey,
+  setTmdbApiKey,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  apiKey?: string;
-  setApiKey: (key: string) => void;
+  omdbApiKey?: string;
+  tmdbApiKey?: string;
+  setOmdbApiKey: (key: string) => void;
+  setTmdbApiKey: (key: string) => void;
 }) => {
-  const [inputValue, setInputValue] = useState(apiKey);
+  const [omdbInputValue, setOmdbInputValue] = useState(omdbApiKey);
+  const [tmdbInputValue, setTmdbInputValue] = useState(tmdbApiKey);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    setApiKey(inputValue);
+    setOmdbApiKey(omdbInputValue);
+    setTmdbApiKey(tmdbInputValue);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-sm">
-        <h2 className="text-xl font-bold mb-4 text-white">
-          Set Custom OMDB API Key
+      <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
+        <h2 className="text-xl font-bold mb-6 text-white">
+          API Configuration
         </h2>
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5 mb-4"
-          placeholder="Enter your OMDB API key..."
-        />
-        <Button variant="primary" onClick={handleSave}>
-          Save and Close
-        </Button>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              OMDB API Key (for movie search)
+            </label>
+            <input
+              type="text"
+              value={omdbInputValue}
+              onChange={(e) => setOmdbInputValue(e.target.value)}
+              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
+              placeholder="Enter your OMDB API key..."
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Get free key at: <span className="text-blue-400">http://www.omdbapi.com/apikey.aspx</span>
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              TMDB Bearer Token (for movie discovery)
+            </label>
+            <input
+              type="text"
+              value={tmdbInputValue}
+              onChange={(e) => setTmdbInputValue(e.target.value)}
+              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
+              placeholder="Enter your TMDB Bearer token..."
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Get free token at: <span className="text-blue-400">https://www.themoviedb.org/settings/api</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <Button variant="secondary" onClick={onClose} fullWidth>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSave} fullWidth>
+            Save
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -66,8 +105,16 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { movieList, setMovieList, setApiKey, arePostersVisible, togglePostersVisibility } =
-    useMovies();
+  const { 
+    movieList, 
+    setMovieList, 
+    setApiKey, 
+    setTmdbApiKey,
+    apiKey,
+    tmdbApiKey,
+    arePostersVisible, 
+    togglePostersVisibility 
+  } = useMovies();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
@@ -96,7 +143,10 @@ function App() {
       <ApiKeyModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        setApiKey={setApiKey}
+        omdbApiKey={apiKey}
+        tmdbApiKey={tmdbApiKey}
+        setOmdbApiKey={setApiKey}
+        setTmdbApiKey={setTmdbApiKey}
       />
       
       <Dialog
@@ -125,16 +175,16 @@ function App() {
             <h1 className="text-2xl font-bold">Movie Kombat</h1>
           </Link>
 
-          {/* set API key modal. Disabled for now */}
-          {/* <button
+          {/* API Configuration button */}
+          <button
             onClick={() => setIsModalOpen(true)}
-            title="Set custom API Key"
+            title="Configure API Keys"
             className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
           >
-            <span className="inline-block" aria-label="star">
-              <img src={ApiKeyIcon} className="w-4 h-4 dark" />
+            <span className="inline-block" aria-label="settings">
+              ⚙️
             </span>
-          </button> */}
+          </button>
         </div>
 
         <button
