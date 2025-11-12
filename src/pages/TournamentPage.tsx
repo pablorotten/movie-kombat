@@ -8,6 +8,7 @@ import { createInitialStages, getStageName } from "../utils/tournamentUtils";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import PosterImage from "../components/PosterImage";
+import BracketVisualization from "../components/Tournament/BracketVisualization";
 
 const TournamentMatchup = ({
   match,
@@ -198,18 +199,47 @@ export default function TournamentPage() {
               Start a New Tournament
             </Button>
           </div>
+
+          
+          {/* Show final bracket with winner */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-center mb-4">Final Tournament Bracket</h2>
+            <div className="flex justify-center">
+              <BracketVisualization 
+                stages={stages}
+                currentStage={stages.length - 1}
+                currentRound={0}
+              />
+            </div>
+          </div>
+
         </div>
       ) : (
         currentMatch && (
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-2">{stageName}</h1>
-            <p className="text-gray-400 mb-8">
-              Round {currentRound + 1} of {stages[currentStage].length}
-            </p>
-            <TournamentMatchup
-              match={currentMatch}
-              onChooseWinner={handleChooseWinner}
-            />
+          <div>
+            {/* Current Match */}
+            <div className="text-center">
+              <h1 className="text-3xl font-bold mb-2">{stageName}</h1>
+              <p className="text-gray-400 mb-8">
+                Round {currentRound + 1} of {stages[currentStage].length}
+              </p>
+              <TournamentMatchup
+                match={currentMatch}
+                onChooseWinner={handleChooseWinner}
+              />
+            </div>
+            
+            {/* Tournament Bracket Visualization */}
+            <div className="mt-12">
+              <h2 className="text-2xl font-bold text-center mb-4">Tournament Bracket</h2>
+              <div className="flex justify-center">
+                <BracketVisualization 
+                  stages={stages}
+                  currentStage={currentStage}
+                  currentRound={currentRound}
+                />
+              </div>
+            </div>
           </div>
         )
       )}
