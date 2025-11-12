@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { getRegions, Region, getGenres, getPopularProviders, discoverMovies, convertTMDBToAppMovie, Genre, Provider } from '../services/tmdbService';
 import { Movie } from '../types';
 // Import flag icons
-import { US, GB, CA, AU, BE, DE, FR, IT, ES, JP, KR, BR, MX, IN, CN, RU, NL, SE, NO, DK, FI } from 'country-flag-icons/react/3x2';
+import { BE, DE, ES, FR, NL, US } from 'country-flag-icons/react/3x2';
 
 interface CategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
@@ -82,29 +82,14 @@ const getTMDBProviders = (): Provider[] => {
 const getPopularRegions = (): (Region & { FlagComponent: React.ComponentType<{ className?: string }> })[] => {
   const allRegions = getRegions();
   
-  // Map of country codes to flag components
+  // Map of country codes to flag components (alphabetically by country name)
   const countryFlagComponents: { [key: string]: React.ComponentType<{ className?: string }> } = {
-    'US': US,
-    'GB': GB,
-    'CA': CA,
-    'AU': AU,
-    'BE': BE,
-    'DE': DE,
-    'FR': FR,
-    'IT': IT,
-    'ES': ES,
-    'JP': JP,
-    'KR': KR,
-    'BR': BR,
-    'MX': MX,
-    'IN': IN,
-    'CN': CN,
-    'RU': RU,
-    'NL': NL,
-    'SE': SE,
-    'NO': NO,
-    'DK': DK,
-    'FI': FI
+    'BE': BE, // Belgium
+    'FR': FR, // France  
+    'DE': DE, // Germany
+    'NL': NL, // Netherlands
+    'ES': ES, // Spain
+    'US': US  // United States
   };
   
   const popularRegionCodes = Object.keys(countryFlagComponents);
@@ -121,7 +106,7 @@ const getPopularRegions = (): (Region & { FlagComponent: React.ComponentType<{ c
 export default function CategorySelector({ onSelectMovies, tmdbBearerToken }: CategorySelectorProps) {
   const [selectedCategory, setSelectedCategory] = useState<number | ''>('');
   const [selectedProvider, setSelectedProvider] = useState<number | ''>('');
-  const [selectedRegion, setSelectedRegion] = useState('US'); // Default to US
+  const [selectedRegion, setSelectedRegion] = useState('ES'); // Default to Spain
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

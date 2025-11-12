@@ -85,7 +85,7 @@ export const getProviderByName = (name: string): Provider | undefined => {
 
 // Popular streaming providers for quick selection
 export const getPopularProviders = (): Provider[] => {
-  const popularProviderIds = [8, 119, 337, 350, 384]; // Netflix, Amazon Prime, Disney+, Apple TV+, HBO Max
+  const popularProviderIds = [8, 119, 337, 350, 384, 63]; // Netflix, Amazon Prime, Disney+, Apple TV+, HBO Max
   return popularProviderIds
     .map(id => getProviderById(id))
     .filter((provider): provider is Provider => provider !== undefined);

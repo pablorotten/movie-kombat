@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
   getGenres, 
   getPopularProviders, 
@@ -12,7 +12,7 @@ import {
 import { getPlaceholder } from '../utils/placeholderUtils';
 import { Movie } from '../types';
 // Import flag icons for popular countries
-import { US, GB, CA, AU, BE, DE, FR, IT, ES, JP, KR, BR, MX, IN, CN, RU, NL, SE, NO, DK, FI } from 'country-flag-icons/react/3x2';
+import { BE, DE, ES, FR, NL, US } from 'country-flag-icons/react/3x2';
 
 interface TMDBCategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
@@ -25,41 +25,50 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
   const [selectedRegion, setSelectedRegion] = useState<string>('ES'); // Default to Spain
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
 
   // Static data from TMDB JSON files
   const [genres] = useState<Genre[]>(getGenres());
   const [providers] = useState<Provider[]>(getPopularProviders());
   const [regions] = useState<Region[]>(getRegions());
 
-  // Map of country codes to flag components
+  // Map of country codes to flag components (alphabetically by country name)
   const countryFlagComponents: { [key: string]: React.ComponentType<{ className?: string }> } = {
-    'US': US,
-    'GB': GB,
-    'CA': CA,
-    'AU': AU,
-    'BE': BE,
-    'DE': DE,
-    'FR': FR,
-    'IT': IT,
-    'ES': ES,
-    'JP': JP,
-    'KR': KR,
-    'BR': BR,
-    'MX': MX,
-    'IN': IN,
-    'CN': CN,
-    'RU': RU,
-    'NL': NL,
-    'SE': SE,
-    'NO': NO,
-    'DK': DK,
-    'FI': FI
+    'BE': BE, // Belgium
+    'FR': FR, // France
+    'DE': DE, // Germany
+    'NL': NL, // Netherlands
+    'ES': ES, // Spain
+    'US': US  // United States
   };
+
+  // Selected countries list (alphabetically by country name)
+  const selectedCountries = ['BE', 'FR', 'DE', 'NL', 'ES', 'US'];
 
   // Function to get flag component for a country code
   const getFlagComponent = (countryCode: string): React.ComponentType<{ className?: string }> | null => {
     return countryFlagComponents[countryCode] || null;
   };
+
+  // Get filtered regions for only our selected countries
+  const getFilteredRegions = () => {
+    return regions.filter(region => selectedCountries.includes(region.iso_3166_1));
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
+        setIsCountryDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLoadMovies = async () => {
     if (!selectedGenre || !tmdbBearerToken) {
@@ -213,20 +222,62 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Country *
             </label>
-            <select
-              value={selectedRegion}
-              onChange={(e) => setSelectedRegion(e.target.value)}
-              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {regions.map((region) => {
-                const FlagComponent = getFlagComponent(region.iso_3166_1);
-                return (
-                  <option key={region.iso_3166_1} value={region.iso_3166_1}>
-                    {FlagComponent ? '🏳️' : '🌎'} {region.english_name}
-                  </option>
-                );
-              })}
-            </select>
+            <div className="relative" ref={countryDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                className="w-full bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white text-sm rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const FlagComponent = getFlagComponent(selectedRegion);
+                    const region = regions.find(r => r.iso_3166_1 === selectedRegion);
+                    return (
+                      <>
+                        {FlagComponent && (
+                          <FlagComponent className="w-4 h-3 object-cover rounded-sm" />
+                        )}
+                        <span>{region?.english_name || selectedRegion}</span>
+                      </>
+                    );
+                  })()}
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${isCountryDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isCountryDropdownOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {getFilteredRegions().map((region) => {
+                    const FlagComponent = getFlagComponent(region.iso_3166_1);
+                    return (
+                      <button
+                        key={region.iso_3166_1}
+                        type="button"
+                        onClick={() => {
+                          setSelectedRegion(region.iso_3166_1);
+                          setIsCountryDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2 ${
+                          selectedRegion === region.iso_3166_1 ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                        }`}
+                      >
+                        {FlagComponent && (
+                          <FlagComponent className="w-4 h-3 object-cover rounded-sm flex-shrink-0" />
+                        )}
+                        <span className="text-sm text-gray-900 dark:text-white">{region.english_name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col justify-end">
