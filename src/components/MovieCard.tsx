@@ -17,7 +17,7 @@ export default function MovieCard({
 }: MovieCardProps) {
   useMovies();
   return (
-    <figure className="relative flex flex-col items-center justify-center p-8 text-center bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+    <figure className="relative flex flex-col items-center justify-start p-8 pb-20 text-center bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
       <blockquote className="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           {title}
@@ -36,9 +36,8 @@ export default function MovieCard({
         </div>
       </figcaption>
 
-      {/* Delete Button */}
-
-      <div className="flex flex-wrap gap-3 mt-4">
+      {/* Delete Button - centered at bottom of the card */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
         <Button
           icon={
             <span role="img" aria-label="cross">
@@ -47,7 +46,6 @@ export default function MovieCard({
           }
           size="medium"
           variant="danger"
-          fullWidth={true}
           onClick={() => onDelete(imdbID)}
         >
           Remove
