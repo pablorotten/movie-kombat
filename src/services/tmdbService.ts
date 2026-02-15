@@ -227,10 +227,11 @@ export const getMovieDetails = async (
 export const searchMovies = async (
   bearerToken: string,
   query: string,
-  page: number = 1
+  page: number = 1,
+  language: string = 'en-US'
 ): Promise<TMDBDiscoverResponse> => {
   const params = new URLSearchParams({
-    language: 'en-US',
+    language: language,
     query: encodeURIComponent(query),
     page: page.toString(),
     include_adult: 'false'

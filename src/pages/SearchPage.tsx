@@ -10,6 +10,7 @@ import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
 import PosterImage from "../components/PosterImage";
+import { searchMovies, convertTMDBToAppMovie } from "../services/tmdbService";
 
 const LoadingSpinner = () => (
   <div role="status" className="flex justify-center items-center">
@@ -42,6 +43,7 @@ export default function SearchPage() {
   const [useTextarea, setUseTextarea] = useState(false);
   const [notFoundMovies, setNotFoundMovies] = useState<string[]>([]);
   const [isNotFoundDialogOpen, setIsNotFoundDialogOpen] = useState(false);
+  const [searchLanguage] = useState<string>('en-US'); // Default to English
 
   // This logic is for the single search result preview
   useEffect(() => {
@@ -52,21 +54,24 @@ export default function SearchPage() {
       return;
     }
     const fetchMovie = async () => {
+      if (!tmdbApiKey) {
+        setError("TMDB API key is required. Please configure it in settings.");
+        return;
+      }
       setIsLoading(true);
       setError(null);
       setSearchedMovie(null);
       try {
-        const response = await fetch(
-          `https://www.omdbapi.com/?apikey=${apiKey}&t=${searchTerm}`
-        );
-        const data = await response.json();
-        if (data.Response === "True") {
-          if (data.Poster === "N/A") {
-            data.Poster = getPlaceholder();
+        const response = await searchMovies(tmdbApiKey, searchTerm, 1, searchLanguage);
+        if (response.results && response.results.length > 0) {
+          const tmdbMovie = response.results[0];
+          const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
+          if (convertedMovie.Poster === 'N/A') {
+            convertedMovie.Poster = getPlaceholder();
           }
-          setSearchedMovie(data);
+          setSearchedMovie(convertedMovie);
         } else {
-          setError(data.Error);
+          setError("Movie not found");
         }
       } catch (err) {
         setError("An unexpected error occurred: " + err);
@@ -76,7 +81,7 @@ export default function SearchPage() {
     };
     const timerId = setTimeout(fetchMovie, 500);
     return () => clearTimeout(timerId);
-  }, [searchTerm, apiKey, useTextarea]);
+  }, [searchTerm, tmdbApiKey, useTextarea, searchLanguage]);
 
   function handleAddMovie() {
     if (searchedMovie) {
@@ -89,6 +94,10 @@ export default function SearchPage() {
   }
 
   async function handleTextareaSearch() {
+    if (!tmdbApiKey) {
+      setError("TMDB API key is required. Please configure it in settings.");
+      return;
+    }
     const titles = searchTerm
       .split("\n")
       .map((t) => t.trim())
@@ -101,17 +110,14 @@ export default function SearchPage() {
 
     for (const title of titles) {
       try {
-        const response = await fetch(
-          `https://www.omdbapi.com/?apikey=${apiKey}&t=${encodeURIComponent(
-            title
-          )}`
-        );
-        const data = await response.json();
-        if (data.Response === "True") {
-          if (data.Poster === "N/A") {
-            data.Poster = getPlaceholder();
+        const response = await searchMovies(tmdbApiKey, title, 1, searchLanguage);
+        if (response.results && response.results.length > 0) {
+          const tmdbMovie = response.results[0];
+          const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
+          if (convertedMovie.Poster === 'N/A') {
+            convertedMovie.Poster = getPlaceholder();
           }
-          addMovie(data);
+          addMovie(convertedMovie);
         } else {
           notFound.push(title);
         }
@@ -141,6 +147,10 @@ export default function SearchPage() {
     }
 
     // Handle string titles (from old selector)
+    if (!tmdbApiKey) {
+      setError("TMDB API key is required. Please configure it in settings.");
+      return;
+    }
     const movieTitles = movieData as string[];
     
     setIsLoading(true);
@@ -149,17 +159,14 @@ export default function SearchPage() {
 
     for (const title of movieTitles) {
       try {
-        const response = await fetch(
-          `https://www.omdbapi.com/?apikey=${apiKey}&t=${encodeURIComponent(
-            title
-          )}`
-        );
-        const data = await response.json();
-        if (data.Response === "True") {
-          if (data.Poster === "N/A") {
-            data.Poster = getPlaceholder();
+        const response = await searchMovies(tmdbApiKey, title, 1, searchLanguage);
+        if (response.results && response.results.length > 0) {
+          const tmdbMovie = response.results[0];
+          const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
+          if (convertedMovie.Poster === 'N/A') {
+            convertedMovie.Poster = getPlaceholder();
           }
-          addMovie(data);
+          addMovie(convertedMovie);
         } else {
           notFound.push(title);
         }
