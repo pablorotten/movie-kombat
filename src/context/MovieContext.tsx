@@ -12,6 +12,8 @@ interface MovieContextType {
   setMovieList: React.Dispatch<React.SetStateAction<Movie[]>>;
   arePostersVisible: boolean;
   togglePostersVisibility: () => void;
+  searchLanguage: string;
+  setSearchLanguage: (language: string) => void;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -23,6 +25,7 @@ export function MovieProvider({ children }: { children: ReactNode }) {
   const DEFAULT_TMDB_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1NzIwY2QwYTM5MDA5OTkxZThjM2U4ZDNlMjgyYWY4OSIsIm5iZiI6MTc2Mjg2ODQwMy43MjEsInN1YiI6IjY5MTMzY2IzNGYwNGJiY2Y0ZWRkMjlmMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BgroNoyRerw6ggrjFjUaHrPiz4--NM3_NZfLCbHMVX8";
   const [tmdbApiKey, setTmdbApiKey] = useState<string>(DEFAULT_TMDB_API_KEY);
   const [arePostersVisible, setArePostersVisible] = useState(true);
+  const [searchLanguage, setSearchLanguage] = useState<string>('en-US');
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem("omdbApiKey");
@@ -34,6 +37,11 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     if (storedTmdbKey) {
       setTmdbApiKey(storedTmdbKey);
     }
+
+    const storedLanguage = localStorage.getItem("searchLanguage");
+    if (storedLanguage) {
+      setSearchLanguage(storedLanguage);
+    }
   }, []);
 
   useEffect(() => {
@@ -43,6 +51,10 @@ export function MovieProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem("tmdbApiKey", tmdbApiKey);
   }, [tmdbApiKey]);
+
+  useEffect(() => {
+    localStorage.setItem("searchLanguage", searchLanguage);
+  }, [searchLanguage]);
 
   const addMovie = (movie: Movie) => {
     if (!movieList.find((m) => m.imdbID === movie.imdbID)) {
@@ -70,7 +82,9 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     tmdbApiKey,
     setTmdbApiKey,
     arePostersVisible, 
-    togglePostersVisibility 
+    togglePostersVisibility,
+    searchLanguage,
+    setSearchLanguage
   };
 
   return (

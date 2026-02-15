@@ -107,6 +107,7 @@ export const discoverMovies = async (
     page?: number;
     sortBy?: 'popularity.desc' | 'vote_average.desc' | 'release_date.desc';
     includeAdult?: boolean;
+    language?: string; // Language for localized titles (e.g., 'en-US', 'es-ES')
   }
 ): Promise<TMDBDiscoverResponse> => {
   const {
@@ -115,11 +116,12 @@ export const discoverMovies = async (
     region = 'ES', // Default to Spain
     page = 1,
     sortBy = 'popularity.desc',
-    includeAdult = false
+    includeAdult = false,
+    language = 'en-US' // Default to English
   } = options;
 
   const params = new URLSearchParams({
-    language: 'en-US',
+    language: language,
     page: page.toString(),
     sort_by: sortBy,
     include_adult: includeAdult.toString(),
@@ -200,9 +202,10 @@ export interface TMDBMovieDetails {
 // Get movie details by TMDB ID
 export const getMovieDetails = async (
   bearerToken: string,
-  movieId: number
+  movieId: number,
+  language: string = 'en-US'
 ): Promise<TMDBMovieDetails> => {
-  const url = `${TMDB_BASE_URL}/movie/${movieId}?language=en-US`;
+  const url = `${TMDB_BASE_URL}/movie/${movieId}?language=${language}`;
   
   try {
     const response = await fetch(url, {

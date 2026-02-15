@@ -49,23 +49,7 @@ const ApiKeyModal = ({
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              OMDB API Key (for movie search)
-            </label>
-            <input
-              type="text"
-              value={omdbInputValue}
-              onChange={(e) => setOmdbInputValue(e.target.value)}
-              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
-              placeholder="Enter your OMDB API key..."
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              Get free key at: <span className="text-blue-400">http://www.omdbapi.com/apikey.aspx</span>
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              TMDB Bearer Token (for movie discovery)
+              TMDB Bearer Token (for movie search and discovery)
             </label>
             <input
               type="text"
@@ -76,6 +60,22 @@ const ApiKeyModal = ({
             />
             <p className="text-xs text-gray-400 mt-1">
               Get free token at: <span className="text-blue-400">https://www.themoviedb.org/settings/api</span>
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              OMDB API Key (optional - legacy support)
+            </label>
+            <input
+              type="text"
+              value={omdbInputValue}
+              onChange={(e) => setOmdbInputValue(e.target.value)}
+              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
+              placeholder="Enter your OMDB API key..."
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Get free key at: <span className="text-blue-400">http://www.omdbapi.com/apikey.aspx</span>
             </p>
           </div>
         </div>

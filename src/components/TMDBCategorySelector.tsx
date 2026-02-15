@@ -14,6 +14,7 @@ import { Movie } from '../types';
 import { selectedCountries, getFlagComponent } from '../constants/countries';
 import { ProviderLogo } from './ProviderLogo';
 import { getGenreWithEmoji } from '../utils/genreUtils';
+import { useMovies } from '../context/MovieContext';
 
 interface TMDBCategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
@@ -21,6 +22,7 @@ interface TMDBCategorySelectorProps {
 }
 
 export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }: TMDBCategorySelectorProps) {
+  const { searchLanguage } = useMovies();
   const [selectedGenre, setSelectedGenre] = useState<number | ''>('');
   const [selectedProvider, setSelectedProvider] = useState<number | ''>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('ES'); // Default to Spain
@@ -87,7 +89,8 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
           providerId: selectedProvider ? Number(selectedProvider) : undefined,
           region: selectedRegion,
           page,
-          sortBy: 'popularity.desc'
+          sortBy: 'popularity.desc',
+          language: searchLanguage
         })
       );
 

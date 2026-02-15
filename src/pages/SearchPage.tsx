@@ -35,7 +35,7 @@ const LoadingSpinner = () => (
 );
 
 export default function SearchPage() {
-  const { addMovie, movieList, apiKey, removeMovie, tmdbApiKey } = useMovies();
+  const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setSearchLanguage } = useMovies();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -43,7 +43,6 @@ export default function SearchPage() {
   const [useTextarea, setUseTextarea] = useState(false);
   const [notFoundMovies, setNotFoundMovies] = useState<string[]>([]);
   const [isNotFoundDialogOpen, setIsNotFoundDialogOpen] = useState(false);
-  const [searchLanguage] = useState<string>('en-US'); // Default to English
 
   // This logic is for the single search result preview
   useEffect(() => {
@@ -222,6 +221,30 @@ export default function SearchPage() {
       )}
 
       <div className="max-w-xl mx-auto px-4">
+        {/* Language Selector */}
+        <div className="flex justify-center gap-2 mb-4">
+          <button
+            onClick={() => setSearchLanguage('en-US')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              searchLanguage === 'en-US'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            English
+          </button>
+          <button
+            onClick={() => setSearchLanguage('es-ES')}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              searchLanguage === 'es-ES'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            Español
+          </button>
+        </div>
+
         <div className="w-full mx-auto mt-4">
           {!useTextarea ? (
             <div className="relative">
