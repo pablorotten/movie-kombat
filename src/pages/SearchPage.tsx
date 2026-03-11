@@ -6,11 +6,12 @@ import Button from "../components/Button";
 import Dialog from "../components/Dialog";
 import CategorySelector from "../components/CategorySelector";
 import TMDBCategorySelector from "../components/TMDBCategorySelector";
+import { useSearchParams } from "react-router-dom";
 import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
 import PosterImage from "../components/PosterImage";
-import { searchMovies, convertTMDBToAppMovie } from "../services/tmdbService";
+import { searchMovies, convertTMDBToAppMovie, getMovieDetails, getTMDBImageUrl } from "../services/tmdbService";
 
 const LoadingSpinner = () => (
   <div role="status" className="flex justify-center items-center">
@@ -35,7 +36,8 @@ const LoadingSpinner = () => (
 );
 
 export default function SearchPage() {
-  const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setSearchLanguage } = useMovies();
+  const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setSearchLanguage, setMovieList } = useMovies();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -43,6 +45,71 @@ export default function SearchPage() {
   const [useTextarea, setUseTextarea] = useState(false);
   const [notFoundMovies, setNotFoundMovies] = useState<string[]>([]);
   const [isNotFoundDialogOpen, setIsNotFoundDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const idsParam = searchParams.get("ids");
+    if (!tmdbApiKey || !idsParam || movieList.length > 0) return;
+
+    const ids = Array.from(
+      new Set(
+        idsParam
+          .split(",")
+          .map((id) => parseInt(id.trim(), 10))
+          .filter((id) => Number.isFinite(id) && id > 0)
+      )
+    );
+
+    if (ids.length === 0) return;
+
+    const loadMoviesFromUrl = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const loadedMovies = await Promise.all(
+          ids.map(async (id) => {
+            const details = await getMovieDetails(tmdbApiKey, id, searchLanguage);
+            return {
+              imdbID: `tmdb_${details.id}`,
+              Title: details.title,
+              Year: details.release_date
+                ? new Date(details.release_date).getFullYear().toString()
+                : "Unknown",
+              Poster: getTMDBImageUrl(details.poster_path) || getPlaceholder(),
+              Type: "movie",
+            };
+          })
+        );
+        setMovieList(loadedMovies);
+      } catch {
+        setError("Failed to load movie list from URL.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadMoviesFromUrl();
+  }, [tmdbApiKey, searchLanguage, searchParams, movieList.length, setMovieList]);
+
+  useEffect(() => {
+    const tmdbIds = movieList
+      .map((movie) => {
+        if (!movie.imdbID.startsWith("tmdb_")) return null;
+        return movie.imdbID.slice(5);
+      })
+      .filter((id): id is string => Boolean(id));
+
+    const nextIds = tmdbIds.join(",");
+    const currentIds = searchParams.get("ids") || "";
+    if (nextIds === currentIds) return;
+
+    const nextParams = new URLSearchParams(searchParams);
+    if (nextIds) {
+      nextParams.set("ids", nextIds);
+    } else {
+      nextParams.delete("ids");
+    }
+    setSearchParams(nextParams, { replace: true });
+  }, [movieList, searchParams, setSearchParams]);
 
   // This logic is for the single search result preview
   useEffect(() => {
