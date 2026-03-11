@@ -6,7 +6,7 @@ Live app: https://movie-kombat.vercel.app/
 
 ## Features
 
-- Search movies with OMDb (single title or bulk list mode).
+- Search movies with TMDB (single title or bulk list mode).
 - Discover movies with TMDB by genre, streaming provider, and country.
 - Smart poster handling (fallback placeholders when posters are missing).
 - Blind mode to hide posters and vote by title.
@@ -45,14 +45,12 @@ Open the local URL shown by Vite (usually `http://localhost:5173`).
 
 ## API keys
 
-The app supports both OMDb and TMDB through the in-app **⚙️ API Configuration** dialog.
+The app uses TMDB through the in-app **⚙️ API Configuration** dialog.
 
-- **OMDb API key** is used for title search.
-- **TMDB Bearer token** is used for discovery filters (genre/provider/country).
+- **TMDB Bearer token** is used for title search and discovery filters (genre/provider/country).
 
 Keys are saved in browser `localStorage` under:
 
-- `omdbApiKey`
 - `tmdbApiKey`
 
 If no custom key is provided, the app can still run using default values defined in the context.
