@@ -16,25 +16,19 @@ import EyeCloseIcon from "./assets/eye-close.svg";
 const ApiKeyModal = ({
   isOpen,
   onClose,
-  omdbApiKey = "",
   tmdbApiKey = "",
-  setOmdbApiKey,
   setTmdbApiKey,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  omdbApiKey?: string;
   tmdbApiKey?: string;
-  setOmdbApiKey: (key: string) => void;
   setTmdbApiKey: (key: string) => void;
 }) => {
-  const [omdbInputValue, setOmdbInputValue] = useState(omdbApiKey);
   const [tmdbInputValue, setTmdbInputValue] = useState(tmdbApiKey);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
-    setOmdbApiKey(omdbInputValue);
     setTmdbApiKey(tmdbInputValue);
     onClose();
   };
@@ -63,21 +57,6 @@ const ApiKeyModal = ({
             </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              OMDB API Key (optional - legacy support)
-            </label>
-            <input
-              type="text"
-              value={omdbInputValue}
-              onChange={(e) => setOmdbInputValue(e.target.value)}
-              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
-              placeholder="Enter your OMDB API key..."
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              Get free key at: <span className="text-blue-400">http://www.omdbapi.com/apikey.aspx</span>
-            </p>
-          </div>
         </div>
 
         <div className="flex gap-3 mt-6">
@@ -108,9 +87,7 @@ function App() {
   const { 
     movieList, 
     setMovieList, 
-    setApiKey, 
     setTmdbApiKey,
-    apiKey,
     tmdbApiKey,
     arePostersVisible, 
     togglePostersVisibility 
@@ -143,9 +120,7 @@ function App() {
       <ApiKeyModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        omdbApiKey={apiKey}
         tmdbApiKey={tmdbApiKey}
-        setOmdbApiKey={setApiKey}
         setTmdbApiKey={setTmdbApiKey}
       />
       

@@ -164,21 +164,6 @@ export default function TournamentPage() {
             🏆 The Winner Is! 🏆
           </h1>
 
-          <div className="flex justify-center mb-4">
-            <a
-              href={`https://www.imdb.com/title/${winner.id}/`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group relative overflow-hidden bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-48"
-            >
-              <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-              <div className="relative flex items-center justify-center space-x-2 text-white">
-                <span>🎬</span>
-                <span>View on IMDb</span>
-              </div>
-            </a>
-          </div>
-
           <div className="flex flex-col items-center gap-4 max-w-sm mx-auto">
             <h3 className="text-3xl font-bold text-black dark:text-white">
               {winner.title}

@@ -159,7 +159,7 @@ export const discoverMovies = async (
   }
 };
 
-// Convert TMDB movie to our app's movie format for OMDB compatibility
+// Convert TMDB movie to our app's movie format
 export const convertTMDBToAppMovie = (tmdbMovie: TMDBMovie) => {
   const posterUrl = getTMDBImageUrl(tmdbMovie.poster_path);
   
