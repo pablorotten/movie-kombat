@@ -222,7 +222,7 @@ export default function SearchPage() {
 
       <div className="max-w-xl mx-auto px-4">
         {/* Language Selector */}
-        <div className="flex justify-center gap-2 mb-4">
+        <div className="flex justify-center gap-2 mt-6 mb-4">
           <button
             onClick={() => setSearchLanguage('en-US')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
