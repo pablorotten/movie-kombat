@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
@@ -10,7 +11,7 @@ import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
 import PosterImage from "../components/PosterImage";
-import { searchMovies, convertTMDBToAppMovie } from "../services/tmdbService";
+import { searchMovies, convertTMDBToAppMovie, getMovieDetails, getTMDBImageUrl } from "../services/tmdbService";
 
 const LoadingSpinner = () => (
   <div role="status" className="flex justify-center items-center">
@@ -36,6 +37,9 @@ const LoadingSpinner = () => (
 
 export default function SearchPage() {
   const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setSearchLanguage } = useMovies();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hasLoadedFromUrl = useRef(false);
+  const isInitialMount = useRef(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -81,6 +85,68 @@ export default function SearchPage() {
     const timerId = setTimeout(fetchMovie, 500);
     return () => clearTimeout(timerId);
   }, [searchTerm, tmdbApiKey, useTextarea, searchLanguage]);
+
+  // Load movies from URL params on initial mount (enables bookmarking)
+  useEffect(() => {
+    const movieIds = searchParams.get("movies");
+    if (!movieIds || !tmdbApiKey || hasLoadedFromUrl.current) return;
+
+    hasLoadedFromUrl.current = true;
+
+    const ids = movieIds.split(",").map((id) => id.trim()).filter(Boolean);
+    if (ids.length === 0) return;
+
+    const loadMoviesFromUrl = async () => {
+      // Fetch all movies concurrently and add them in URL order
+      const fetchPromises = ids.map(async (id) => {
+        const numericId = parseInt(id, 10);
+        if (isNaN(numericId)) return null;
+
+        try {
+          const details = await getMovieDetails(tmdbApiKey, numericId, searchLanguage);
+          const posterUrl = getTMDBImageUrl(details.poster_path);
+          return {
+            imdbID: `tmdb_${details.id}`,
+            Title: details.title,
+            Year: details.release_date
+              ? new Date(details.release_date).getFullYear().toString()
+              : "Unknown",
+            Poster: posterUrl || getPlaceholder(),
+            Type: "movie",
+          } as Movie;
+        } catch (err) {
+          console.error(`Failed to load movie ${numericId} from URL:`, err);
+          return null;
+        }
+      });
+
+      const movies = await Promise.all(fetchPromises);
+      // addMovie (from context) already prevents duplicates
+      movies.filter((m): m is Movie => m !== null).forEach(addMovie);
+    };
+
+    loadMoviesFromUrl();
+  // searchParams is intentionally read only once on mount; addMovie and searchLanguage
+  // are stable references that don't need to retrigger this effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tmdbApiKey]);
+
+  // Update URL params whenever the movie list changes so the selection can be bookmarked
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    const ids = movieList
+      .map((m) => (m.imdbID.startsWith("tmdb_") ? m.imdbID.replace("tmdb_", "") : null))
+      .filter((id): id is string => id !== null)
+      .join(",");
+
+    setSearchParams(ids ? { movies: ids } : {}, { replace: true });
+  // setSearchParams is a stable React Router reference; only movieList drives this effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [movieList]);
 
   function handleAddMovie() {
     if (searchedMovie) {
