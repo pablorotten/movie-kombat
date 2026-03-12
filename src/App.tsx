@@ -24,12 +24,32 @@ const ApiKeyModal = ({
   onClose,
   tmdbApiKey = "",
   setTmdbApiKey,
+  searchLanguage,
 }: {
   isOpen: boolean;
   onClose: () => void;
   tmdbApiKey?: string;
   setTmdbApiKey: (key: string) => void;
+  searchLanguage: string;
 }) => {
+  const isSpanish = searchLanguage === "es-ES";
+  const ui = isSpanish
+    ? {
+        apiConfig: "Configuracion de API",
+        tmdbTokenLabel: "TMDB Bearer Token (para buscar y descubrir peliculas)",
+        tmdbPlaceholder: "Escribe tu token Bearer de TMDB...",
+        getToken: "Consigue un token gratis en:",
+        cancel: "Cancelar",
+        save: "Guardar",
+      }
+    : {
+        apiConfig: "API Configuration",
+        tmdbTokenLabel: "TMDB Bearer Token (for movie search and discovery)",
+        tmdbPlaceholder: "Enter your TMDB Bearer token...",
+        getToken: "Get free token at:",
+        cancel: "Cancel",
+        save: "Save",
+      };
   const [tmdbInputValue, setTmdbInputValue] = useState(tmdbApiKey);
 
   if (!isOpen) return null;
@@ -42,22 +62,22 @@ const ApiKeyModal = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
       <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-xl font-bold mb-6 text-white">API Configuration</h2>
+        <h2 className="text-xl font-bold mb-6 text-white">{ui.apiConfig}</h2>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
-              TMDB Bearer Token (for movie search and discovery)
+              {ui.tmdbTokenLabel}
             </label>
             <input
               type="text"
               value={tmdbInputValue}
               onChange={(e) => setTmdbInputValue(e.target.value)}
               className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
-              placeholder="Enter your TMDB Bearer token..."
+              placeholder={ui.tmdbPlaceholder}
             />
             <p className="text-xs text-gray-400 mt-1">
-              Get free token at:{" "}
+              {ui.getToken}{" "}
               <span className="text-blue-400">
                 https://www.themoviedb.org/settings/api
               </span>
@@ -67,10 +87,10 @@ const ApiKeyModal = ({
 
         <div className="flex gap-3 mt-6">
           <Button variant="secondary" onClick={onClose} fullWidth>
-            Cancel
+            {ui.cancel}
           </Button>
           <Button variant="primary" onClick={handleSave} fullWidth>
-            Save
+            {ui.save}
           </Button>
         </div>
       </div>
@@ -88,7 +108,30 @@ function App() {
     tmdbApiKey,
     arePostersVisible,
     togglePostersVisibility,
+    searchLanguage,
   } = useMovies();
+  const isSpanish = searchLanguage === "es-ES";
+  const ui = isSpanish
+    ? {
+        startNewTournamentTitle: "Empezar nuevo torneo?",
+        startNewTournamentWarning: "Se perdera el progreso del torneo actual",
+        confirmStartNew: "Si, empezar nuevo",
+        cancel: "Cancelar",
+        configureApiKeys: "Configurar API Keys",
+        blindPosters: "Ocultar posters",
+        showPosters: "Mostrar posters",
+        startTournament: "Empezar torneo",
+      }
+    : {
+        startNewTournamentTitle: "Start New Tournament?",
+        startNewTournamentWarning: "Current tournament progress will be lost",
+        confirmStartNew: "Yes, Start New",
+        cancel: "Cancel",
+        configureApiKeys: "Configure API Keys",
+        blindPosters: "Blind Posters",
+        showPosters: "Show Posters",
+        startTournament: "Start Tournament",
+      };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
@@ -117,19 +160,20 @@ function App() {
         onClose={() => setIsModalOpen(false)}
         tmdbApiKey={tmdbApiKey}
         setTmdbApiKey={setTmdbApiKey}
+        searchLanguage={searchLanguage}
       />
 
       <Dialog
         open={isConfirmDialogOpen}
         onClose={() => setIsConfirmDialogOpen(false)}
-        title="Start New Tournament?"
+        title={ui.startNewTournamentTitle}
         onConfirm={handleConfirmNewTournament}
         onCancel={() => setIsConfirmDialogOpen(false)}
-        confirmText="Yes, Start New"
-        cancelText="Cancel"
+        confirmText={ui.confirmStartNew}
+        cancelText={ui.cancel}
         confirmVariant="danger"
       >
-        <p>Current tournament progress will be lost</p>
+        <p>{ui.startNewTournamentWarning}</p>
       </Dialog>
 
       <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
@@ -146,7 +190,7 @@ function App() {
           {/* API Configuration button */}
           <button
             onClick={() => setIsModalOpen(true)}
-            title="Configure API Keys"
+            title={ui.configureApiKeys}
             className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
           >
             <span className="inline-block" aria-label="settings">
@@ -157,7 +201,7 @@ function App() {
 
         <button
           onClick={togglePostersVisibility}
-          title={arePostersVisible ? "Blind Posters" : "Show Posters"}
+          title={arePostersVisible ? ui.blindPosters : ui.showPosters}
           className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300 btn-primary"
         >
           {arePostersVisible ? (
@@ -186,7 +230,7 @@ function App() {
             (movieList.length & (movieList.length - 1)) !== 0
           } // Disable if not a power of 2 or empty
         >
-          Start Tournament
+          {ui.startTournament}
           {movieList.length > 0 && (
             <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
               {movieList.length}
