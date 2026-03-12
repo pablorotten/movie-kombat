@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
@@ -38,6 +38,7 @@ const LoadingSpinner = () => (
 export default function SearchPage() {
   const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setSearchLanguage, setMovieList } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
+  const hasRestoredFromUrl = useRef(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -47,8 +48,14 @@ export default function SearchPage() {
   const [isNotFoundDialogOpen, setIsNotFoundDialogOpen] = useState(false);
 
   useEffect(() => {
+    if (hasRestoredFromUrl.current) return;
+
     const idsParam = searchParams.get("ids");
-    if (!tmdbApiKey || !idsParam || movieList.length > 0) return;
+    if (!tmdbApiKey) return;
+    if (!idsParam || movieList.length > 0) {
+      hasRestoredFromUrl.current = true;
+      return;
+    }
 
     const ids = Array.from(
       new Set(
@@ -60,6 +67,8 @@ export default function SearchPage() {
     );
 
     if (ids.length === 0) return;
+
+    hasRestoredFromUrl.current = true;
 
     const loadMoviesFromUrl = async () => {
       setIsLoading(true);
@@ -99,17 +108,19 @@ export default function SearchPage() {
       .filter((id): id is string => Boolean(id));
 
     const nextIds = tmdbIds.join(",");
-    const currentIds = searchParams.get("ids") || "";
-    if (nextIds === currentIds) return;
+    setSearchParams((prev) => {
+      const currentIds = prev.get("ids") || "";
+      if (nextIds === currentIds) return prev;
 
-    const nextParams = new URLSearchParams(searchParams);
-    if (nextIds) {
-      nextParams.set("ids", nextIds);
-    } else {
-      nextParams.delete("ids");
-    }
-    setSearchParams(nextParams, { replace: true });
-  }, [movieList, searchParams, setSearchParams]);
+      const nextParams = new URLSearchParams(prev);
+      if (nextIds) {
+        nextParams.set("ids", nextIds);
+      } else {
+        nextParams.delete("ids");
+      }
+      return nextParams;
+    }, { replace: true });
+  }, [movieList, setSearchParams]);
 
   // This logic is for the single search result preview
   useEffect(() => {
