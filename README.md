@@ -1,6 +1,6 @@
 # Movie Kombat
 
-Movie Kombat is a React + TypeScript web app where you build a movie list and run a knockout tournament to pick a winner.
+Movie Kombat is a React + TypeScript web app where you build a movie list and run a knockout kombat to pick a winner.
 
 Live app: https://movie-kombat.vercel.app/
 
@@ -10,10 +10,10 @@ Live app: https://movie-kombat.vercel.app/
 - Discover movies with TMDB by genre, streaming provider, and country.
 - Smart poster handling (fallback placeholders when posters are missing).
 - Blind mode to hide posters and vote by title.
-- Interactive bracket visualization through each tournament stage.
+- Interactive bracket visualization through each kombat stage.
 - Final winner screen with IMDb link.
 
-## Tournament rules
+## Kombat rules
 
 - You need at least **4 movies** to start.
 - The total must be a **power of two** (4, 8, 16, ...).
@@ -68,11 +68,11 @@ If no custom key is provided, the app can still run using default values defined
 
 ```text
 src/
-	components/        Reusable UI and tournament components
+	components/        Reusable UI and kombat components
 	context/           Global movie/app state
-	pages/             Search and tournament routes
+	pages/             Search and kombat routes
 	services/          TMDB integration and helpers
-	utils/             Utility functions (genres, providers, tournament logic)
+	utils/             Utility functions (genres, providers, kombat logic)
 	assets/            Static data and images
 ```
 

@@ -2,21 +2,21 @@ import { useEffect, useState } from "react";
 import { useMovies } from "../context/MovieContext";
 import {
   BracketMatch,
-  TournamentOption,
-} from "../components/Tournament/TournamentModels";
-import { createInitialStages, getStageName } from "../utils/tournamentUtils";
+  KombatOption,
+} from "../components/Kombat/KombatModels";
+import { createInitialStages, getStageName } from "../utils/kombatUtils";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import PosterImage from "../components/PosterImage";
-import BracketVisualization from "../components/Tournament/BracketVisualization";
+import BracketVisualization from "../components/Kombat/BracketVisualization";
 
-const TournamentMatchup = ({
+const KombatMatchup = ({
   match,
   onChooseWinner,
   chooseLabel,
 }: {
   match: BracketMatch;
-  onChooseWinner: (winner: TournamentOption) => void;
+  onChooseWinner: (winner: KombatOption) => void;
   chooseLabel: string;
 }) => {
   return (
@@ -67,42 +67,42 @@ const TournamentMatchup = ({
   );
 };
 
-export default function TournamentPage() {
+export default function KombatPage() {
   const { movieList, setMovieList, searchLanguage } = useMovies();
   const navigate = useNavigate();
   const isSpanish = searchLanguage === "es-ES";
   const ui = isSpanish
     ? {
         choose: "Elegir",
-        tournamentMode: "Modo Torneo",
-        needAtLeastTwo: "Necesitas agregar al menos 2 peliculas para empezar un torneo.",
+        kombatMode: "Modo Kombat",
+        needAtLeastTwo: "Necesitas agregar al menos 2 peliculas para empezar un kombat.",
         backToSearch: "Volver a Buscar",
-        loadingTournament: "Cargando torneo...",
+        loadingKombat: "Cargando kombat...",
         winnerTitle: "🏆 El ganador es! 🏆",
-        startNewTournament: "Empezar un nuevo torneo",
-        finalBracket: "Bracket final del torneo",
+        startNewKombat: "Empezar un nuevo kombat",
+        finalBracket: "Bracket final del kombat",
         round: "Ronda",
         of: "de",
-        bracket: "Bracket del torneo",
+        bracket: "Bracket del kombat",
       }
     : {
         choose: "Choose",
-        tournamentMode: "Tournament Mode",
-        needAtLeastTwo: "You need to add at least 2 movies to start a tournament.",
+        kombatMode: "Kombat Mode",
+        needAtLeastTwo: "You need to add at least 2 movies to start a kombat.",
         backToSearch: "Back to Search",
-        loadingTournament: "Loading Tournament...",
+        loadingKombat: "Loading Kombat...",
         winnerTitle: "🏆 The Winner Is! 🏆",
-        startNewTournament: "Start a New Tournament",
-        finalBracket: "Final Tournament Bracket",
+        startNewKombat: "Start a New Kombat",
+        finalBracket: "Final Kombat Bracket",
         round: "Round",
         of: "of",
-        bracket: "Tournament Bracket",
+        bracket: "Kombat Bracket",
       };
 
   const [stages, setStages] = useState<BracketMatch[][]>([]);
   const [currentStage, setCurrentStage] = useState(0);
   const [currentRound, setCurrentRound] = useState(0);
-  const [winner, setWinner] = useState<TournamentOption | null>(null);
+  const [winner, setWinner] = useState<KombatOption | null>(null);
 
   const shuffleMovies = <T,>(movies: T[]): T[] => {
     const shuffled = [...movies];
@@ -126,7 +126,7 @@ export default function TournamentPage() {
     }
   }, [movieList]);
 
-  const handleChooseWinner = (roundWinner: TournamentOption) => {
+  const handleChooseWinner = (roundWinner: KombatOption) => {
     const updatedStages = [...stages];
     const currentMatch = updatedStages[currentStage][currentRound];
 
@@ -147,7 +147,7 @@ export default function TournamentPage() {
         nextStageMatch.second = roundWinner;
       }
     } else {
-      // This was the final match, we have a tournament winner!
+      // This was the final match, we have a kombat winner!
       setWinner(roundWinner);
       setStages(updatedStages);
       return;
@@ -175,7 +175,7 @@ export default function TournamentPage() {
   if (movieList.length < 2) {
     return (
       <div className="text-center p-8">
-        <h1 className="text-2xl font-bold mb-4">{ui.tournamentMode}</h1>
+        <h1 className="text-2xl font-bold mb-4">{ui.kombatMode}</h1>
         <p className="text-lg text-gray-400">{ui.needAtLeastTwo}</p>
         <div className="flex justify-center p-4">
           <Button variant="danger" onClick={() => navigate("/")}>
@@ -186,7 +186,7 @@ export default function TournamentPage() {
     );
   }
   if (stages.length === 0) {
-    return <div className="text-center p-8">{ui.loadingTournament}</div>;
+    return <div className="text-center p-8">{ui.loadingKombat}</div>;
   }
 
   const currentMatch = stages[currentStage]?.[currentRound];
@@ -218,7 +218,7 @@ export default function TournamentPage() {
                   navigate("/");
                 }}
               >
-                {ui.startNewTournament}
+                {ui.startNewKombat}
               </Button>
             </div>
           </div>
@@ -246,14 +246,14 @@ export default function TournamentPage() {
               <p className="text-gray-400 mb-8">
                 {ui.round} {currentRound + 1} {ui.of} {stages[currentStage].length}
               </p>
-              <TournamentMatchup
+              <KombatMatchup
                 match={currentMatch}
                 onChooseWinner={handleChooseWinner}
                 chooseLabel={ui.choose}
               />
             </div>
 
-            {/* Tournament Bracket Visualization */}
+            {/* Kombat Bracket Visualization */}
             <div className="mt-12">
               <h2 className="text-2xl font-bold text-center mb-4">
                 {ui.bracket}
