@@ -63,7 +63,7 @@ const ApiKeyModal = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
       <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
         <h2 className="text-xl font-bold mb-6 text-white">{ui.apiConfig}</h2>
-
+        
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -78,9 +78,7 @@ const ApiKeyModal = ({
             />
             <p className="text-xs text-gray-400 mt-1">
               {ui.getToken}{" "}
-              <span className="text-blue-400">
-                https://www.themoviedb.org/settings/api
-              </span>
+              <span className="text-blue-400">https://www.themoviedb.org/settings/api</span>
             </p>
           </div>
         </div>

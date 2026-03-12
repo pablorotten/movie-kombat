@@ -207,7 +207,6 @@ export default function SearchPage() {
 
     updateTitlesForLanguage();
   }, [searchLanguage, tmdbApiKey, movieList, setMovieList, ui.refreshTitlesError]);
-
   // This logic is for the single search result preview
   useEffect(() => {
     if (useTextarea) return;
