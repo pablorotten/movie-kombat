@@ -424,7 +424,7 @@ export default function SearchPage() {
           </button>
         </div>
 
-        <div className="w-full mx-auto mt-4">
+        <div className="mt-4">
           {!useTextarea ? (
             <div className="relative">
               <input
@@ -482,18 +482,24 @@ export default function SearchPage() {
             </Button>
           </div>
         )}
+      </div>
 
-        <div className="text-center p-4">
-          {isLoading && <LoadingSpinner />}
-          {error && <p className="text-red-500">{error}</p>}
+      <div className="container mx-auto px-4">
+        <div className="p-4">
+          {isLoading && (
+            <div className="text-center">
+              <LoadingSpinner />
+            </div>
+          )}
+          {error && <p className="text-red-500 text-center">{error}</p>}
           {searchedMovies.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
               {searchedMovies.map((movie) => (
                 <div
                   key={movie.imdbID}
-                  className="border p-4 rounded-lg shadow-md dark:border-gray-600"
+                  className="border rounded-lg shadow-md overflow-hidden dark:border-gray-600 flex flex-col"
                 >
-                  <div className="w-full aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 mx-auto">
+                  <div className="w-full aspect-[2/3] rounded-t-lg overflow-hidden bg-gray-700">
                     <PosterImage
                       className="w-full h-full object-cover"
                       src={movie.Poster}
@@ -501,18 +507,23 @@ export default function SearchPage() {
                       title={movie.Title}
                     />
                   </div>
-                  <h3 className="text-lg font-bold mt-2">
-                    {movie.Title} ({movie.Year})
-                  </h3>
-                  <div className="flex justify-center p-4">
-                    <Button
-                      variant="success"
-                      size="medium"
-                      onClick={() => handleAddMovie(movie)}
-                      fullWidth={true}
-                    >
-                      {ui.addToList}
-                    </Button>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <h3 className="text-sm font-bold mb-1 line-clamp-2">
+                      {movie.Title}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                      {movie.Year}
+                    </p>
+                    <div className="mt-auto">
+                      <Button
+                        variant="success"
+                        size="small"
+                        onClick={() => handleAddMovie(movie)}
+                        fullWidth={true}
+                      >
+                        {ui.addToList}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
