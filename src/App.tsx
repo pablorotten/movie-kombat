@@ -113,8 +113,8 @@ function App() {
   const ui = isSpanish
     ? {
         startNewKombatTitle: "Empezar nuevo Kombat?",
-        startNewKombatWarning: "Se perdera el progreso del Kombat actual",
-        confirmStartNew: "Si, empezar nuevo",
+        startNewKombatWarning: "Se perderá el progreso del Kombat actual",
+        confirmStartNew: "Sí, empezar nuevo",
         cancel: "Cancelar",
         configureApiKeys: "Configurar API Keys",
         blindPosters: "Ocultar posters",
