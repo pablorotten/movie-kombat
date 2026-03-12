@@ -14,6 +14,7 @@ import Dialog from "./components/Dialog";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
 import KombatIcon from "./assets/kombat.svg";
+import tmdbLogo from "./assets/TMDB.svg";
 // // import ApiKeyIcon from "./assets/api-key.svg";
 import EyeOpenIcon from "./assets/eye-open.svg";
 import EyeCloseIcon from "./assets/eye-close.svg";
@@ -119,6 +120,9 @@ function App() {
         blindPosters: "Ocultar posters",
         showPosters: "Mostrar posters",
         startKombat: "Empezar kombat",
+        tmdbDataSource: "Datos proporcionados por",
+        tmdbAttribution:
+          "Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.",
       }
     : {
         startNewKombatTitle: "Start New Kombat?",
@@ -129,6 +133,9 @@ function App() {
         blindPosters: "Blind Posters",
         showPosters: "Show Posters",
         startKombat: "Start Kombat",
+        tmdbDataSource: "Data provided by",
+        tmdbAttribution:
+          "This product uses the TMDB API but is not endorsed or certified by TMDB.",
       };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
@@ -174,75 +181,95 @@ function App() {
         <p>{ui.startNewKombatWarning}</p>
       </Dialog>
 
-      <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
-        <div className="flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-2">
-            <img
-              src={movieKombatLogo}
-              alt="Movie Kombat Logo"
-              className="h-8 w-8"
-            />
-            <h1 className="text-2xl font-bold">Movie Kombat</h1>
-          </Link>
+      <div className="min-h-screen flex flex-col">
+        <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2">
+              <img
+                src={movieKombatLogo}
+                alt="Movie Kombat Logo"
+                className="h-8 w-8"
+              />
+              <h1 className="text-2xl font-bold">Movie Kombat</h1>
+            </Link>
 
-          {/* API Configuration button */}
+            {/* API Configuration button */}
+            <button
+              onClick={() => setIsModalOpen(true)}
+              title={ui.configureApiKeys}
+              className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
+            >
+              <span className="inline-block" aria-label="settings">
+                ⚙️
+              </span>
+            </button>
+          </div>
+
           <button
-            onClick={() => setIsModalOpen(true)}
-            title={ui.configureApiKeys}
-            className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
+            onClick={togglePostersVisibility}
+            title={arePostersVisible ? ui.blindPosters : ui.showPosters}
+            className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300 btn-primary"
           >
-            <span className="inline-block" aria-label="settings">
-              ⚙️
-            </span>
+            {arePostersVisible ? (
+              <span className="inline-block" aria-label="star">
+                <img src={EyeCloseIcon} className="w-6 h-6 dark:invert" />
+              </span>
+            ) : (
+              <span className="inline-block" aria-label="star">
+                <img src={EyeOpenIcon} className="w-6 h-6 dark:invert" />
+              </span>
+            )}
           </button>
-        </div>
 
-        <button
-          onClick={togglePostersVisibility}
-          title={arePostersVisible ? ui.blindPosters : ui.showPosters}
-          className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300 btn-primary"
-        >
-          {arePostersVisible ? (
-            <span className="inline-block" aria-label="star">
-              <img src={EyeCloseIcon} className="w-6 h-6 dark:invert" />
-            </span>
-          ) : (
-            <span className="inline-block" aria-label="star">
-              <img src={EyeOpenIcon} className="w-6 h-6 dark:invert" />
-            </span>
-          )}
-        </button>
+          <Button
+            variant="success"
+            size="small"
+            fullWidth={true}
+            icon={
+              <span className="inline-block" aria-label="star">
+                <img src={KombatIcon} className="w-4 h-4" />
+              </span>
+            }
+            onClick={handleStartKombat}
+            disabled={
+              movieList.length <= 3 ||
+              (movieList.length & (movieList.length - 1)) !== 0
+            } // Disable if not a power of 2 or empty
+          >
+            {ui.startKombat}
+            {movieList.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {movieList.length}
+              </span>
+            )}
+          </Button>
+        </header>
 
-        <Button
-          variant="success"
-          size="small"
-          fullWidth={true}
-          icon={
-            <span className="inline-block" aria-label="star">
-              <img src={KombatIcon} className="w-4 h-4" />
-            </span>
-          }
-          onClick={handleStartKombat}
-          disabled={
-            movieList.length <= 3 ||
-            (movieList.length & (movieList.length - 1)) !== 0
-          } // Disable if not a power of 2 or empty
-        >
-          {ui.startKombat}
-          {movieList.length > 0 && (
-            <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-              {movieList.length}
-            </span>
-          )}
-        </Button>
-      </header>
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<SearchPage />} />
+            <Route path="/kombat" element={<KombatPage />} />
+          </Routes>
+        </main>
 
-      <main>
-        <Routes>
-          <Route path="/" element={<SearchPage />} />
-          <Route path="/kombat" element={<KombatPage />} />
-        </Routes>
-      </main>
+        <footer className="border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+          <div className="max-w-6xl mx-auto px-4 py-2 sm:py-3 flex items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-300">
+            <div className="flex items-center gap-2">
+              <span>{ui.tmdbDataSource}</span>
+              <a
+                href="https://www.themoviedb.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="TMDB"
+                className="inline-flex items-center hover:opacity-90 transition-opacity"
+              >
+                <img src={tmdbLogo} alt="TMDB" className="h-4 w-auto" />
+              </a>
+            </div>
+            <p className="hidden md:block text-right">{ui.tmdbAttribution}</p>
+          </div>
+        </footer>
+      </div>
     </>
   );
 }
