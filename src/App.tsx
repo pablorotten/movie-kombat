@@ -112,21 +112,21 @@ function App() {
   const isSpanish = searchLanguage === "es-ES";
   const ui = isSpanish
     ? {
-        startNewKombatTitle: "Empezar nuevo kombat?",
-        startNewKombatWarning: "Se perdera el progreso del kombat actual",
+        startNewKombatTitle: "Empezar nuevo Kombat?",
+        startNewKombatWarning: "Se perdera el progreso del Kombat actual",
         confirmStartNew: "Si, empezar nuevo",
         cancel: "Cancelar",
         configureApiKeys: "Configurar API Keys",
         blindPosters: "Ocultar posters",
         showPosters: "Mostrar posters",
-        startKombat: "Empezar kombat",
+        startKombat: "Empezar Kombat",
         tmdbDataSource: "Datos proporcionados por",
         tmdbAttribution:
           "Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.",
       }
     : {
         startNewKombatTitle: "Start New Kombat?",
-        startNewKombatWarning: "Current kombat progress will be lost",
+        startNewKombatWarning: "Current Kombat progress will be lost",
         confirmStartNew: "Yes, Start New",
         cancel: "Cancel",
         configureApiKeys: "Configure API Keys",
