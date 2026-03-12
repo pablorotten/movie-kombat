@@ -491,13 +491,13 @@ export default function SearchPage() {
           )}
           {error && <p className="text-red-500 text-center">{error}</p>}
           {searchedMovies.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+            <div className="grid grid-cols-2 md:grid-cols-1 gap-4 mt-4 md:max-w-2xl md:mx-auto">
               {searchedMovies.map((movie) => (
                 <div
                   key={movie.imdbID}
-                  className="border rounded-lg shadow-md overflow-hidden dark:border-gray-600 flex flex-col"
+                  className="border rounded-lg shadow-md overflow-hidden dark:border-gray-600 flex md:flex-row flex-col"
                 >
-                  <div className="w-full aspect-[2/3] rounded-t-lg overflow-hidden bg-gray-700">
+                  <div className="w-full md:w-48 aspect-[2/3] md:aspect-auto md:h-72 rounded-t-lg md:rounded-l-lg md:rounded-t-none overflow-hidden bg-gray-700 flex-shrink-0">
                     <PosterImage
                       className="w-full h-full object-cover"
                       src={movie.Poster}
@@ -505,11 +505,11 @@ export default function SearchPage() {
                       title={movie.Title}
                     />
                   </div>
-                  <div className="p-3 flex-1 flex flex-col">
-                    <h3 className="text-sm font-bold mb-1 line-clamp-2">
+                  <div className="p-3 md:p-4 flex-1 flex flex-col">
+                    <h3 className="text-sm md:text-lg font-bold mb-1 line-clamp-2">
                       {movie.Title}
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mb-2 md:mb-4">
                       {movie.Year}
                     </p>
                     <div className="mt-auto">
