@@ -228,12 +228,14 @@ export default function KombatPage() {
             <h2 className="text-2xl font-bold text-center mb-4">
               {ui.finalBracket}
             </h2>
-            <div className="flex justify-center">
-              <BracketVisualization
-                stages={stages}
-                currentStage={stages.length - 1}
-                currentRound={0}
-              />
+            <div className="overflow-x-auto max-w-full">
+              <div className="flex justify-center">
+                <BracketVisualization
+                  stages={stages}
+                  currentStage={stages.length - 1}
+                  currentRound={0}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -258,12 +260,14 @@ export default function KombatPage() {
               <h2 className="text-2xl font-bold text-center mb-4">
                 {ui.bracket}
               </h2>
-              <div className="flex justify-center">
-                <BracketVisualization
-                  stages={stages}
-                  currentStage={currentStage}
-                  currentRound={currentRound}
-                />
+              <div className="overflow-x-auto max-w-full">
+                <div className="flex justify-center">
+                  <BracketVisualization
+                    stages={stages}
+                    currentStage={currentStage}
+                    currentRound={currentRound}
+                  />
+                </div>
               </div>
             </div>
           </div>
