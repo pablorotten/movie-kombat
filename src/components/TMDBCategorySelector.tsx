@@ -15,6 +15,7 @@ import { selectedCountries, getFlagComponent } from '../constants/countries';
 import { ProviderLogo } from './ProviderLogo';
 import { getGenreWithEmoji } from '../utils/genreUtils';
 import { useMovies } from '../context/MovieContext';
+import tmdbLogo from '../assets/TMDB.svg';
 
 interface TMDBCategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
@@ -41,6 +42,8 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
         willSelectUpTo: 'Se seleccionaran aleatoriamente hasta 16 peliculas de',
         from: 'de',
         in: 'en',
+        poweredByTmdb: 'Impulsado por TMDB',
+        tmdbAttribution: 'Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.',
       }
     : {
         selectGenreAndApi: 'Please select a genre and ensure TMDB API key is configured',
@@ -58,6 +61,8 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
         willSelectUpTo: 'Will randomly select up to 16',
         from: 'from',
         in: 'in',
+        poweredByTmdb: 'Powered by TMDB',
+        tmdbAttribution: 'This product uses the TMDB API but is not endorsed or certified by TMDB.',
       };
   const [selectedGenre, setSelectedGenre] = useState<number | ''>('');
   const [selectedProvider, setSelectedProvider] = useState<number | ''>('');
@@ -473,6 +478,24 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
                 </div>
               </div>
             )}
+
+            <div className="mt-3 border border-blue-200 dark:border-blue-800 bg-white/70 dark:bg-gray-800/60 rounded-lg px-3 py-2">
+              <div className="flex items-center justify-between gap-2 text-xs text-gray-700 dark:text-gray-300">
+                <div className="flex items-center gap-2">
+                  <span>{ui.poweredByTmdb}</span>
+                  <a
+                    href="https://www.themoviedb.org/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center hover:opacity-90 transition-opacity"
+                    aria-label="TMDB"
+                  >
+                    <img src={tmdbLogo} alt="TMDB" className="h-4 w-auto" />
+                  </a>
+                </div>
+                <span className="hidden md:block text-right">{ui.tmdbAttribution}</span>
+              </div>
+            </div>
           </div>
         )}
       </div>
