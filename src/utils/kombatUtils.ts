@@ -1,14 +1,14 @@
-import { BracketMatch, TournamentOption } from "../components/Tournament/TournamentModels";
+import { BracketMatch, KombatOption } from "../components/Kombat/KombatModels";
 import { Movie } from "../types";
 
 // A placeholder for empty slots or "BYE" rounds
-const TBD_OPTION: TournamentOption = {
+const TBD_OPTION: KombatOption = {
   id: 'tbd',
   title: 'TBD',
   poster: 'https://placehold.co/400x600/242424/646cff?text=TBD',
 };
 
-// This is the core function that sets up the tournament
+// This is the core function that sets up the kombat
 export const createInitialStages = (movies: Movie[]): BracketMatch[][] => {
   // 1. Ensure the number of participants is a power of 2 (2, 4, 8, 16...)
   let participantCount = 2;
@@ -16,8 +16,8 @@ export const createInitialStages = (movies: Movie[]): BracketMatch[][] => {
     participantCount *= 2;
   }
 
-  // 2. Convert movies to TournamentOptions and fill empty slots
-  const options: TournamentOption[] = [];
+  // 2. Convert movies to KombatOptions and fill empty slots
+  const options: KombatOption[] = [];
   for (let i = 0; i < participantCount; i++) {
     if (i < movies.length) {
       options.push({

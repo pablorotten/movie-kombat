@@ -8,12 +8,12 @@ import {
 } from "react-router-dom";
 import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import SearchPage from "./pages/SearchPage";
-import TournamentPage from "./pages/TournamentPage";
+import KombatPage from "./pages/KombatPage";
 import Button from "./components/Button";
 import Dialog from "./components/Dialog";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
-import TournamentIcon from "./assets/tournament.svg";
+import KombatIcon from "./assets/kombat.svg";
 import tmdbLogo from "./assets/TMDB.svg";
 // // import ApiKeyIcon from "./assets/api-key.svg";
 import EyeOpenIcon from "./assets/eye-open.svg";
@@ -112,27 +112,27 @@ function App() {
   const isSpanish = searchLanguage === "es-ES";
   const ui = isSpanish
     ? {
-        startNewTournamentTitle: "Empezar nuevo torneo?",
-        startNewTournamentWarning: "Se perdera el progreso del torneo actual",
-        confirmStartNew: "Si, empezar nuevo",
+        startNewKombatTitle: "Empezar nuevo Kombat?",
+        startNewKombatWarning: "Se perderá el progreso del Kombat actual",
+        confirmStartNew: "Sí, empezar nuevo",
         cancel: "Cancelar",
         configureApiKeys: "Configurar API Keys",
         blindPosters: "Ocultar posters",
         showPosters: "Mostrar posters",
-        startTournament: "Empezar torneo",
+        startKombat: "Empezar Kombat",
         tmdbDataSource: "Datos proporcionados por",
         tmdbAttribution:
           "Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.",
       }
     : {
-        startNewTournamentTitle: "Start New Tournament?",
-        startNewTournamentWarning: "Current tournament progress will be lost",
+        startNewKombatTitle: "Start New Kombat?",
+        startNewKombatWarning: "Current Kombat progress will be lost",
         confirmStartNew: "Yes, Start New",
         cancel: "Cancel",
         configureApiKeys: "Configure API Keys",
         blindPosters: "Blind Posters",
         showPosters: "Show Posters",
-        startTournament: "Start Tournament",
+        startKombat: "Start Kombat",
         tmdbDataSource: "Data provided by",
         tmdbAttribution:
           "This product uses the TMDB API but is not endorsed or certified by TMDB.",
@@ -140,19 +140,19 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
-  // Add this function to handle tournament start with shuffle
-  const handleStartTournament = () => {
-    // Check if we're already on the tournament page
-    if (location.pathname === "/tournament") {
+  // Add this function to handle kombat start with shuffle
+  const handleStartKombat = () => {
+    // Check if we're already on the kombat page
+    if (location.pathname === "/kombat") {
       setIsConfirmDialogOpen(true);
       return;
     }
 
-    // Normal flow: go to tournament page
-    navigate("/tournament");
+    // Normal flow: go to kombat page
+    navigate("/kombat");
   };
 
-  const handleConfirmNewTournament = () => {
+  const handleConfirmNewKombat = () => {
     // Clear all movies and go back to search page
     setMovieList([]);
     navigate("/");
@@ -171,14 +171,14 @@ function App() {
       <Dialog
         open={isConfirmDialogOpen}
         onClose={() => setIsConfirmDialogOpen(false)}
-        title={ui.startNewTournamentTitle}
-        onConfirm={handleConfirmNewTournament}
+        title={ui.startNewKombatTitle}
+        onConfirm={handleConfirmNewKombat}
         onCancel={() => setIsConfirmDialogOpen(false)}
         confirmText={ui.confirmStartNew}
         cancelText={ui.cancel}
         confirmVariant="danger"
       >
-        <p>{ui.startNewTournamentWarning}</p>
+        <p>{ui.startNewKombatWarning}</p>
       </Dialog>
 
       <div className="min-h-screen flex flex-col">
@@ -227,16 +227,16 @@ function App() {
             fullWidth={true}
             icon={
               <span className="inline-block" aria-label="star">
-                <img src={TournamentIcon} className="w-4 h-4" />
+                <img src={KombatIcon} className="w-4 h-4" />
               </span>
             }
-            onClick={handleStartTournament}
+            onClick={handleStartKombat}
             disabled={
               movieList.length <= 3 ||
               (movieList.length & (movieList.length - 1)) !== 0
             } // Disable if not a power of 2 or empty
           >
-            {ui.startTournament}
+            {ui.startKombat}
             {movieList.length > 0 && (
               <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                 {movieList.length}
@@ -248,7 +248,7 @@ function App() {
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<SearchPage />} />
-            <Route path="/tournament" element={<TournamentPage />} />
+            <Route path="/kombat" element={<KombatPage />} />
           </Routes>
         </main>
 

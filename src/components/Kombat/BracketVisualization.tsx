@@ -1,6 +1,6 @@
 import React from 'react';
-import { BracketMatch, TournamentOption } from './TournamentModels';
-import { getStageName } from '../../utils/tournamentUtils';
+import { BracketMatch, KombatOption } from './KombatModels';
+import { getStageName } from '../../utils/kombatUtils';
 
 interface BracketVisualizationProps {
   stages: BracketMatch[][];
@@ -17,7 +17,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
     return null;
   }
 
-  const renderTeam = (option: TournamentOption, isWinner: boolean, isLoser: boolean) => {
+  const renderTeam = (option: KombatOption, isWinner: boolean, isLoser: boolean) => {
     const isPlaceholder = option.id.startsWith('tbd');
     
     return (
@@ -104,7 +104,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
         ))}
       </div>
       
-      {/* Tournament Rounds */}
+      {/* Kombat Rounds */}
       <div 
         className="grid gap-0"
         style={{ gridTemplateColumns: `repeat(${stages.length}, minmax(0, 2fr))` }}
