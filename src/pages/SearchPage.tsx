@@ -415,9 +415,18 @@ export default function SearchPage() {
 
       {movieList.length > 0 && (
         <div className="container mx-auto px-4 mt-12">
-          <h2 className="text-2xl font-bold text-center mb-6">
-            My Added Movies ({movieList.length})
-          </h2>
+          <div className="flex items-center justify-start mb-6 gap-2 flex-nowrap">
+            <h2 className="text-2xl font-bold whitespace-nowrap">
+              My Added Movies ({movieList.length})
+            </h2>
+            <Button
+              variant="danger"
+              size="small"
+              onClick={() => setMovieList([])}
+            >
+              Delete Movies
+            </Button>
+          </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
             {movieList.map((movie) => (
               <MovieCard
