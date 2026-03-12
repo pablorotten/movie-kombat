@@ -39,6 +39,47 @@ export default function SearchPage() {
   const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setSearchLanguage, setMovieList } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasRestoredFromUrl = useRef(false);
+  const previousLanguage = useRef(searchLanguage);
+  const isSpanish = searchLanguage === "es-ES";
+  const ui = isSpanish
+    ? {
+        tmdbApiRequired: "Se requiere la API key de TMDB. Configurala en ajustes.",
+        loadFromUrlError: "No se pudo cargar la lista de peliculas desde la URL.",
+        movieNotFound: "Pelicula no encontrada",
+        unexpectedError: "Ocurrio un error inesperado: ",
+        moviesNotFoundTitle: "Peliculas no encontradas",
+        moviesNotFoundDescription: "No se pudieron encontrar las siguientes peliculas:",
+        close: "Cerrar",
+        spellingHint: "Revisa la ortografia e intentalo de nuevo.",
+        searchPlaceholder: "Buscar pelicula...",
+        searchMultipleMovies: "Buscar multiples peliculas",
+        enterOnePerLine: "Escribe una pelicula por linea...",
+        searchSingleMovie: "Buscar solo 1 pelicula",
+        searchList: "Buscar lista",
+        addToList: "Agregar a la lista",
+        myAddedMovies: "Mis peliculas agregadas",
+        deleteMovies: "Eliminar peliculas",
+        refreshTitlesError: "No se pudieron actualizar los titulos al cambiar el idioma.",
+      }
+    : {
+        tmdbApiRequired: "TMDB API key is required. Please configure it in settings.",
+        loadFromUrlError: "Failed to load movie list from URL.",
+        movieNotFound: "Movie not found",
+        unexpectedError: "An unexpected error occurred: ",
+        moviesNotFoundTitle: "Movies Not Found",
+        moviesNotFoundDescription: "The following movies could not be found:",
+        close: "Close",
+        spellingHint: "Please check the spelling and try again.",
+        searchPlaceholder: "Search movie...",
+        searchMultipleMovies: "Search multiple movies",
+        enterOnePerLine: "Enter one movie per line...",
+        searchSingleMovie: "Search only 1 movie",
+        searchList: "Search List",
+        addToList: "Add to List",
+        myAddedMovies: "My Added Movies",
+        deleteMovies: "Delete Movies",
+        refreshTitlesError: "Failed to refresh movie titles after language change.",
+      };
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -90,7 +131,7 @@ export default function SearchPage() {
         );
         setMovieList(loadedMovies);
       } catch {
-        setError("Failed to load movie list from URL.");
+        setError(ui.loadFromUrlError);
       } finally {
         setIsLoading(false);
       }
@@ -122,6 +163,50 @@ export default function SearchPage() {
     }, { replace: true });
   }, [movieList, setSearchParams]);
 
+  useEffect(() => {
+    // Only re-fetch titles when the language actually changes.
+    if (previousLanguage.current === searchLanguage) return;
+    previousLanguage.current = searchLanguage;
+
+    if (!tmdbApiKey || movieList.length === 0) return;
+
+    const updateTitlesForLanguage = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const updatedMovies = await Promise.all(
+          movieList.map(async (movie) => {
+            if (!movie.imdbID.startsWith("tmdb_")) return movie;
+
+            const tmdbId = parseInt(movie.imdbID.slice(5), 10);
+            if (!Number.isFinite(tmdbId)) return movie;
+
+            try {
+              const details = await getMovieDetails(tmdbApiKey, tmdbId, searchLanguage);
+              return {
+                ...movie,
+                Title: details.title || movie.Title,
+                Year: details.release_date
+                  ? new Date(details.release_date).getFullYear().toString()
+                  : movie.Year,
+                Poster: getTMDBImageUrl(details.poster_path) || movie.Poster,
+              };
+            } catch {
+              return movie;
+            }
+          })
+        );
+
+        setMovieList(updatedMovies);
+      } catch {
+        setError(ui.refreshTitlesError);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    updateTitlesForLanguage();
+  }, [searchLanguage, tmdbApiKey, movieList, setMovieList, ui.refreshTitlesError]);
   // This logic is for the single search result preview
   useEffect(() => {
     if (useTextarea) return;
@@ -132,7 +217,7 @@ export default function SearchPage() {
     }
     const fetchMovie = async () => {
       if (!tmdbApiKey) {
-        setError("TMDB API key is required. Please configure it in settings.");
+        setError(ui.tmdbApiRequired);
         return;
       }
       setIsLoading(true);
@@ -148,10 +233,10 @@ export default function SearchPage() {
           }
           setSearchedMovie(convertedMovie);
         } else {
-          setError("Movie not found");
+          setError(ui.movieNotFound);
         }
       } catch (err) {
-        setError("An unexpected error occurred: " + err);
+        setError(ui.unexpectedError + err);
       } finally {
         setIsLoading(false);
       }
@@ -172,7 +257,7 @@ export default function SearchPage() {
 
   async function handleTextareaSearch() {
     if (!tmdbApiKey) {
-      setError("TMDB API key is required. Please configure it in settings.");
+      setError(ui.tmdbApiRequired);
       return;
     }
     const titles = searchTerm
@@ -225,7 +310,7 @@ export default function SearchPage() {
 
     // Handle string titles (from old selector)
     if (!tmdbApiKey) {
-      setError("TMDB API key is required. Please configure it in settings.");
+      setError(ui.tmdbApiRequired);
       return;
     }
     const movieTitles = movieData as string[];
@@ -264,11 +349,11 @@ export default function SearchPage() {
       <Dialog
         open={isNotFoundDialogOpen}
         onClose={() => setIsNotFoundDialogOpen(false)}
-        title="Movies Not Found"
+        title={ui.moviesNotFoundTitle}
         onCancel={() => setIsNotFoundDialogOpen(false)}
-        cancelText="Close"
+        cancelText={ui.close}
       >
-        <p className="mb-3">The following movies could not be found:</p>
+        <p className="mb-3">{ui.moviesNotFoundDescription}</p>
         <ul className="list-disc list-inside space-y-1 text-sm bg-gray-100 dark:bg-gray-700 p-3 rounded">
           {notFoundMovies.map((movie, index) => (
             <li key={index} className="text-gray-800 dark:text-gray-200">
@@ -276,9 +361,7 @@ export default function SearchPage() {
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-          Please check the spelling and try again.
-        </p>
+        <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{ui.spellingHint}</p>
       </Dialog>
 
  
@@ -331,13 +414,13 @@ export default function SearchPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-12"
-                placeholder="Search movie..."
+                placeholder={ui.searchPlaceholder}
               />
               <button
                 type="button"
                 className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition"
                 onClick={() => setUseTextarea(true)}
-                title="Search multiple movies"
+                title={ui.searchMultipleMovies}
               >
                 <img
                   src={arrowsExpandIcon}
@@ -352,14 +435,14 @@ export default function SearchPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-12 resize-none"
-                placeholder="Enter one movie per line..."
+                placeholder={ui.enterOnePerLine}
                 rows={4}
               />
               <button
                 type="button"
                 className="absolute right-2 top-2 px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300 transition"
                 onClick={() => setUseTextarea(false)}
-                title="Search only 1 movie"
+                title={ui.searchSingleMovie}
               >
                 <img
                   src={arrowsContractIcon}
@@ -377,7 +460,7 @@ export default function SearchPage() {
               size="small"
               onClick={handleTextareaSearch}
             >
-              Search List
+              {ui.searchList}
             </Button>
           </div>
         )}
@@ -405,7 +488,7 @@ export default function SearchPage() {
                   onClick={handleAddMovie}
                   fullWidth={true}
                 >
-                  Add to List
+                  {ui.addToList}
                 </Button>
               </div>
             </div>
@@ -417,14 +500,14 @@ export default function SearchPage() {
         <div className="container mx-auto px-4 mt-12">
           <div className="flex items-center justify-start mb-6 gap-2 flex-nowrap">
             <h2 className="text-2xl font-bold whitespace-nowrap">
-              My Added Movies ({movieList.length})
+              {ui.myAddedMovies} ({movieList.length})
             </h2>
             <Button
               variant="danger"
               size="small"
               onClick={() => setMovieList([])}
             >
-              Delete Movies
+              {ui.deleteMovies}
             </Button>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">

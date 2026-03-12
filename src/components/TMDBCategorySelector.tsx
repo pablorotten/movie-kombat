@@ -23,6 +23,42 @@ interface TMDBCategorySelectorProps {
 
 export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }: TMDBCategorySelectorProps) {
   const { searchLanguage } = useMovies();
+  const isSpanish = searchLanguage === 'es-ES';
+  const ui = isSpanish
+    ? {
+        selectGenreAndApi: 'Selecciona un genero y asegurate de tener configurada la API key de TMDB',
+        noMoviesFound: 'No se encontraron peliculas',
+        noMoviesFoundHint: 'Prueba otro genero, plataforma o pais.',
+        loadMoviesError: 'No se pudieron cargar las peliculas. Revisa tu API key de TMDB e intentalo de nuevo.',
+        discoverMovies: 'Descubrir peliculas con TMDB',
+        genre: 'Genero',
+        selectGenre: 'Seleccionar genero',
+        platform: 'Plataforma de streaming',
+        anyPlatform: 'Cualquier plataforma',
+        country: 'Pais',
+        loading: 'Cargando...',
+        discoverButton: 'Descubrir peliculas',
+        willSelectUpTo: 'Se seleccionaran aleatoriamente hasta 16 peliculas de',
+        from: 'de',
+        in: 'en',
+      }
+    : {
+        selectGenreAndApi: 'Please select a genre and ensure TMDB API key is configured',
+        noMoviesFound: 'No movies found',
+        noMoviesFoundHint: 'Try a different genre, platform, or country.',
+        loadMoviesError: 'Failed to load movies. Please check your TMDB API key and try again.',
+        discoverMovies: 'Discover Movies with TMDB',
+        genre: 'Genre',
+        selectGenre: 'Select genre',
+        platform: 'Streaming Platform',
+        anyPlatform: 'Any platform',
+        country: 'Country',
+        loading: 'Loading...',
+        discoverButton: 'Discover Movies',
+        willSelectUpTo: 'Will randomly select up to 16',
+        from: 'from',
+        in: 'in',
+      };
   const [selectedGenre, setSelectedGenre] = useState<number | ''>('');
   const [selectedProvider, setSelectedProvider] = useState<number | ''>('');
   const [selectedRegion, setSelectedRegion] = useState<string>('ES'); // Default to Spain
@@ -68,7 +104,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
 
   const handleLoadMovies = async () => {
     if (!selectedGenre || !tmdbBearerToken) {
-      setError('Please select a genre and ensure TMDB API key is configured');
+      setError(ui.selectGenreAndApi);
       return;
     }
 
@@ -122,12 +158,12 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
         console.log(`Successfully loaded ${appMovies.length} ${genreName} movies${providerName ? ` from ${providerName}` : ''} in ${countryName}`);
         onSelectMovies(appMovies);
       } else {
-        setError(`No ${genreName.toLowerCase()} movies found${providerName ? ` on ${providerName}` : ''} in ${countryName}. Try a different genre, platform, or country.`);
+        setError(`${ui.noMoviesFound}: ${genreName.toLowerCase()}${providerName ? ` ${ui.from} ${providerName}` : ''} ${ui.in} ${countryName}. ${ui.noMoviesFoundHint}`);
       }
 
     } catch (err) {
       console.error('Error loading movies from TMDB:', err);
-      setError('Failed to load movies. Please check your TMDB API key and try again.');
+      setError(ui.loadMoviesError);
     } finally {
       setIsLoading(false);
     }
@@ -155,13 +191,13 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
     const providerName = getSelectedProviderName();
     const countryName = getSelectedCountryName();
 
-    let text = `Will randomly select up to 16 ${genreName} movies`;
+    let text = `${ui.willSelectUpTo} ${genreName} ${isSpanish ? 'peliculas' : 'movies'}`;
     
     if (providerName) {
-      text += ` from ${providerName}`;
+      text += ` ${ui.from} ${providerName}`;
     }
     
-    text += ` in ${countryName}`;
+    text += ` ${ui.in} ${countryName}`;
     
     return text;
   };
@@ -176,7 +212,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-                🎬 Discover Movies with TMDB
+                🎬 {ui.discoverMovies}
               </h3>
 
             </div>
@@ -198,7 +234,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Genre *
+              {ui.genre} *
             </label>
             <div className="relative" ref={genreDropdownRef}>
               <button
@@ -209,11 +245,11 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
                 <div className="flex items-center gap-2">
                   {(() => {
                     if (!selectedGenre) {
-                      return <span>Select genre</span>;
+                      return <span>{ui.selectGenre}</span>;
                     }
                     const genre = genres.find(g => g.id === Number(selectedGenre));
                     return (
-                      <span>{genre ? getGenreWithEmoji(genre.name) : 'Select genre'}</span>
+                      <span>{genre ? getGenreWithEmoji(genre.name) : ui.selectGenre}</span>
                     );
                   })()}
                 </div>
@@ -239,7 +275,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
                       !selectedGenre ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                     }`}
                   >
-                    <span className="text-sm text-gray-900 dark:text-white">Select genre</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{ui.selectGenre}</span>
                   </button>
                   {genres.map((genre) => (
                     <button
@@ -263,7 +299,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
 
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Streaming Platform
+              {ui.platform}
             </label>
             <div className="relative" ref={providerDropdownRef}>
               <button
@@ -274,7 +310,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
                 <div className="flex items-center gap-2">
                   {(() => {
                     if (!selectedProvider) {
-                      return <span>Any platform</span>;
+                      return <span>{ui.anyPlatform}</span>;
                     }
                     const provider = providers.find(p => p.provider_id === Number(selectedProvider));
                     return (
@@ -286,7 +322,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
                             className="w-5 h-5"
                           />
                         )}
-                        <span>{provider?.provider_name || 'Any platform'}</span>
+                        <span>{provider?.provider_name || ui.anyPlatform}</span>
                       </>
                     );
                   })()}
@@ -316,7 +352,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
                     <div className="w-5 h-5 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
                       *
                     </div>
-                    <span className="text-sm text-gray-900 dark:text-white">Any platform</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{ui.anyPlatform}</span>
                   </button>
                   {providers.map((provider) => (
                     <button
@@ -345,7 +381,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
 
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Country *
+              {ui.country} *
             </label>
             <div className="relative" ref={countryDropdownRef}>
               <button
@@ -414,10 +450,10 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Loading...
+                  {ui.loading}
                 </div>
               ) : (
-                'Discover Movies'
+                ui.discoverButton
               )}
             </button>
           </div>

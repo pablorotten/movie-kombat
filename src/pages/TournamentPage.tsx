@@ -13,9 +13,11 @@ import BracketVisualization from "../components/Tournament/BracketVisualization"
 const TournamentMatchup = ({
   match,
   onChooseWinner,
+  chooseLabel,
 }: {
   match: BracketMatch;
   onChooseWinner: (winner: TournamentOption) => void;
+  chooseLabel: string;
 }) => {
   return (
     <div className="grid grid-cols-2 gap-4 md:gap-8 items-start">
@@ -35,7 +37,7 @@ const TournamentMatchup = ({
         </div>
         <div className="mt-4">
           <Button variant="primary" onClick={() => onChooseWinner(match.first)}>
-            Choose
+            {chooseLabel}
           </Button>
         </div>
       </div>
@@ -57,7 +59,7 @@ const TournamentMatchup = ({
             variant="primary"
             onClick={() => onChooseWinner(match.second)}
           >
-            Choose
+            {chooseLabel}
           </Button>
         </div>
       </div>
@@ -66,8 +68,36 @@ const TournamentMatchup = ({
 };
 
 export default function TournamentPage() {
-  const { movieList, setMovieList } = useMovies();
+  const { movieList, setMovieList, searchLanguage } = useMovies();
   const navigate = useNavigate();
+  const isSpanish = searchLanguage === "es-ES";
+  const ui = isSpanish
+    ? {
+        choose: "Elegir",
+        tournamentMode: "Modo Torneo",
+        needAtLeastTwo: "Necesitas agregar al menos 2 peliculas para empezar un torneo.",
+        backToSearch: "Volver a Buscar",
+        loadingTournament: "Cargando torneo...",
+        winnerTitle: "🏆 El ganador es! 🏆",
+        startNewTournament: "Empezar un nuevo torneo",
+        finalBracket: "Bracket final del torneo",
+        round: "Ronda",
+        of: "de",
+        bracket: "Bracket del torneo",
+      }
+    : {
+        choose: "Choose",
+        tournamentMode: "Tournament Mode",
+        needAtLeastTwo: "You need to add at least 2 movies to start a tournament.",
+        backToSearch: "Back to Search",
+        loadingTournament: "Loading Tournament...",
+        winnerTitle: "🏆 The Winner Is! 🏆",
+        startNewTournament: "Start a New Tournament",
+        finalBracket: "Final Tournament Bracket",
+        round: "Round",
+        of: "of",
+        bracket: "Tournament Bracket",
+      };
 
   const [stages, setStages] = useState<BracketMatch[][]>([]);
   const [currentStage, setCurrentStage] = useState(0);
@@ -145,20 +175,18 @@ export default function TournamentPage() {
   if (movieList.length < 2) {
     return (
       <div className="text-center p-8">
-        <h1 className="text-2xl font-bold mb-4">Tournament Mode</h1>
-        <p className="text-lg text-gray-400">
-          You need to add at least 2 movies to start a tournament.
-        </p>
+        <h1 className="text-2xl font-bold mb-4">{ui.tournamentMode}</h1>
+        <p className="text-lg text-gray-400">{ui.needAtLeastTwo}</p>
         <div className="flex justify-center p-4">
           <Button variant="danger" onClick={() => navigate("/")}>
-            &larr; Back to Search
+            &larr; {ui.backToSearch}
           </Button>
         </div>
       </div>
     );
   }
   if (stages.length === 0) {
-    return <div className="text-center p-8">Loading Tournament...</div>;
+    return <div className="text-center p-8">{ui.loadingTournament}</div>;
   }
 
   const currentMatch = stages[currentStage]?.[currentRound];
@@ -170,7 +198,7 @@ export default function TournamentPage() {
       {winner ? (
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4 text-black dark:text-white">
-            🏆 The Winner Is! 🏆
+            {ui.winnerTitle}
           </h1>
 
           <div className="flex flex-col items-center gap-4 max-w-sm mx-auto">
@@ -190,7 +218,7 @@ export default function TournamentPage() {
                   navigate("/");
                 }}
               >
-                Start a New Tournament
+                {ui.startNewTournament}
               </Button>
             </div>
           </div>
@@ -198,7 +226,7 @@ export default function TournamentPage() {
           {/* Show final bracket with winner */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-center mb-4">
-              Final Tournament Bracket
+              {ui.finalBracket}
             </h2>
             <div className="flex justify-center">
               <BracketVisualization
@@ -216,18 +244,19 @@ export default function TournamentPage() {
             <div className="text-center">
               <h1 className="text-3xl font-bold mb-2">{stageName}</h1>
               <p className="text-gray-400 mb-8">
-                Round {currentRound + 1} of {stages[currentStage].length}
+                {ui.round} {currentRound + 1} {ui.of} {stages[currentStage].length}
               </p>
               <TournamentMatchup
                 match={currentMatch}
                 onChooseWinner={handleChooseWinner}
+                chooseLabel={ui.choose}
               />
             </div>
 
             {/* Tournament Bracket Visualization */}
             <div className="mt-12">
               <h2 className="text-2xl font-bold text-center mb-4">
-                Tournament Bracket
+                {ui.bracket}
               </h2>
               <div className="flex justify-center">
                 <BracketVisualization
