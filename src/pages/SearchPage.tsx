@@ -87,6 +87,8 @@ export default function SearchPage() {
   const [useTextarea, setUseTextarea] = useState(false);
   const [notFoundMovies, setNotFoundMovies] = useState<string[]>([]);
   const [isNotFoundDialogOpen, setIsNotFoundDialogOpen] = useState(false);
+  const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState(false);
+  const addedMoviesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (hasRestoredFromUrl.current) return;
@@ -305,6 +307,12 @@ export default function SearchPage() {
       // Direct movie objects from TMDB selector
       const movies = movieData as Movie[];
       movies.forEach(movie => addMovie(movie));
+      
+      // Collapse the discovery card and scroll to added movies
+      setIsDiscoveryExpanded(false);
+      setTimeout(() => {
+        addedMoviesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
       return;
     }
 
@@ -342,6 +350,12 @@ export default function SearchPage() {
       setNotFoundMovies(notFound);
       setIsNotFoundDialogOpen(true);
     }
+    
+    // Collapse the discovery card and scroll to added movies
+    setIsDiscoveryExpanded(false);
+    setTimeout(() => {
+      addedMoviesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   }
 
   return (
@@ -372,6 +386,8 @@ export default function SearchPage() {
         <TMDBCategorySelector 
           onSelectMovies={handleSelectMovies} 
           tmdbBearerToken={tmdbApiKey}
+          isExpanded={isDiscoveryExpanded}
+          onToggleExpanded={setIsDiscoveryExpanded}
         />
       ) : (
         // Fallback to static category selector
@@ -497,7 +513,7 @@ export default function SearchPage() {
       </div>
 
       {movieList.length > 0 && (
-        <div className="container mx-auto px-4 mt-12">
+        <div ref={addedMoviesRef} className="container mx-auto px-4 mt-12">
           <div className="flex items-center justify-start mb-6 gap-2 flex-nowrap">
             <h2 className="text-2xl font-bold whitespace-nowrap">
               {ui.myAddedMovies} ({movieList.length})

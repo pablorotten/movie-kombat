@@ -20,9 +20,11 @@ import tmdbLogo from '../assets/TMDB.svg';
 interface TMDBCategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
   tmdbBearerToken: string;
+  isExpanded?: boolean;
+  onToggleExpanded?: (expanded: boolean) => void;
 }
 
-export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }: TMDBCategorySelectorProps) {
+export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken, isExpanded: controlledExpanded, onToggleExpanded }: TMDBCategorySelectorProps) {
   const { searchLanguage } = useMovies();
   const isSpanish = searchLanguage === 'es-ES';
   const ui = isSpanish
@@ -72,7 +74,17 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken }
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isProviderDropdownOpen, setIsProviderDropdownOpen] = useState(false);
   const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [internalExpanded, setInternalExpanded] = useState(false);
+  
+  // Use controlled state if provided, otherwise use internal state
+  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
+  const setIsExpanded = (expanded: boolean) => {
+    if (onToggleExpanded) {
+      onToggleExpanded(expanded);
+    } else {
+      setInternalExpanded(expanded);
+    }
+  };
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const providerDropdownRef = useRef<HTMLDivElement>(null);
   const genreDropdownRef = useRef<HTMLDivElement>(null);
