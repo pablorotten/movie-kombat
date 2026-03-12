@@ -81,7 +81,7 @@ export default function SearchPage() {
         refreshTitlesError: "Failed to refresh movie titles after language change.",
       };
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchedMovie, setSearchedMovie] = useState<Movie | null>(null);
+  const [searchedMovies, setSearchedMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [useTextarea, setUseTextarea] = useState(false);
@@ -209,11 +209,11 @@ export default function SearchPage() {
 
     updateTitlesForLanguage();
   }, [searchLanguage, tmdbApiKey, movieList, setMovieList, ui.refreshTitlesError]);
-  // This logic is for the single search result preview
+  // This logic is for the search results preview (top 4 results)
   useEffect(() => {
     if (useTextarea) return;
     if (searchTerm.trim() === "") {
-      setSearchedMovie(null);
+      setSearchedMovies([]);
       setError(null);
       return;
     }
@@ -224,16 +224,20 @@ export default function SearchPage() {
       }
       setIsLoading(true);
       setError(null);
-      setSearchedMovie(null);
+      setSearchedMovies([]);
       try {
         const response = await searchMovies(tmdbApiKey, searchTerm, 1, searchLanguage);
         if (response.results && response.results.length > 0) {
-          const tmdbMovie = response.results[0];
-          const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
-          if (convertedMovie.Poster === 'N/A') {
-            convertedMovie.Poster = getPlaceholder();
-          }
-          setSearchedMovie(convertedMovie);
+          // Get top 4 results
+          const topResults = response.results.slice(0, 4);
+          const convertedMovies = topResults.map(tmdbMovie => {
+            const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
+            if (convertedMovie.Poster === 'N/A') {
+              convertedMovie.Poster = getPlaceholder();
+            }
+            return convertedMovie;
+          });
+          setSearchedMovies(convertedMovies);
         } else {
           setError(ui.movieNotFound);
         }
@@ -247,14 +251,12 @@ export default function SearchPage() {
     return () => clearTimeout(timerId);
   }, [searchTerm, tmdbApiKey, useTextarea, searchLanguage]);
 
-  function handleAddMovie() {
-    if (searchedMovie) {
-      // This is the correct logic for the 'Add to List' button.
-      // It uses the poster from 'searchedMovie', which might already be a placeholder.
-      addMovie(searchedMovie);
-      setSearchedMovie(null);
-      setSearchTerm("");
-    }
+  function handleAddMovie(movie: Movie) {
+    // Add the selected movie to the list
+    addMovie(movie);
+    // Clear search results and search term
+    setSearchedMovies([]);
+    setSearchTerm("");
   }
 
   async function handleTextareaSearch() {
@@ -422,7 +424,7 @@ export default function SearchPage() {
           </button>
         </div>
 
-        <div className="w-full mx-auto mt-4">
+        <div className="mt-4">
           {!useTextarea ? (
             <div className="relative">
               <input
@@ -480,33 +482,51 @@ export default function SearchPage() {
             </Button>
           </div>
         )}
+      </div>
 
-        <div className="text-center p-4">
-          {isLoading && <LoadingSpinner />}
-          {error && <p className="text-red-500">{error}</p>}
-          {searchedMovie && (
-            <div className="border p-4 rounded-lg shadow-md mt-4 dark:border-gray-600">
-              <div className="w-48 mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700">
-                <PosterImage
-                  className="w-full h-full object-cover"
-                  src={searchedMovie.Poster}
-                  alt={searchedMovie.Title}
-  title={searchedMovie.Title}
-                />
-              </div>
-              <h3 className="text-lg font-bold mt-2">
-                {searchedMovie.Title} ({searchedMovie.Year})
-              </h3>
-              <div className="flex justify-center p-4">
-                <Button
-                  variant="success"
-                  size="medium"
-                  onClick={handleAddMovie}
-                  fullWidth={true}
+      <div className="container mx-auto px-4">
+        <div className="p-4">
+          {isLoading && (
+            <div className="text-center">
+              <LoadingSpinner />
+            </div>
+          )}
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          {searchedMovies.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              {searchedMovies.map((movie) => (
+                <div
+                  key={movie.imdbID}
+                  className="border rounded-lg shadow-md overflow-hidden dark:border-gray-600 flex flex-col"
                 >
-                  {ui.addToList}
-                </Button>
-              </div>
+                  <div className="w-full aspect-[2/3] rounded-t-lg overflow-hidden bg-gray-700">
+                    <PosterImage
+                      className="w-full h-full object-cover"
+                      src={movie.Poster}
+                      alt={movie.Title}
+                      title={movie.Title}
+                    />
+                  </div>
+                  <div className="p-3 flex-1 flex flex-col">
+                    <h3 className="text-sm font-bold mb-1 line-clamp-2">
+                      {movie.Title}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                      {movie.Year}
+                    </p>
+                    <div className="mt-auto">
+                      <Button
+                        variant="success"
+                        size="small"
+                        onClick={() => handleAddMovie(movie)}
+                        fullWidth={true}
+                      >
+                        {ui.addToList}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
