@@ -74,9 +74,18 @@ export default function TournamentPage() {
   const [currentRound, setCurrentRound] = useState(0);
   const [winner, setWinner] = useState<TournamentOption | null>(null);
 
+  const shuffleMovies = <T,>(movies: T[]): T[] => {
+    const shuffled = [...movies];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
   useEffect(() => {
     if (movieList.length > 0) {
-      const initialStages = createInitialStages(movieList);
+      const initialStages = createInitialStages(shuffleMovies(movieList));
       setStages(initialStages);
 
       // Find the first playable match

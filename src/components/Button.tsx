@@ -50,6 +50,7 @@ const Button: React.FC<ButtonProps> = ({
   loading = false,
   icon,
   fullWidth = false,
+  type = "button",
   disabled,
   variant = "primary",
   size = "medium",
@@ -62,6 +63,7 @@ const Button: React.FC<ButtonProps> = ({
       className={`${CONTAINER_VARIANTS[variant]} w-fit rounded-xl relative h-fit shadow-[0px_5px_8px_-2px_rgba(0,0,0,0.9)]`}
     >
       <button
+        type={type}
         className={`flex justify-center items-center  
         shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1),0_2px_2px_rgba(0,0,0,0.1)] 
         text-white font-bold text-shadow-[2px_2px_0_#000]

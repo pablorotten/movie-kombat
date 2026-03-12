@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import SearchPage from "./pages/SearchPage";
 import TournamentPage from "./pages/TournamentPage";
@@ -36,10 +42,8 @@ const ApiKeyModal = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
       <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-xl font-bold mb-6 text-white">
-          API Configuration
-        </h2>
-        
+        <h2 className="text-xl font-bold mb-6 text-white">API Configuration</h2>
+
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -53,10 +57,12 @@ const ApiKeyModal = ({
               placeholder="Enter your TMDB Bearer token..."
             />
             <p className="text-xs text-gray-400 mt-1">
-              Get free token at: <span className="text-blue-400">https://www.themoviedb.org/settings/api</span>
+              Get free token at:{" "}
+              <span className="text-blue-400">
+                https://www.themoviedb.org/settings/api
+              </span>
             </p>
           </div>
-
         </div>
 
         <div className="flex gap-3 mt-6">
@@ -72,30 +78,21 @@ const ApiKeyModal = ({
   );
 };
 
-const shuffleArray = <T,>(array: T[]): T[] => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
-
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { 
-    movieList, 
-    setMovieList, 
+  const {
+    movieList,
+    setMovieList,
     setTmdbApiKey,
     tmdbApiKey,
-    arePostersVisible, 
-    togglePostersVisibility 
+    arePostersVisible,
+    togglePostersVisibility,
   } = useMovies();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
-    // Add this function to handle tournament start with shuffle
+  // Add this function to handle tournament start with shuffle
   const handleStartTournament = () => {
     // Check if we're already on the tournament page
     if (location.pathname === "/tournament") {
@@ -103,9 +100,7 @@ function App() {
       return;
     }
 
-    // Normal flow: shuffle movies and start tournament
-    const shuffledMovies = shuffleArray(movieList);
-    setMovieList(shuffledMovies);
+    // Normal flow: go to tournament page
     navigate("/tournament");
   };
 
@@ -123,7 +118,7 @@ function App() {
         tmdbApiKey={tmdbApiKey}
         setTmdbApiKey={setTmdbApiKey}
       />
-      
+
       <Dialog
         open={isConfirmDialogOpen}
         onClose={() => setIsConfirmDialogOpen(false)}
@@ -134,9 +129,7 @@ function App() {
         cancelText="Cancel"
         confirmVariant="danger"
       >
-        <p>
-          Current tournament progress will be lost
-        </p>
+        <p>Current tournament progress will be lost</p>
       </Dialog>
 
       <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
