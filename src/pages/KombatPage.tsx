@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import PosterImage from "../components/PosterImage";
 import BracketVisualization from "../components/Kombat/BracketVisualization";
+import FightAnimation from "../components/Kombat/FightAnimation";
 
 const KombatMatchup = ({
   match,
@@ -16,7 +17,7 @@ const KombatMatchup = ({
   chooseLabel,
 }: {
   match: BracketMatch;
-  onChooseWinner: (winner: KombatOption) => void;
+  onChooseWinner: (winner: KombatOption, loser: KombatOption) => void;
   chooseLabel: string;
 }) => {
   return (
@@ -36,7 +37,7 @@ const KombatMatchup = ({
           />
         </div>
         <div className="mt-4">
-          <Button variant="primary" onClick={() => onChooseWinner(match.first)}>
+          <Button variant="primary" onClick={() => onChooseWinner(match.first, match.second)}>
             {chooseLabel}
           </Button>
         </div>
@@ -57,7 +58,7 @@ const KombatMatchup = ({
         <div className="mt-4">
           <Button
             variant="primary"
-            onClick={() => onChooseWinner(match.second)}
+            onClick={() => onChooseWinner(match.second, match.first)}
           >
             {chooseLabel}
           </Button>
@@ -103,6 +104,10 @@ export default function KombatPage() {
   const [currentStage, setCurrentStage] = useState(0);
   const [currentRound, setCurrentRound] = useState(0);
   const [winner, setWinner] = useState<KombatOption | null>(null);
+  const [animationState, setAnimationState] = useState<{
+    winner: KombatOption;
+    loser: KombatOption;
+  } | null>(null);
 
   const shuffleMovies = <T,>(movies: T[]): T[] => {
     const shuffled = [...movies];
@@ -125,6 +130,19 @@ export default function KombatPage() {
       setCurrentRound(firstPlayableRound >= 0 ? firstPlayableRound : 0);
     }
   }, [movieList]);
+
+  // Called when user clicks "Choose" – shows the fight animation before advancing bracket.
+  const handleFightStart = (roundWinner: KombatOption, roundLoser: KombatOption) => {
+    setAnimationState({ winner: roundWinner, loser: roundLoser });
+  };
+
+  // Called when the animation finishes – advances the bracket.
+  const handleAnimationComplete = () => {
+    if (animationState) {
+      handleChooseWinner(animationState.winner);
+    }
+    setAnimationState(null);
+  };
 
   const handleChooseWinner = (roundWinner: KombatOption) => {
     const updatedStages = [...stages];
@@ -242,6 +260,16 @@ export default function KombatPage() {
       ) : (
         currentMatch && (
           <div>
+            {/* Fight animation overlay */}
+            {animationState && (
+              <FightAnimation
+                winner={animationState.winner}
+                loser={animationState.loser}
+                onComplete={handleAnimationComplete}
+                isSpanish={isSpanish}
+              />
+            )}
+
             {/* Current Match */}
             <div className="text-center">
               <h1 className="text-3xl font-bold mb-2">{stageName}</h1>
@@ -250,7 +278,7 @@ export default function KombatPage() {
               </p>
               <KombatMatchup
                 match={currentMatch}
-                onChooseWinner={handleChooseWinner}
+                onChooseWinner={handleFightStart}
                 chooseLabel={ui.choose}
               />
             </div>
