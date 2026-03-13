@@ -8,14 +8,14 @@ const ALL_FATALITIES: Fatality[] = ["slice", "explode", "smash"];
 
 // Animation phase schedule (delay in ms from component mount)
 const PHASE_SCHEDULE = [
-  { phase: 1, delay: 700 },   // "FINISH HIM!" text appears
-  { phase: 2, delay: 2200 },  // winner charges toward loser
-  { phase: 3, delay: 3000 },  // fatality plays on loser
-  { phase: 4, delay: 4200 },  // "FATALITY!" text appears
-  { phase: 5, delay: 5700 },  // fade-out begins
+  { phase: 1, delay: 300 },   // "FINISH HIM!" text appears
+  { phase: 2, delay: 900 },   // winner charges toward loser
+  { phase: 3, delay: 1400 },  // fatality plays on loser
+  { phase: 4, delay: 2000 },  // "FATALITY!" text appears
+  { phase: 5, delay: 3000 },  // fade-out begins
 ] as const;
 
-const ANIMATION_COMPLETE_DELAY = 6000; // total duration before onComplete fires
+const ANIMATION_COMPLETE_DELAY = 3300; // total duration before onComplete fires
 
 interface FightAnimationProps {
   winner: KombatOption;
@@ -75,57 +75,84 @@ export default function FightAnimation({
   const showSliceHalves = fatality === "slice" && phase >= 3;
 
   return (
+    /* Semi-transparent backdrop */
     <div
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-around kombat-arena transition-opacity duration-700 ${
+      role="dialog"
+      aria-modal="true"
+      aria-label={isSpanish ? "Animación de pelea" : "Fight animation"}
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-500 bg-black/70 ${
         phase >= 5 ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
-      {/* Text area */}
-      <div className="flex items-center justify-center h-24">
-        {phase >= 1 && phase < 4 && (
-          <p className="kombat-finish-him">{ui.finishHim}</p>
-        )}
-        {phase >= 4 && <p className="kombat-fatality">{ui.fatality}</p>}
-      </div>
+      {/* Popup card */}
+      <div className="kombat-arena rounded-2xl border border-purple-900/60 shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        {/* Text area */}
+        <div className="flex items-center justify-center h-16">
+          {phase >= 1 && phase < 4 && (
+            <p className="kombat-finish-him">{ui.finishHim}</p>
+          )}
+          {phase >= 4 && <p className="kombat-fatality">{ui.fatality}</p>}
+        </div>
 
-      {/* Fighters */}
-      <div className="flex items-end justify-around w-full px-4 sm:px-12 md:px-24 pb-8 gap-4">
-        {/* Left fighter – winner */}
-        <div className="flex flex-col items-center gap-2 flex-1">
-          <p className="text-white font-bold text-xs sm:text-sm text-center line-clamp-2 max-w-28 sm:max-w-40">
-            {winner.title}
-          </p>
-          <div className={`w-28 sm:w-40 md:w-52 ${winnerChargeClass}`}>
-            <div className="aspect-[2/3] rounded-lg overflow-hidden shadow-2xl">
-              <PosterImage
-                className="w-full h-full object-cover"
-                src={winner.poster}
-                alt={winner.title}
-                title={winner.title}
-              />
+        {/* Fighters */}
+        <div className="flex items-end justify-around w-full px-6 pb-6 gap-2">
+          {/* Left fighter – winner */}
+          <div className="flex flex-col items-center gap-1 flex-1">
+            <p className="text-white font-bold text-xs text-center line-clamp-2 max-w-24">
+              {winner.title}
+            </p>
+            <div className={`w-24 ${winnerChargeClass}`}>
+              <div className="aspect-[2/3] rounded-lg overflow-hidden shadow-2xl">
+                <PosterImage
+                  className="w-full h-full object-cover"
+                  src={winner.poster}
+                  alt={winner.title}
+                  title={winner.title}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* VS separator */}
-        <div className="text-white/30 font-black text-xl sm:text-2xl self-center pb-12 flex-shrink-0">
-          VS
-        </div>
+          {/* VS separator */}
+          <div className="text-white/30 font-black text-lg self-center pb-8 flex-shrink-0">
+            VS
+          </div>
 
-        {/* Right fighter – loser (inner div mirrored so it "faces" the winner) */}
-        <div className="flex flex-col items-center gap-2 flex-1">
-          <p className="text-white font-bold text-xs sm:text-sm text-center line-clamp-2 max-w-28 sm:max-w-40">
-            {loser.title}
-          </p>
-          {/* Outer wrapper: handles fatality movement in screen coordinates */}
-          <div className={`w-28 sm:w-40 md:w-52 ${loserFatalityClass}`}>
-            {/* Inner mirror: flips poster so loser faces the winner */}
-            <div style={{ transform: "scaleX(-1)" }}>
-              {showSliceHalves ? (
-                /* Slice fatality: two clipped halves that fly apart */
-                <div className="relative aspect-[2/3] rounded-lg">
-                  {/* Top half */}
-                  <div className="kombat-slice-top">
+          {/* Right fighter – loser (inner div mirrored so it "faces" the winner) */}
+          <div className="flex flex-col items-center gap-1 flex-1">
+            <p className="text-white font-bold text-xs text-center line-clamp-2 max-w-24">
+              {loser.title}
+            </p>
+            {/* Outer wrapper: handles fatality movement in screen coordinates */}
+            <div className={`w-24 ${loserFatalityClass}`}>
+              {/* Inner mirror: flips poster so loser faces the winner */}
+              <div style={{ transform: "scaleX(-1)" }}>
+                {showSliceHalves ? (
+                  /* Slice fatality: two clipped halves that fly apart */
+                  <div className="relative aspect-[2/3] rounded-lg">
+                    {/* Top half */}
+                    <div className="kombat-slice-top">
+                      <PosterImage
+                        className="w-full h-full object-cover"
+                        src={loser.poster}
+                        alt={loser.title}
+                        title={loser.title}
+                      />
+                    </div>
+                    {/* Bottom half */}
+                    <div className="kombat-slice-bottom">
+                      <PosterImage
+                        className="w-full h-full object-cover"
+                        src={loser.poster}
+                        alt={loser.title}
+                        title={loser.title}
+                      />
+                    </div>
+                    {/* Red slash line between the halves */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-red-500 shadow-[0_0_8px_4px_rgba(239,68,68,0.8)] z-10" />
+                  </div>
+                ) : (
+                  <div className="aspect-[2/3] rounded-lg overflow-hidden shadow-2xl">
                     <PosterImage
                       className="w-full h-full object-cover"
                       src={loser.poster}
@@ -133,28 +160,8 @@ export default function FightAnimation({
                       title={loser.title}
                     />
                   </div>
-                  {/* Bottom half */}
-                  <div className="kombat-slice-bottom">
-                    <PosterImage
-                      className="w-full h-full object-cover"
-                      src={loser.poster}
-                      alt={loser.title}
-                      title={loser.title}
-                    />
-                  </div>
-                  {/* Red slash line between the halves */}
-                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-red-500 shadow-[0_0_8px_4px_rgba(239,68,68,0.8)] z-10" />
-                </div>
-              ) : (
-                <div className="aspect-[2/3] rounded-lg overflow-hidden shadow-2xl">
-                  <PosterImage
-                    className="w-full h-full object-cover"
-                    src={loser.poster}
-                    alt={loser.title}
-                    title={loser.title}
-                  />
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
