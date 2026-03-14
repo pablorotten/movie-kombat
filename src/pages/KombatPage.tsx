@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMovies } from "../context/MovieContext";
 import {
   BracketMatch,
@@ -10,58 +10,148 @@ import Button from "../components/Button";
 import PosterImage from "../components/PosterImage";
 import BracketVisualization from "../components/Kombat/BracketVisualization";
 
+type Fatality = "slice" | "explode" | "smash";
+const ALL_FATALITIES: Fatality[] = ["slice", "explode", "smash"];
+
+// Animation phase delays (ms from click)
+const FINISH_HIM_DELAY  = 200;  // "FINISH HIM!" text appears
+const CHARGE_DELAY      = 700;  // winner charges toward loser
+const FATALITY_DELAY    = 1200; // fatality plays on loser
+const FATALITY_TEXT_DELAY = 1700; // "FATALITY!" text appears
+const ADVANCE_DELAY     = 2300; // bracket advances to next match
+
+// Animation phases:
+// -1 – idle (no animation)
+//  0 – animation started, buttons hidden
+//  1 – "FINISH HIM!" text
+//  2 – winner charges toward loser
+//  3 – fatality plays on loser
+//  4 – "FATALITY!" text
 const KombatMatchup = ({
   match,
   onChooseWinner,
   chooseLabel,
+  isSpanish,
 }: {
   match: BracketMatch;
   onChooseWinner: (winner: KombatOption) => void;
   chooseLabel: string;
+  isSpanish?: boolean;
 }) => {
+  const [phase, setPhase] = useState(-1);
+  const [winnerId, setWinnerId] = useState<string | null>(null);
+  const [fatality, setFatality] = useState<Fatality>("explode");
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const onChooseWinnerRef = useRef(onChooseWinner);
+  onChooseWinnerRef.current = onChooseWinner;
+
+  // Clean up timers when unmounted
+  useEffect(() => {
+    return () => { timersRef.current.forEach(clearTimeout); };
+  }, []);
+
+  const handleChoose = (winner: KombatOption) => {
+    timersRef.current.forEach(clearTimeout);
+    setFatality(ALL_FATALITIES[Math.floor(Math.random() * ALL_FATALITIES.length)]);
+    setWinnerId(winner.id);
+    setPhase(0);
+    timersRef.current = [
+      setTimeout(() => setPhase(1), FINISH_HIM_DELAY),
+      setTimeout(() => setPhase(2), CHARGE_DELAY),
+      setTimeout(() => setPhase(3), FATALITY_DELAY),
+      setTimeout(() => setPhase(4), FATALITY_TEXT_DELAY),
+      // Advance the bracket after the animation completes
+      setTimeout(() => { onChooseWinnerRef.current(winner); }, ADVANCE_DELAY),
+    ];
+  };
+
+  const animating = phase >= 0;
+  const isFirstWinner = winnerId === match.first.id;
+
+  const ui = isSpanish
+    ? { finishHim: "¡TERMÍNALO!", fatality: "¡FATALIDAD!" }
+    : { finishHim: "FINISH HIM!!", fatality: "FATALITY!" };
+
+  // Determine which CSS class to apply to the loser's poster wrapper.
+  // Slice fatality doesn't need a wrapper class — it's handled with split JSX halves below.
+  const loserFatalityClass = phase >= 3
+    ? fatality === "explode"
+      ? "kombat-loser-explode"
+      : fatality === "smash"
+        // Smash direction: loser on right → smash right; loser on left → smash left
+        ? isFirstWinner ? "kombat-loser-smash-right" : "kombat-loser-smash-left"
+        : "" // slice: no wrapper class needed
+    : "";
+
+  const showSlice = fatality === "slice" && phase >= 3;
+
+  const renderPoster = (movie: KombatOption, side: "first" | "second") => {
+    const isThisWinner = animating && ((side === "first") === isFirstWinner);
+    const isThisLoser = animating && !isThisWinner;
+
+    const wrapperClass = isThisWinner && phase >= 2
+      ? (side === "first" ? "kombat-winner-charge-right" : "kombat-winner-charge-left")
+      : isThisLoser
+        ? loserFatalityClass
+        : "";
+
+    return (
+      <div className={`w-full max-w-xs mx-auto ${wrapperClass}`}>
+        {isThisLoser && showSlice ? (
+          /* Slice fatality: two clipped halves that fly apart */
+          <div className="relative aspect-[2/3] rounded-lg">
+            <div className="kombat-slice-top">
+              <PosterImage className="w-full h-full object-cover" src={movie.poster} alt={movie.title} title={movie.title} />
+            </div>
+            <div className="kombat-slice-bottom">
+              <PosterImage className="w-full h-full object-cover" src={movie.poster} alt={movie.title} title={movie.title} />
+            </div>
+            {/* Red slash line */}
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-red-500 shadow-[0_0_8px_4px_rgba(239,68,68,0.8)] z-10" />
+          </div>
+        ) : (
+          <div className="aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 shadow-lg">
+            <PosterImage className="w-full h-full object-cover" src={movie.poster} alt={movie.title} title={movie.title} />
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="grid grid-cols-2 gap-4 md:gap-8 items-start">
+    <div className="relative grid grid-cols-2 gap-4 md:gap-8 items-start">
+      {/* "FINISH HIM!" / "FATALITY!" text — floats above the posters */}
+      {animating && (
+        <div className="absolute inset-x-0 top-1/3 flex items-center justify-center z-10 pointer-events-none">
+          {phase >= 1 && phase < 4 && <p className="kombat-finish-him">{ui.finishHim}</p>}
+          {phase >= 4 && <p className="kombat-fatality">{ui.fatality}</p>}
+        </div>
+      )}
+
       {/* First Movie */}
       <div className="flex flex-col items-center gap-4">
-        <h3 className="text-xl font-bold text-center h-8">
-          {match.first.title}
-        </h3>
-        {/* Container for the first movie's poster */}
-        <div className="w-full max-w-xs mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 shadow-lg">
-          <PosterImage
-            className="w-full h-full object-cover"
-            src={match.first.poster}
-            alt={match.first.title}
-            title={match.first.title}
-          />
-        </div>
-        <div className="mt-4">
-          <Button variant="primary" onClick={() => onChooseWinner(match.first)}>
-            {chooseLabel}
-          </Button>
-        </div>
+        <h3 className="text-xl font-bold text-center h-8">{match.first.title}</h3>
+        {renderPoster(match.first, "first")}
+        {!animating && (
+          <div className="mt-4">
+            <Button variant="primary" onClick={() => handleChoose(match.first)}>
+              {chooseLabel}
+            </Button>
+          </div>
+        )}
       </div>
+
       {/* Second Movie */}
       <div className="flex flex-col items-center gap-4">
-        <h3 className="text-xl font-bold text-center h-8">
-          {match.second.title}
-        </h3>
-        <div className="w-full max-w-xs mx-auto aspect-[2/3] rounded-lg overflow-hidden bg-gray-700 shadow-lg">
-          <PosterImage
-            className="w-full h-full object-cover"
-            src={match.second.poster}
-            alt={match.second.title}
-            title={match.second.title}
-          />
-        </div>
-        <div className="mt-4">
-          <Button
-            variant="primary"
-            onClick={() => onChooseWinner(match.second)}
-          >
-            {chooseLabel}
-          </Button>
-        </div>
+        <h3 className="text-xl font-bold text-center h-8">{match.second.title}</h3>
+        {renderPoster(match.second, "second")}
+        {!animating && (
+          <div className="mt-4">
+            <Button variant="primary" onClick={() => handleChoose(match.second)}>
+              {chooseLabel}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -249,9 +339,11 @@ export default function KombatPage() {
                 {ui.round} {currentRound + 1} {ui.of} {stages[currentStage].length}
               </p>
               <KombatMatchup
+                key={`${currentMatch.first.id}-${currentMatch.second.id}`}
                 match={currentMatch}
                 onChooseWinner={handleChooseWinner}
                 chooseLabel={ui.choose}
+                isSpanish={isSpanish}
               />
             </div>
 
