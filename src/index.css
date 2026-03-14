@@ -66,11 +66,6 @@ button {
 
 /* ===================== KOMBAT FIGHT ANIMATIONS ===================== */
 
-/* Arena background */
-.kombat-arena {
-  background: radial-gradient(ellipse at 50% 130%, #3d0000 0%, #1a0033 40%, #0d0d0d 100%);
-}
-
 /* "FINISH HIM!" text */
 @keyframes kombat-finish-him-anim {
   0%   { opacity: 0; transform: scale(0.4) skewX(-8deg); letter-spacing: 0.3em; }
@@ -110,16 +105,34 @@ button {
   animation: kombat-fatality-anim 1s ease-out forwards;
 }
 
-/* Winner charge toward loser */
-@keyframes kombat-winner-charge-anim {
+/* Winner charges right (first movie wins).
+   Overshoots to 170% then bounces back to 155% for a punchy impact feel. */
+@keyframes kombat-winner-charge-right-anim {
   0%   { transform: translateX(0); }
-  60%  { transform: translateX(60px); }
-  75%  { transform: translateX(45px); }
-  100% { transform: translateX(50px); }
+  60%  { transform: translateX(170%); }
+  75%  { transform: translateX(140%); }
+  100% { transform: translateX(155%); }
 }
 
-.kombat-winner-charge {
-  animation: kombat-winner-charge-anim 0.4s ease-out forwards;
+.kombat-winner-charge-right {
+  animation: kombat-winner-charge-right-anim 0.4s ease-out forwards;
+  position: relative;
+  z-index: 5;
+}
+
+/* Winner charges left (second movie wins).
+   Overshoots to -170% then bounces back to -155% for a punchy impact feel. */
+@keyframes kombat-winner-charge-left-anim {
+  0%   { transform: translateX(0); }
+  60%  { transform: translateX(-170%); }
+  75%  { transform: translateX(-140%); }
+  100% { transform: translateX(-155%); }
+}
+
+.kombat-winner-charge-left {
+  animation: kombat-winner-charge-left-anim 0.4s ease-out forwards;
+  position: relative;
+  z-index: 5;
 }
 
 /* ── Fatality 1: SLICE ── */
@@ -161,7 +174,8 @@ button {
 }
 
 /* ── Fatality 3: SMASH ── */
-@keyframes kombat-smash-anim {
+/* Loser on the right side smashes rightward */
+@keyframes kombat-smash-right-anim {
   0%   { transform: translateX(0)    scaleX(1)    scaleY(1);   opacity: 1; }
   50%  { transform: translateX(60%)  scaleX(1)    scaleY(1);   opacity: 1; }
   68%  { transform: translateX(100%) scaleX(0.15) scaleY(1.5); opacity: 1; }
@@ -169,6 +183,19 @@ button {
   100% { transform: translateX(105%) scaleX(0.04) scaleY(0.4); opacity: 0; }
 }
 
-.kombat-loser-smash {
-  animation: kombat-smash-anim 0.65s ease-in forwards;
+.kombat-loser-smash-right {
+  animation: kombat-smash-right-anim 0.65s ease-in forwards;
+}
+
+/* Loser on the left side smashes leftward */
+@keyframes kombat-smash-left-anim {
+  0%   { transform: translateX(0)     scaleX(1)    scaleY(1);   opacity: 1; }
+  50%  { transform: translateX(-60%)  scaleX(1)    scaleY(1);   opacity: 1; }
+  68%  { transform: translateX(-100%) scaleX(0.15) scaleY(1.5); opacity: 1; }
+  85%  { transform: translateX(-105%) scaleX(0.08) scaleY(0.8); opacity: 1; }
+  100% { transform: translateX(-105%) scaleX(0.04) scaleY(0.4); opacity: 0; }
+}
+
+.kombat-loser-smash-left {
+  animation: kombat-smash-left-anim 0.65s ease-in forwards;
 }
