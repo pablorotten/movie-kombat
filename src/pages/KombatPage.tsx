@@ -31,7 +31,6 @@ const KombatMatchup = ({
   match,
   onChooseWinner,
   chooseLabel,
-  isSpanish,
 }: {
   match: BracketMatch;
   onChooseWinner: (winner: KombatOption) => void;
@@ -341,7 +340,6 @@ export default function KombatPage() {
                 match={currentMatch}
                 onChooseWinner={handleChooseWinner}
                 chooseLabel={ui.choose}
-                isSpanish={isSpanish}
               />
             </div>
 
