@@ -89,3 +89,34 @@ Make sure your repository Pages settings are configured to serve the published b
 ## License
 
 See [LICENSE](LICENSE).
+
+## Filmaffinity Scrapper Tool
+
+This repository contains a small, non-app Python tool to scrape FilmAffinity movie titles for personal use. It's not used by the app.
+
+Setup:
+
+```powershell
+cd tools\filmaffinity
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+Usage:
+
+Add filmaffinity links to `links` file (one per line)
+
+```
+https://www.filmaffinity.com/es/film147735.html
+https://www.filmaffinity.com/es/film847055.html
+...
+```
+
+Run:
+
+```powershell
+python filmaffinity-scrapper.py
+```
+
+Output will be saved to movies file in the same folder.
