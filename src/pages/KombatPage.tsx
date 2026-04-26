@@ -68,9 +68,7 @@ const KombatMatchup = ({
   const animating = phase >= 0;
   const isFirstWinner = winnerId === match.first.id;
 
-  const ui = isSpanish
-    ? { finishHim: "¡TERMÍNALO!", fatality: "¡FATALIDAD!" }
-    : { finishHim: "FINISH HIM!!", fatality: "FATALITY!" };
+  const ui = { finishHim: "FINISH HIM!!", fatality: "FATALITY!" };
 
   // Determine which CSS class to apply to the loser's poster wrapper.
   // Slice fatality doesn't need a wrapper class — it's handled with split JSX halves below.
