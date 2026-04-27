@@ -1,5 +1,5 @@
 # 2000s Horror
-<img width="935" height="619" alt="tarantino" src="https://github.com/user-attachments/assets/51305a43-deb8-4df4-b8e2-baf3e7f7bab3" />
+<img width="648" height="751" alt="horror" src="https://github.com/user-attachments/assets/af597082-0fff-4f4e-a2eb-d33a5ede1ac4" />
 
 * 28 Days Later
 * The Ring
