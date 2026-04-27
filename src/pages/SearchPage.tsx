@@ -68,7 +68,7 @@ export default function SearchPage() {
         myAddedMovies: "Mis peliculas agregadas",
         deleteMovies: "Eliminar peliculas",
         refreshTitlesError: "No se pudieron actualizar los titulos al cambiar el idioma.",
-        localCollections: "Colecciones locales",
+        localCollections: "Colecciones de Películas",
         loadCollection: "Cargar coleccion",
         loadingCollection: "Cargando coleccion...",
         collectionNeedsApiKey: "Necesitas configurar TMDB para cargar una coleccion local.",
@@ -97,7 +97,7 @@ export default function SearchPage() {
         myAddedMovies: "My Added Movies",
         deleteMovies: "Delete Movies",
         refreshTitlesError: "Failed to refresh movie titles after language change.",
-        localCollections: "Local collections",
+        localCollections: "Movie Collections",
         loadCollection: "Load collection",
         loadingCollection: "Loading collection...",
         collectionNeedsApiKey: "You need to configure TMDB before loading a local collection.",
@@ -530,7 +530,7 @@ export default function SearchPage() {
                       <div
                         key={collection.id}
                         onClick={() => handleLoadLocalCollection(collection)}
-                        className="group relative w-full aspect-[3/4] rounded-lg overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="group relative w-full aspect-[4/3] rounded-lg overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
                           opacity: isLoading && !isActive ? 0.5 : 1,
                           pointerEvents: isLoading && !isActive ? "none" : "auto",
