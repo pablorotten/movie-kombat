@@ -8,10 +8,53 @@ Live app: https://movie-kombat.vercel.app/
 
 - Search movies with TMDB (single title or bulk list mode).
 - Discover movies with TMDB by genre, streaming provider, and country.
+- Load ready-made local movie collections from markdown files in `movies/`.
 - Smart poster handling (fallback placeholders when posters are missing).
 - Blind mode to hide posters and vote by title.
 - Interactive bracket visualization through each kombat stage.
 - Final winner screen with IMDb link.
+
+## Local movie collections
+
+You can add your own collection tiles shown in the app by creating markdown files inside the root `movies/` folder.
+
+Rules:
+
+- Create one `.md` file per collection in `movies/`.
+- Use a first-level heading (`#`) as the collection title.
+- Add movie titles as bullet points (one title per line).
+- Optional: include an HTML image tag to use a custom tile image.
+- Keep at least 16 movie titles so the app can build a 16-movie kombat selection.
+
+Example (`movies/my-collection.md`):
+
+```md
+# My Collection
+<img src="https://example.com/my-image.jpg" alt="my collection" />
+
+* Movie Title 1
+* Movie Title 2
+* Movie Title 3
+* Movie Title 4
+* Movie Title 5
+* Movie Title 6
+* Movie Title 7
+* Movie Title 8
+* Movie Title 9
+* Movie Title 10
+* Movie Title 11
+* Movie Title 12
+* Movie Title 13
+* Movie Title 14
+* Movie Title 15
+* Movie Title 16
+```
+
+Notes:
+
+- File name becomes the internal collection id.
+- The app ignores `movies/README.md`.
+- Duplicate titles are automatically deduplicated (case-insensitive).
 
 ## Kombat rules
 
