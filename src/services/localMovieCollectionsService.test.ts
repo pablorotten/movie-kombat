@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   parseCollectionMovieTitles,
   parseCollectionTitle,
+  parseCollectionImage,
   shuffle,
 } from "./localMovieCollectionsService";
 
@@ -28,6 +29,29 @@ describe("parseCollectionMovieTitles", () => {
       "Movie B",
       "Movie C",
     ]);
+  });
+
+  it("ignores img tags when parsing titles", () => {
+    const markdown = "# A List\n\n<img src='test.jpg' />\n* Movie A\n* Movie B\n";
+
+    expect(parseCollectionMovieTitles(markdown)).toEqual([
+      "Movie A",
+      "Movie B",
+    ]);
+  });
+});
+
+describe("parseCollectionImage", () => {
+  it("extracts image src from img tag", () => {
+    const markdown = '# Title\n<img src="https://example.com/image.jpg" alt="test" />\n* Movie A\n';
+
+    expect(parseCollectionImage(markdown)).toBe("https://example.com/image.jpg");
+  });
+
+  it("returns undefined when no image tag is present", () => {
+    const markdown = "# Title\n\n* Movie A\n* Movie B\n";
+
+    expect(parseCollectionImage(markdown)).toBeUndefined();
   });
 });
 

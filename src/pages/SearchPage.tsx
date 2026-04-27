@@ -523,25 +523,65 @@ export default function SearchPage() {
               {localCollections.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">{ui.noCollectionsFound}</p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {localCollections.map((collection) => {
                     const isActive = activeCollectionId === collection.id;
                     return (
                       <div
                         key={collection.id}
-                        className="rounded-lg border border-gray-300 dark:border-gray-700 p-3 bg-white/70 dark:bg-gray-800/50"
+                        onClick={() => handleLoadLocalCollection(collection)}
+                        className="group relative w-full aspect-[3/4] rounded-lg overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{
+                          opacity: isLoading && !isActive ? 0.5 : 1,
+                          pointerEvents: isLoading && !isActive ? "none" : "auto",
+                        }}
                       >
-                        <p className="font-semibold mb-2">{collection.title}</p>
-                        <Button
-                          variant="secondary"
-                          size="small"
-                          onClick={() => handleLoadLocalCollection(collection)}
-                          loading={isActive && isLoading}
-                          disabled={isLoading && !isActive}
-                          fullWidth
-                        >
-                          {isActive && isLoading ? ui.loadingCollection : ui.loadCollection}
-                        </Button>
+                        {/* Background Image */}
+                        {collection.image ? (
+                          <img
+                            src={collection.image}
+                            alt={collection.title}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-900" />
+                        )}
+
+                        {/* Dark Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-70 group-hover:opacity-80 transition-opacity" />
+
+                        {/* Title Text */}
+                        <div className="absolute inset-0 flex items-end justify-center p-4">
+                          <h3 className="text-white font-bold text-center text-sm sm:text-base leading-tight drop-shadow-lg">
+                            {collection.title}
+                          </h3>
+                        </div>
+
+                        {/* Loading Spinner */}
+                        {isActive && isLoading && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                            <svg
+                              className="animate-spin w-8 h-8 text-white"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              />
+                            </svg>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

@@ -3,6 +3,7 @@ export interface LocalMovieCollection {
   title: string;
   movieTitles: string[];
   filePath: string;
+  image?: string;
 }
 
 const markdownModules = import.meta.glob<string>(
@@ -46,7 +47,8 @@ export const parseCollectionMovieTitles = (markdown: string): string[] => {
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
-    .filter((line) => !/^#\s+/.test(line));
+    .filter((line) => !/^#\s+/.test(line))
+    .filter((line) => !/<img/.test(line));
 
   const normalizedToOriginal = new Map<string, string>();
 
@@ -65,6 +67,11 @@ export const parseCollectionMovieTitles = (markdown: string): string[] => {
   return Array.from(normalizedToOriginal.values());
 };
 
+export const parseCollectionImage = (markdown: string): string | undefined => {
+  const imgMatch = markdown.match(/<img[^>]+src=["']([^"']+)["']/);
+  return imgMatch ? imgMatch[1] : undefined;
+};
+
 export const loadLocalMovieCollections = (): LocalMovieCollection[] => {
   const collections: LocalMovieCollection[] = [];
 
@@ -81,12 +88,14 @@ export const loadLocalMovieCollections = (): LocalMovieCollection[] => {
 
     const title = parseCollectionTitle(markdown, fallbackTitle);
     const movieTitles = parseCollectionMovieTitles(markdown);
+    const image = parseCollectionImage(markdown);
 
     collections.push({
       id: fileName,
       title,
       movieTitles,
       filePath,
+      image,
     });
   }
 
