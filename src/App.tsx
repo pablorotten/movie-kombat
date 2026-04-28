@@ -128,6 +128,7 @@ function App() {
         tmdbDataSource: "Datos proporcionados por",
         tmdbAttribution:
           "Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.",
+        appLanguage: "Idioma de la app:",
       }
     : {
         startNewKombatTitle: "Start New Kombat?",
@@ -144,6 +145,7 @@ function App() {
         tmdbDataSource: "Data provided by",
         tmdbAttribution:
           "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+        appLanguage: "App language:",
       };
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
@@ -371,6 +373,7 @@ function App() {
               </a>
             </div>
             <div className="flex items-center gap-1">
+              <span className="mr-1">{ui.appLanguage}</span>
               <button
                 onClick={() => setSearchLanguage('en-US')}
                 className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
