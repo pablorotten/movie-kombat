@@ -41,6 +41,24 @@ export interface Region {
   native_name: string;
 }
 
+export interface WatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+  display_priority?: number;
+}
+
+interface WatchProviderRegionResult {
+  flatrate?: WatchProvider[];
+  rent?: WatchProvider[];
+  buy?: WatchProvider[];
+}
+
+interface WatchProvidersResponse {
+  id: number;
+  results: Record<string, WatchProviderRegionResult>;
+}
+
 // TMDB API configuration
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
@@ -85,10 +103,56 @@ export const getProviderByName = (name: string): Provider | undefined => {
 
 // Popular streaming providers for quick selection
 export const getPopularProviders = (): Provider[] => {
-  const popularProviderIds = [8, 119, 337, 350, 384, 63]; // Netflix, Amazon Prime, Disney+, Apple TV+, HBO Max
+  const popularProviderIds = [8, 119, 337, 350, 63]; // Netflix, Amazon Prime, Disney+, Apple TV+, Filmin
   return popularProviderIds
     .map(id => getProviderById(id))
     .filter((provider): provider is Provider => provider !== undefined);
+};
+
+const DISCOVER_PROVIDER_IDS = new Set<number>([8, 63, 119, 337, 350]);
+
+const pickAllowedProviders = (providers: WatchProvider[] = []): WatchProvider[] => {
+  const unique = new Map<number, WatchProvider>();
+  for (const provider of providers) {
+    if (DISCOVER_PROVIDER_IDS.has(provider.provider_id) && !unique.has(provider.provider_id)) {
+      unique.set(provider.provider_id, provider);
+    }
+  }
+  return Array.from(unique.values());
+};
+
+export const getMovieProvidersForRegion = async (
+  bearerToken: string,
+  movieId: number,
+  region: string
+): Promise<WatchProvider[]> => {
+  const url = `${TMDB_BASE_URL}/movie/${movieId}/watch/providers`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${bearerToken}`,
+      'accept': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
+  }
+
+  const data: WatchProvidersResponse = await response.json();
+  const normalizedRegion = region.toUpperCase();
+  const regionalProviders = data.results?.[normalizedRegion];
+  if (!regionalProviders) {
+    return [];
+  }
+
+  const mergedProviders = [
+    ...(regionalProviders.flatrate || []),
+    ...(regionalProviders.rent || []),
+    ...(regionalProviders.buy || []),
+  ];
+
+  return pickAllowedProviders(mergedProviders);
 };
 
 // Convert TMDB poster path to full URL

@@ -142,7 +142,7 @@ export default function SearchPage() {
 
       const shuffledTitles = shuffle(titles);
       const foundMovies: Movie[] = [];
-      const foundIds = new Set<string>();
+      const foundIds = new Set<string>(movieList.map((movie) => movie.imdbID));
       const notFound: string[] = [];
 
       for (const title of shuffledTitles) {
@@ -178,7 +178,7 @@ export default function SearchPage() {
         return;
       }
 
-      setMovieList(foundMovies);
+      setMovieList((prevMovies) => [...prevMovies, ...foundMovies]);
       if (notFound.length > 0) {
         setNotFoundMovies(notFound.slice(0, 20));
         setIsCollectionNotFoundDialog(true);
