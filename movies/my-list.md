@@ -4,7 +4,6 @@
 * Desaparecidos
 * Memoirs of an Invisible Man
 * The Wild Robot
-* Molt lluny
 * Kika
 * Dangerous Minds
 * Dark Waters
@@ -220,7 +219,6 @@
 * Eight Legged Freaks
 * Te estoy amando locamente
 * The Emerald Forest
-* Arny. Historia de una infamia
 * Absolute Power
 * Passenger 57
 * Crimson Tide
@@ -292,7 +290,6 @@
 * Stay
 * Heartbreakers
 * Bastarden
-* Flow
 * Fausto 5.0 (Faust 5.0)
 * The Omen
 * Escape Room
@@ -314,7 +311,6 @@
 * Jacob’s Ladder
 * Love Story
 * Meet the Spartans
-* CSI Las Vegas: Grave Danger
 * Firestorm
 * 10 Things I Hate about You
 * Thief (Violent Streets)
