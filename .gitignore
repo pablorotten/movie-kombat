@@ -33,3 +33,5 @@ backup
 
 # Business files
 Business/
+.vercel
+.env*.local

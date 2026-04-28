@@ -86,6 +86,23 @@ npm run dev
 
 Open the local URL shown by Vite (usually `http://localhost:5173`).
 
+### 3) Run full local stack (frontend + serverless API)
+
+If you are working on TMDB search/discovery flows locally, use:
+
+```sh
+npm run dev:vercel
+```
+
+This runs Vercel's local runtime so `/api/*` serverless endpoints are available.
+Use `npm run dev` only for frontend-only work.
+
+Request routing summary:
+
+- `npm run dev` + TMDB search/discover = it should fail locally for API-backed flows
+- `npm run dev:vercel` = local serverless functions handle the request
+- deployed app on Vercel = Vercel serverless functions handle the request
+
 ## TMDB proxy (server-side key)
 
 The app now uses serverless proxy endpoints under `/api/*`.
@@ -109,6 +126,8 @@ Proxy endpoints implemented:
 ## Available scripts
 
 - `npm run dev` — start Vite dev server
+- `npm run dev:vercel` — start local Vercel runtime (frontend + `/api/*` functions)
+- `npm run dev:full` — alias of `dev:vercel`
 - `npm run build` — type-check and build production bundle
 - `npm run preview` — preview production build locally
 - `npm run lint` — run ESLint
