@@ -1,5 +1,5 @@
-# Tarantino's selection
-<img width="935" height="619" alt="tarantino" src="https://github.com/user-attachments/assets/51305a43-deb8-4df4-b8e2-baf3e7f7bab3" />
+# Tarantino's favourites
+<img width="786" height="824" alt="tarantino" src="https://github.com/user-attachments/assets/70ce2c3c-7f57-461e-a6dd-89a1b0861e25" />
 
 * The Kid
 * Die Hard
