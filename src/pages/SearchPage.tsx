@@ -44,7 +44,7 @@ const LoadingSpinner = () => (
 
 export default function SearchPage() {
   const navigate = useNavigate();
-  const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setSearchLanguage, setMovieList } = useMovies();
+  const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setMovieList } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasRestoredFromUrl = useRef(false);
   const previousLanguage = useRef(searchLanguage);
@@ -612,30 +612,6 @@ export default function SearchPage() {
       )}
 
       <div className="max-w-xl mx-auto px-4">
-        {/* Language Selector */}
-        <div className="flex justify-center gap-2 mt-6 mb-4">
-          <button
-            onClick={() => setSearchLanguage('en-US')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              searchLanguage === 'en-US'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            English
-          </button>
-          <button
-            onClick={() => setSearchLanguage('es-ES')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              searchLanguage === 'es-ES'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            Español
-          </button>
-        </div>
-
         <div className="mt-4">
           {!useTextarea ? (
             <div className="relative">
