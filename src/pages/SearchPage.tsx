@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Movie } from "../types";
 import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
@@ -6,12 +6,19 @@ import Button from "../components/Button";
 import Dialog from "../components/Dialog";
 import CategorySelector from "../components/CategorySelector";
 import TMDBCategorySelector from "../components/TMDBCategorySelector";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
 import PosterImage from "../components/PosterImage";
 import { searchMovies, convertTMDBToAppMovie, getMovieDetails, getTMDBImageUrl } from "../services/tmdbService";
+import {
+  loadLocalMovieCollections,
+  shuffle,
+  type LocalMovieCollection,
+} from "../services/localMovieCollectionsService";
+
+const COLLECTION_SIZE = 16;
 
 const LoadingSpinner = () => (
   <div role="status" className="flex justify-center items-center">
@@ -36,6 +43,7 @@ const LoadingSpinner = () => (
 );
 
 export default function SearchPage() {
+  const navigate = useNavigate();
   const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setSearchLanguage, setMovieList } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasRestoredFromUrl = useRef(false);
@@ -60,6 +68,16 @@ export default function SearchPage() {
         myAddedMovies: "Mis peliculas agregadas",
         deleteMovies: "Eliminar peliculas",
         refreshTitlesError: "No se pudieron actualizar los titulos al cambiar el idioma.",
+        localCollections: "Colecciones de Películas",
+        loadCollection: "Cargar coleccion",
+        loadingCollection: "Cargando coleccion...",
+        collectionNeedsApiKey: "Necesitas configurar TMDB para cargar una coleccion local.",
+        collectionEmpty: "La coleccion no tiene suficientes peliculas.",
+        collectionNotEnoughMatches:
+          "No se pudieron encontrar 16 peliculas validas en TMDB para esta coleccion.",
+        collectionLoadedNotFound: "Algunos titulos no se encontraron:",
+        noCollectionsFound:
+          "No se encontraron archivos .md en movies.",
       }
     : {
         tmdbApiRequired: "TMDB API key is required. Please configure it in settings.",
@@ -79,6 +97,16 @@ export default function SearchPage() {
         myAddedMovies: "My Added Movies",
         deleteMovies: "Delete Movies",
         refreshTitlesError: "Failed to refresh movie titles after language change.",
+        localCollections: "Movie Collections",
+        loadCollection: "Load collection",
+        loadingCollection: "Loading collection...",
+        collectionNeedsApiKey: "You need to configure TMDB before loading a local collection.",
+        collectionEmpty: "This collection does not have enough movie titles.",
+        collectionNotEnoughMatches:
+          "Could not find 16 valid movies in TMDB for this collection.",
+        collectionLoadedNotFound: "Some titles were not found:",
+        noCollectionsFound:
+          "No .md files were found in movies.",
       };
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovies, setSearchedMovies] = useState<Movie[]>([]);
@@ -87,8 +115,83 @@ export default function SearchPage() {
   const [useTextarea, setUseTextarea] = useState(false);
   const [notFoundMovies, setNotFoundMovies] = useState<string[]>([]);
   const [isNotFoundDialogOpen, setIsNotFoundDialogOpen] = useState(false);
+  const [isCollectionNotFoundDialog, setIsCollectionNotFoundDialog] =
+    useState(false);
   const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState(false);
+  const [isLocalCollectionsExpanded, setIsLocalCollectionsExpanded] = useState(false);
+  const [activeCollectionId, setActiveCollectionId] = useState<string | null>(null);
   const addedMoviesRef = useRef<HTMLDivElement>(null);
+  const localCollections = useMemo(() => loadLocalMovieCollections(), []);
+
+  async function handleLoadLocalCollection(collection: LocalMovieCollection) {
+    if (!tmdbApiKey) {
+      setError(ui.collectionNeedsApiKey);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setActiveCollectionId(collection.id);
+
+    try {
+      const titles = collection.movieTitles;
+      if (titles.length < COLLECTION_SIZE) {
+        setError(ui.collectionEmpty);
+        return;
+      }
+
+      const shuffledTitles = shuffle(titles);
+      const foundMovies: Movie[] = [];
+      const foundIds = new Set<string>();
+      const notFound: string[] = [];
+
+      for (const title of shuffledTitles) {
+        if (foundMovies.length >= COLLECTION_SIZE) break;
+
+        try {
+          const response = await searchMovies(tmdbApiKey, title, 1, searchLanguage);
+          if (response.results && response.results.length > 0) {
+            const convertedMovie = convertTMDBToAppMovie(response.results[0]);
+            if (convertedMovie.Poster === "N/A") {
+              convertedMovie.Poster = getPlaceholder();
+            }
+
+            if (!foundIds.has(convertedMovie.imdbID)) {
+              foundIds.add(convertedMovie.imdbID);
+              foundMovies.push(convertedMovie);
+            }
+          } else {
+            notFound.push(title);
+          }
+        } catch {
+          notFound.push(title);
+        }
+      }
+
+      if (foundMovies.length < COLLECTION_SIZE) {
+        setError(ui.collectionNotEnoughMatches);
+        if (notFound.length > 0) {
+          setNotFoundMovies(notFound.slice(0, 20));
+          setIsCollectionNotFoundDialog(true);
+          setIsNotFoundDialogOpen(true);
+        }
+        return;
+      }
+
+      setMovieList(foundMovies);
+      if (notFound.length > 0) {
+        setNotFoundMovies(notFound.slice(0, 20));
+        setIsCollectionNotFoundDialog(true);
+        setIsNotFoundDialogOpen(true);
+      }
+      navigate("/kombat");
+    } catch {
+      setError(ui.loadFromUrlError);
+    } finally {
+      setIsLoading(false);
+      setActiveCollectionId(null);
+    }
+  }
 
   useEffect(() => {
     if (hasRestoredFromUrl.current) return;
@@ -140,7 +243,7 @@ export default function SearchPage() {
     };
 
     loadMoviesFromUrl();
-  }, [tmdbApiKey, searchLanguage, searchParams, movieList.length, setMovieList]);
+  }, [tmdbApiKey, searchLanguage, searchParams, movieList.length, setMovieList, ui.loadFromUrlError]);
 
   useEffect(() => {
     const tmdbIds = movieList
@@ -249,7 +352,7 @@ export default function SearchPage() {
     };
     const timerId = setTimeout(fetchMovie, 500);
     return () => clearTimeout(timerId);
-  }, [searchTerm, tmdbApiKey, useTextarea, searchLanguage]);
+  }, [searchTerm, tmdbApiKey, useTextarea, searchLanguage, ui.movieNotFound, ui.tmdbApiRequired, ui.unexpectedError]);
 
   function handleAddMovie(movie: Movie) {
     // Add the selected movie to the list
@@ -296,6 +399,7 @@ export default function SearchPage() {
     setUseTextarea(false);
     if (notFound.length > 0) {
       setNotFoundMovies(notFound);
+      setIsCollectionNotFoundDialog(false);
       setIsNotFoundDialogOpen(true);
     }
   }
@@ -350,6 +454,7 @@ export default function SearchPage() {
     setIsLoading(false);
     if (notFound.length > 0) {
       setNotFoundMovies(notFound);
+      setIsCollectionNotFoundDialog(false);
       setIsNotFoundDialogOpen(true);
     }
     
@@ -364,12 +469,22 @@ export default function SearchPage() {
     <>
       <Dialog
         open={isNotFoundDialogOpen}
-        onClose={() => setIsNotFoundDialogOpen(false)}
+        onClose={() => {
+          setIsNotFoundDialogOpen(false);
+          setIsCollectionNotFoundDialog(false);
+        }}
         title={ui.moviesNotFoundTitle}
-        onCancel={() => setIsNotFoundDialogOpen(false)}
+        onCancel={() => {
+          setIsNotFoundDialogOpen(false);
+          setIsCollectionNotFoundDialog(false);
+        }}
         cancelText={ui.close}
       >
-        <p className="mb-3">{ui.moviesNotFoundDescription}</p>
+        <p className="mb-3">
+          {isCollectionNotFoundDialog
+            ? ui.collectionLoadedNotFound
+            : ui.moviesNotFoundDescription}
+        </p>
         <ul className="list-disc list-inside space-y-1 text-sm bg-gray-100 dark:bg-gray-700 p-3 rounded">
           {notFoundMovies.map((movie, index) => (
             <li key={index} className="text-gray-800 dark:text-gray-200">
@@ -379,6 +494,103 @@ export default function SearchPage() {
         </ul>
         <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{ui.spellingHint}</p>
       </Dialog>
+
+      <section className="max-w-5xl mx-auto px-4 mt-6">
+        <div className="bg-gradient-to-r from-emerald-50 to-cyan-50 dark:from-gray-800 dark:to-gray-700 rounded-xl border border-emerald-200 dark:border-gray-600 shadow-lg">
+          <button
+            onClick={() => setIsLocalCollectionsExpanded(!isLocalCollectionsExpanded)}
+            className="w-full p-6 text-left hover:bg-emerald-100 dark:hover:bg-gray-600 transition-colors rounded-xl"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
+                📚 {ui.localCollections}
+              </h3>
+              <svg
+                className={`w-6 h-6 text-gray-600 dark:text-gray-300 transition-transform ${
+                  isLocalCollectionsExpanded ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          {isLocalCollectionsExpanded && (
+            <div className="px-6 pb-6">
+              {localCollections.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">{ui.noCollectionsFound}</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {localCollections.map((collection) => {
+                    const isActive = activeCollectionId === collection.id;
+                    return (
+                      <div
+                        key={collection.id}
+                        onClick={() => handleLoadLocalCollection(collection)}
+                        className="group relative w-full aspect-[4/3] rounded-lg overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{
+                          opacity: isLoading && !isActive ? 0.5 : 1,
+                          pointerEvents: isLoading && !isActive ? "none" : "auto",
+                        }}
+                      >
+                        {/* Background Image */}
+                        {collection.image ? (
+                          <img
+                            src={collection.image}
+                            alt={collection.title}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-900" />
+                        )}
+
+                        {/* Dark Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-70 group-hover:opacity-80 transition-opacity" />
+
+                        {/* Title Text */}
+                        <div className="absolute inset-0 flex items-end justify-center p-4">
+                          <h3 className="text-white font-bold text-center text-sm sm:text-base leading-tight drop-shadow-lg">
+                            {collection.title}
+                          </h3>
+                        </div>
+
+                        {/* Loading Spinner */}
+                        {isActive && isLoading && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                            <svg
+                              className="animate-spin w-8 h-8 text-white"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
 
  
 
