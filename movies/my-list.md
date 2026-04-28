@@ -40,7 +40,7 @@
 * The 6th Day
 * Rapito
 * Midnight Run
-* John Carpenter’s Ghosts of Marsaka
+* Ghosts of Mars
 * First Reformed
 * Before the Devil Knows You’re Dead
 * Innerspace
@@ -95,7 +95,6 @@
 * American Hustle
 * Jack London’s White Fang
 * ¡Hay motivo!
-* Citas Barcelona
 * Jujutsu Kaisen
 * Upon Entry
 * House of Sand and Fog
