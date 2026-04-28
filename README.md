@@ -163,3 +163,77 @@ python filmaffinity-scrapper.py
 ```
 
 Output will be saved to movies file in the same folder.
+
+## OMDB API
+
+### Query examples
+
+Seach movies starting with "The last":
+
+`https://api.themoviedb.org/3/search/movie?language=en-US&query=The%2520last&page=1&include_adult=false`
+```json
+"page": 1,
+    "results": [
+        {
+            "adult": false,
+            "backdrop_path": "/sS3zGYFPcfM5pArVNWl6qLyaSmU.jpg",
+            "genre_ids": [ 16, 28, 12, 14],
+            "id": 980431,
+            "title": "Avatar Aang: The Last Airbender",
+            "original_language": "en",
+            "original_title": "Avatar Aang: The Last Airbender",
+            "overview": "Avatar Aang, the world's last Airbender, learns of an ancient power that could save his culture from extinction. With the help of his friends, he embarks on a global quest to find it before it falls into the wrong hands and threatens to upend the peace they sacrificed everything to achieve.",
+            "popularity": 253.5738,
+            "poster_path": "/29Jdsak3SrwGds5k1t43kH6Khed.jpg",
+            "release_date": "2026-10-09",
+            "softcore": false,
+            "video": false,
+            "vote_average": 0.0,
+            "vote_count": 0
+        },
+        {
+            ...
+            "id": 1038392,
+            "title": "The Conjuring: Last Rites",
+            ...
+        {
+            ...
+            "id": 912649,
+            "title": "Venom: The Last Dance",
+			...
+        },
+        {
+            ...
+            "id": 1451398,
+            "title": "Re/Member: The Last Night",
+			...
+        },
+        ...
+    ],
+    "total_pages": 233,
+    "total_results": 4649
+}
+```
+
+Search `Action` moviess in `Spain` with `Netflix` streaming. Sorted by popularity:
+`https://api.themoviedb.org/3/discover/movie?language=en-US&page=2&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=28&watch_region=ES&with_watch_providers=8`
+```json
+{
+    "page": 1,
+    "results": [
+        {
+            ...
+            "title": "Apex",
+            "original_language": "en",
+            "original_title": "Apex",
+            ...
+        },
+        {
+            ...
+            "id": 1265609,
+            "title": "War Machine",
+            "original_language": "en"
+			...
+		}
+	...
+```

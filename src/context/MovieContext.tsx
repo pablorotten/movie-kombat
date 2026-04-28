@@ -12,6 +12,8 @@ interface MovieContextType {
   togglePostersVisibility: () => void;
   searchLanguage: string;
   setSearchLanguage: (language: string) => void;
+  selectedRegion: string;
+  setSelectedRegion: (region: string) => void;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ export function MovieProvider({ children }: { children: ReactNode }) {
   const [tmdbApiKey, setTmdbApiKey] = useState<string>(DEFAULT_TMDB_API_KEY);
   const [arePostersVisible, setArePostersVisible] = useState(true);
   const [searchLanguage, setSearchLanguage] = useState<string>('en-US');
+  const [selectedRegion, setSelectedRegion] = useState<string>('ES');
 
   useEffect(() => {
     const storedTmdbKey = localStorage.getItem("tmdbApiKey");
@@ -33,6 +36,17 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     if (storedLanguage) {
       setSearchLanguage(storedLanguage);
     }
+
+    const storedRegion = localStorage.getItem("selectedRegion");
+    if (storedRegion) {
+      setSelectedRegion(storedRegion.toUpperCase());
+      return;
+    }
+
+    const localeRegion = navigator.language?.split('-')?.[1]?.toUpperCase();
+    if (localeRegion) {
+      setSelectedRegion(localeRegion);
+    }
   }, []);
 
   useEffect(() => {
@@ -42,6 +56,10 @@ export function MovieProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem("searchLanguage", searchLanguage);
   }, [searchLanguage]);
+
+  useEffect(() => {
+    localStorage.setItem("selectedRegion", selectedRegion);
+  }, [selectedRegion]);
 
   const addMovie = (movie: Movie) => {
     if (!movieList.find((m) => m.imdbID === movie.imdbID)) {
@@ -69,7 +87,9 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     arePostersVisible, 
     togglePostersVisibility,
     searchLanguage,
-    setSearchLanguage
+    setSearchLanguage,
+    selectedRegion,
+    setSelectedRegion
   };
 
   return (

@@ -5,7 +5,7 @@ interface DialogProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   onConfirm?: () => void;
   onCancel?: () => void;
   confirmText?: string;
@@ -25,6 +25,9 @@ export default function Dialog({
   confirmVariant = "primary"
 }: DialogProps) {
   if (!open) return null;
+
+  const hasBody = children !== undefined && children !== null;
+  const isSingleAction = !onConfirm && Boolean(onCancel);
 
   const handleCancel = () => {
     if (onCancel) {
@@ -59,15 +62,21 @@ export default function Dialog({
         </div>
         
         {/* Body */}
-        <div className="px-6 py-4">
-          <div className="text-gray-700 dark:text-gray-300">
-            {children}
+        {hasBody && (
+          <div className="px-6 py-4">
+            <div className="text-gray-700 dark:text-gray-300">
+              {children}
+            </div>
           </div>
-        </div>
+        )}
         
         {/* Footer */}
         {(onConfirm || onCancel) && (
-          <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+          <div
+            className={`px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex gap-3 ${
+              isSingleAction ? "justify-center" : "justify-end"
+            }`}
+          >
             <Button
               variant="secondary"
               size="small"
