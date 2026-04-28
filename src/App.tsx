@@ -107,6 +107,7 @@ function App() {
     arePostersVisible,
     togglePostersVisibility,
     searchLanguage,
+    setSearchLanguage,
     selectedRegion,
     setSelectedRegion,
   } = useMovies();
@@ -368,6 +369,28 @@ function App() {
               >
                 <img src={tmdbLogo} alt="TMDB" className="h-4 w-auto" />
               </a>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setSearchLanguage('en-US')}
+                className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
+                  searchLanguage === 'en-US'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => setSearchLanguage('es-ES')}
+                className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
+                  searchLanguage === 'es-ES'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                Español
+              </button>
             </div>
             <p className="hidden md:block text-right">{ui.tmdbAttribution}</p>
           </div>
