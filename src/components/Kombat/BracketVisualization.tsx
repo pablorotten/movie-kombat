@@ -6,12 +6,14 @@ interface BracketVisualizationProps {
   stages: BracketMatch[][];
   currentStage: number;
   currentRound: number;
+  onMovieClick?: (option: KombatOption) => void;
 }
 
 const BracketVisualization: React.FC<BracketVisualizationProps> = ({
   stages,
   currentStage,
   currentRound,
+  onMovieClick,
 }) => {
   if (stages.length === 0) {
     return null;
@@ -19,6 +21,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
 
   const renderTeam = (option: KombatOption, isWinner: boolean, isLoser: boolean) => {
     const isPlaceholder = option.id.startsWith('tbd');
+    const isClickable = !isPlaceholder && Boolean(onMovieClick);
     
     return (
       <div className={`flex items-center justify-between py-1 border-b border-slate-600/50 last:border-b-0 ${
@@ -26,7 +29,12 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
       } ${isLoser ? 'opacity-60 text-slate-400' : ''} ${
         isPlaceholder ? 'opacity-40 italic text-slate-500' : 'text-slate-200'
       }`}>
-        <div className="flex items-center min-w-0" style={{ width: '140px' }}>
+        <div
+          className={`flex items-center min-w-0 ${isClickable ? 'cursor-pointer hover:text-blue-300 transition-colors' : ''}`}
+          style={{ width: '140px' }}
+          onClick={isClickable ? () => onMovieClick?.(option) : undefined}
+          title={isClickable ? option.title : undefined}
+        >
           {!isPlaceholder && (
             <img 
               src={option.poster} 
