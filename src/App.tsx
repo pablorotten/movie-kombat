@@ -9,7 +9,6 @@ import {
 import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import SearchPage from "./pages/SearchPage";
 import KombatPage from "./pages/KombatPage";
-import Button from "./components/Button";
 import Dialog from "./components/Dialog";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
@@ -18,92 +17,12 @@ import tmdbLogo from "./assets/TMDB.svg";
 import { getRegions } from "./services/tmdbService";
 import { getFlagComponent, selectedCountries } from "./constants/countries";
 
-// A simple modal component for API keys
-const ApiKeyModal = ({
-  isOpen,
-  onClose,
-  tmdbApiKey = "",
-  setTmdbApiKey,
-  searchLanguage,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  tmdbApiKey?: string;
-  setTmdbApiKey: (key: string) => void;
-  searchLanguage: string;
-}) => {
-  const isSpanish = searchLanguage === "es-ES";
-  const ui = isSpanish
-    ? {
-        apiConfig: "Configuracion de API",
-        tmdbTokenLabel: "TMDB Bearer Token (para buscar y descubrir peliculas)",
-        tmdbPlaceholder: "Escribe tu token Bearer de TMDB...",
-        getToken: "Consigue un token gratis en:",
-        cancel: "Cancelar",
-        save: "Guardar",
-      }
-    : {
-        apiConfig: "API Configuration",
-        tmdbTokenLabel: "TMDB Bearer Token (for movie search and discovery)",
-        tmdbPlaceholder: "Enter your TMDB Bearer token...",
-        getToken: "Get free token at:",
-        cancel: "Cancel",
-        save: "Save",
-      };
-  const [tmdbInputValue, setTmdbInputValue] = useState(tmdbApiKey);
-
-  if (!isOpen) return null;
-
-  const handleSave = () => {
-    setTmdbApiKey(tmdbInputValue);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-xl font-bold mb-6 text-white">{ui.apiConfig}</h2>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              {ui.tmdbTokenLabel}
-            </label>
-            <input
-              type="text"
-              value={tmdbInputValue}
-              onChange={(e) => setTmdbInputValue(e.target.value)}
-              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
-              placeholder={ui.tmdbPlaceholder}
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              {ui.getToken}{" "}
-              <span className="text-blue-400">https://www.themoviedb.org/settings/api</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3 mt-6">
-          <Button variant="secondary" onClick={onClose} fullWidth>
-            {ui.cancel}
-          </Button>
-          <Button variant="primary" onClick={handleSave} fullWidth>
-            {ui.save}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const {
     movieList,
     setMovieList,
-    setTmdbApiKey,
-    tmdbApiKey,
     arePostersVisible,
     togglePostersVisibility,
     searchLanguage,
@@ -118,7 +37,6 @@ function App() {
         startNewKombatWarning: "Se perderá el progreso del Kombat actual",
         confirmStartNew: "Sí, empezar nuevo",
         cancel: "Cancelar",
-        configureApiKeys: "Configurar API Keys",
         blindPosters: "Ocultar posters",
         showPosters: "Mostrar posters",
         startKombat: "Empezar Kombat",
@@ -135,7 +53,6 @@ function App() {
         startNewKombatWarning: "Current Kombat progress will be lost",
         confirmStartNew: "Yes, Start New",
         cancel: "Cancel",
-        configureApiKeys: "Configure API Keys",
         blindPosters: "Blind Posters",
         showPosters: "Show Posters",
         startKombat: "Start Kombat",
@@ -147,7 +64,6 @@ function App() {
           "This product uses the TMDB API but is not endorsed or certified by TMDB.",
         appLanguage: "App language:",
       };
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isNotEnoughMoviesDialogOpen, setIsNotEnoughMoviesDialogOpen] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
@@ -203,14 +119,6 @@ function App() {
 
   return (
     <>
-      <ApiKeyModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        tmdbApiKey={tmdbApiKey}
-        setTmdbApiKey={setTmdbApiKey}
-        searchLanguage={searchLanguage}
-      />
-
       <Dialog
         open={isConfirmDialogOpen}
         onClose={() => setIsConfirmDialogOpen(false)}
@@ -244,16 +152,6 @@ function App() {
               <h1 className="hidden sm:block text-xl sm:text-2xl font-bold truncate max-w-[140px] sm:max-w-none">Movie Kombat</h1>
             </Link>
 
-            {/* API Configuration button */}
-            <button
-              onClick={() => setIsModalOpen(true)}
-              title={ui.configureApiKeys}
-              className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300 flex-shrink-0"
-            >
-              <span className="inline-block" aria-label="settings">
-                ⚙️
-              </span>
-            </button>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">

@@ -20,12 +20,12 @@ export default function MovieCard({
   imdbID,
   onDelete,
 }: MovieCardProps) {
-  const { tmdbApiKey, selectedRegion, searchLanguage } = useMovies();
+  const { selectedRegion, searchLanguage } = useMovies();
   const [providers, setProviders] = useState<WatchProvider[]>([]);
 
   useEffect(() => {
     const tmdbId = imdbID.startsWith('tmdb_') ? Number(imdbID.slice(5)) : Number.NaN;
-    if (!tmdbApiKey || !Number.isFinite(tmdbId)) {
+    if (!Number.isFinite(tmdbId)) {
       setProviders([]);
       return;
     }
@@ -40,7 +40,7 @@ export default function MovieCard({
 
     const loadProviders = async () => {
       try {
-        const providerResults = await getMovieProvidersForRegion(tmdbApiKey, tmdbId, selectedRegion);
+        const providerResults = await getMovieProvidersForRegion(tmdbId, selectedRegion);
         providerCache.set(cacheKey, providerResults);
         if (isActive) {
           setProviders(providerResults);
@@ -57,7 +57,7 @@ export default function MovieCard({
     return () => {
       isActive = false;
     };
-  }, [imdbID, selectedRegion, tmdbApiKey]);
+  }, [imdbID, selectedRegion]);
 
   const providersTitle = searchLanguage === 'es-ES' ? 'Plataformas' : 'Platforms';
 

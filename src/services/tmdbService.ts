@@ -60,7 +60,7 @@ interface WatchProvidersResponse {
 }
 
 // TMDB API configuration
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+const TMDB_PROXY_BASE_URL = '/api';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 // Utility functions to work with static data
@@ -122,18 +122,15 @@ const pickAllowedProviders = (providers: WatchProvider[] = []): WatchProvider[] 
 };
 
 export const getMovieProvidersForRegion = async (
-  bearerToken: string,
   movieId: number,
   region: string
 ): Promise<WatchProvider[]> => {
-  const url = `${TMDB_BASE_URL}/movie/${movieId}/watch/providers`;
-
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${bearerToken}`,
-      'accept': 'application/json'
-    }
+  const params = new URLSearchParams({
+    region: region.toUpperCase()
   });
+  const url = `${TMDB_PROXY_BASE_URL}/movie/${movieId}/watch/providers?${params.toString()}`;
+
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
@@ -163,7 +160,6 @@ export const getTMDBImageUrl = (posterPath: string | null): string | null => {
 
 // Discover movies by genre, provider, and country/region
 export const discoverMovies = async (
-  bearerToken: string,
   options: {
     genreId?: number;
     providerId?: number;
@@ -201,15 +197,10 @@ export const discoverMovies = async (
     params.append('with_watch_providers', providerId.toString());
   }
 
-  const url = `${TMDB_BASE_URL}/discover/movie?${params.toString()}`;
+  const url = `${TMDB_PROXY_BASE_URL}/discover/movie?${params.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
@@ -265,19 +256,14 @@ export interface TMDBMovieDetails {
 
 // Get movie details by TMDB ID
 export const getMovieDetails = async (
-  bearerToken: string,
   movieId: number,
   language: string = 'en-US'
 ): Promise<TMDBMovieDetails> => {
-  const url = `${TMDB_BASE_URL}/movie/${movieId}?language=${language}`;
+  const params = new URLSearchParams({ language });
+  const url = `${TMDB_PROXY_BASE_URL}/movie/${movieId}?${params.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
@@ -292,27 +278,21 @@ export const getMovieDetails = async (
 
 // Search for movies by title
 export const searchMovies = async (
-  bearerToken: string,
   query: string,
   page: number = 1,
   language: string = 'en-US'
 ): Promise<TMDBDiscoverResponse> => {
   const params = new URLSearchParams({
     language: language,
-    query: encodeURIComponent(query),
+    query,
     page: page.toString(),
     include_adult: 'false'
   });
 
-  const url = `${TMDB_BASE_URL}/search/movie?${params.toString()}`;
+  const url = `${TMDB_PROXY_BASE_URL}/search/movie?${params.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);

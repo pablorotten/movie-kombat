@@ -5,8 +5,6 @@ interface MovieContextType {
   movieList: Movie[];
   addMovie: (movie: Movie) => void;
   removeMovie: (imdbID: string) => void;
-  tmdbApiKey: string;
-  setTmdbApiKey: (key: string) => void;
   setMovieList: React.Dispatch<React.SetStateAction<Movie[]>>;
   arePostersVisible: boolean;
   togglePostersVisibility: () => void;
@@ -20,18 +18,11 @@ const MovieContext = createContext<MovieContextType | undefined>(undefined);
 
 export function MovieProvider({ children }: { children: ReactNode }) {
   const [movieList, setMovieList] = useState<Movie[]>([]);
-  const DEFAULT_TMDB_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1NzIwY2QwYTM5MDA5OTkxZThjM2U4ZDNlMjgyYWY4OSIsIm5iZiI6MTc2Mjg2ODQwMy43MjEsInN1YiI6IjY5MTMzY2IzNGYwNGJiY2Y0ZWRkMjlmMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BgroNoyRerw6ggrjFjUaHrPiz4--NM3_NZfLCbHMVX8";
-  const [tmdbApiKey, setTmdbApiKey] = useState<string>(DEFAULT_TMDB_API_KEY);
   const [arePostersVisible, setArePostersVisible] = useState(true);
   const [searchLanguage, setSearchLanguage] = useState<string>('en-US');
   const [selectedRegion, setSelectedRegion] = useState<string>('ES');
 
   useEffect(() => {
-    const storedTmdbKey = localStorage.getItem("tmdbApiKey");
-    if (storedTmdbKey) {
-      setTmdbApiKey(storedTmdbKey);
-    }
-
     const storedLanguage = localStorage.getItem("searchLanguage");
     if (storedLanguage) {
       setSearchLanguage(storedLanguage);
@@ -48,10 +39,6 @@ export function MovieProvider({ children }: { children: ReactNode }) {
       setSelectedRegion(localeRegion);
     }
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("tmdbApiKey", tmdbApiKey);
-  }, [tmdbApiKey]);
 
   useEffect(() => {
     localStorage.setItem("searchLanguage", searchLanguage);
@@ -82,8 +69,6 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     addMovie, 
     removeMovie, 
     setMovieList, 
-    tmdbApiKey,
-    setTmdbApiKey,
     arePostersVisible, 
     togglePostersVisibility,
     searchLanguage,

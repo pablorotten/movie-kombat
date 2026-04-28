@@ -18,17 +18,16 @@ import tmdbLogo from '../assets/TMDB.svg';
 
 interface TMDBCategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
-  tmdbBearerToken: string;
   isExpanded?: boolean;
   onToggleExpanded?: (expanded: boolean) => void;
 }
 
-export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken, isExpanded: controlledExpanded, onToggleExpanded }: TMDBCategorySelectorProps) {
+export default function TMDBCategorySelector({ onSelectMovies, isExpanded: controlledExpanded, onToggleExpanded }: TMDBCategorySelectorProps) {
   const { searchLanguage, selectedRegion } = useMovies();
   const isSpanish = searchLanguage === 'es-ES';
   const ui = isSpanish
     ? {
-        selectGenreAndApi: 'Selecciona un genero y asegurate de tener configurada la API key de TMDB',
+      selectGenreAndApi: 'Selecciona un genero para continuar',
         noMoviesFound: 'No se encontraron peliculas',
         noMoviesFoundHint: 'Prueba otro genero, plataforma o pais.',
         loadMoviesError: 'No se pudieron cargar las peliculas. Revisa tu API key de TMDB e intentalo de nuevo.',
@@ -46,7 +45,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken, 
         tmdbAttribution: 'Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.',
       }
     : {
-        selectGenreAndApi: 'Please select a genre and ensure TMDB API key is configured',
+      selectGenreAndApi: 'Please select a genre to continue',
         noMoviesFound: 'No movies found',
         noMoviesFoundHint: 'Try a different genre, platform, or country.',
         loadMoviesError: 'Failed to load movies. Please check your TMDB API key and try again.',
@@ -106,7 +105,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken, 
   }, []);
 
   const handleLoadMovies = async () => {
-    if (!selectedGenre || !tmdbBearerToken) {
+    if (!selectedGenre) {
       setError(ui.selectGenreAndApi);
       return;
     }
@@ -123,7 +122,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken, 
     try {
       // Fetch multiple pages to get more variety
       const promises = [1, 2, 3].map(page => 
-        discoverMovies(tmdbBearerToken, {
+        discoverMovies({
           genreId: Number(selectedGenre),
           providerId: selectedProvider ? Number(selectedProvider) : undefined,
           region: selectedRegion,
@@ -385,7 +384,7 @@ export default function TMDBCategorySelector({ onSelectMovies, tmdbBearerToken, 
           <div className="flex flex-col justify-end">
             <button
               onClick={handleLoadMovies}
-              disabled={!selectedGenre || isLoading || !tmdbBearerToken}
+              disabled={!selectedGenre || isLoading}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-lg text-sm transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-md"
             >
               {isLoading ? (

@@ -86,17 +86,25 @@ npm run dev
 
 Open the local URL shown by Vite (usually `http://localhost:5173`).
 
-## API keys
+## TMDB proxy (server-side key)
 
-The app uses TMDB through the in-app **⚙️ API Configuration** dialog.
+The app now uses serverless proxy endpoints under `/api/*`.
 
-- **TMDB Bearer token** is used for title search and discovery filters (genre/provider/country).
+- Frontend never sends or stores the TMDB key.
+- Serverless functions call TMDB with a server-side bearer token.
 
-Keys are saved in browser `localStorage` under:
+Copy `.env.example` to `.env.local` and set the token:
 
-- `tmdbApiKey`
+```sh
+TMDB_API_KEY=your_tmdb_bearer_token_here
+```
 
-If no custom key is provided, the app can still run using default values defined in the context.
+Proxy endpoints implemented:
+
+- `/api/search/movie`
+- `/api/discover/movie`
+- `/api/movie/[id]`
+- `/api/movie/[id]/watch/providers`
 
 ## Available scripts
 
@@ -121,13 +129,15 @@ src/
 
 ## Deployment
 
-This repository includes GitHub Pages deployment via `gh-pages`:
+Recommended: deploy with serverless functions enabled.
 
-```sh
-npm run deploy
-```
+- Vercel Functions: included with Vercel hosting (simple setup)
+- Netlify Functions: included with Netlify
+- AWS Lambda + API Gateway: free tier supports around 1M requests/month
 
-Make sure your repository Pages settings are configured to serve the published branch.
+For Vercel/Netlify/AWS, configure `TMDB_API_KEY` in the platform environment settings.
+
+GitHub Pages deployment (`npm run deploy`) is static-only and does not run serverless functions.
 
 ## License
 
