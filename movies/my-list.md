@@ -24,7 +24,8 @@
 * The Right Stuff
 * The Three Musketeers
 * El abuelo
-* Amaro Glory Road
+* Glory Road
+* The Crime of Father Amaro
 * Missing
 * Session 9
 * Nuit blanche
@@ -379,7 +380,6 @@
 * Lolita
 * The Reader
 * Ainda estou aqui
-* CSI: Crime Scene Investigation – Las Vegas
 * The Wolverine (X-Men: Wolverine 2)
 * Gunfight at the OK Corral
 * Casualties of War
