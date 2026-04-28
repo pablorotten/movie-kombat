@@ -1,4 +1,5 @@
 # Buddy films
+<img width="700" height="533" alt="buddy" src="https://github.com/user-attachments/assets/f96278f4-6334-4424-883a-fcc771a354e1" />
 
 * Men in Black (MIB) 
 * Lethal Weapon 
