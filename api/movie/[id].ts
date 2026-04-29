@@ -4,7 +4,7 @@ import {
   sendJson,
   type ProxyRequest,
   type ProxyResponse,
-} from '../_lib/tmdbProxy';
+} from '../_lib/tmdbProxy.js';
 
 export default async function handler(req: ProxyRequest, res: ProxyResponse): Promise<void> {
   if (!ensureGetRequest(req, res)) {
