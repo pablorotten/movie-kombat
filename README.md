@@ -48,6 +48,7 @@ Example (`movies/my-collection.md`):
 * Movie Title 14
 * Movie Title 15
 * Movie Title 16
+... (add more if you want)
 ```
 
 Notes:
@@ -137,6 +138,7 @@ Proxy endpoints implemented:
 ## Project structure
 
 ```text
+api/                Serverless TMDB proxy functions (Vercel runtime)
 src/
 	components/        Reusable UI and kombat components
 	context/           Global movie/app state
@@ -145,18 +147,6 @@ src/
 	utils/             Utility functions (genres, providers, kombat logic)
 	assets/            Static data and images
 ```
-
-## Deployment
-
-Recommended: deploy with serverless functions enabled.
-
-- Vercel Functions: included with Vercel hosting (simple setup)
-- Netlify Functions: included with Netlify
-- AWS Lambda + API Gateway: free tier supports around 1M requests/month
-
-For Vercel/Netlify/AWS, configure `TMDB_API_KEY` in the platform environment settings.
-
-GitHub Pages deployment (`npm run deploy`) is static-only and does not run serverless functions.
 
 ## License
 
@@ -193,7 +183,7 @@ python filmaffinity-scrapper.py
 
 Output will be saved to movies file in the same folder.
 
-## OMDB API
+## TMDB API
 
 ### Query examples
 
