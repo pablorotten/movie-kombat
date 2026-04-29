@@ -4,7 +4,6 @@ import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import Dialog from "../components/Dialog";
-import CategorySelector from "../components/CategorySelector";
 import TMDBCategorySelector from "../components/TMDBCategorySelector";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
@@ -44,14 +43,13 @@ const LoadingSpinner = () => (
 
 export default function SearchPage() {
   const navigate = useNavigate();
-  const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setMovieList } = useMovies();
+  const { addMovie, movieList, removeMovie, searchLanguage, setMovieList } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasRestoredFromUrl = useRef(false);
   const previousLanguage = useRef(searchLanguage);
   const isSpanish = searchLanguage === "es-ES";
   const ui = isSpanish
     ? {
-        tmdbApiRequired: "Se requiere la API key de TMDB. Configurala en ajustes.",
         loadFromUrlError: "No se pudo cargar la lista de peliculas desde la URL.",
         movieNotFound: "Pelicula no encontrada",
         unexpectedError: "Ocurrio un error inesperado: ",
@@ -71,7 +69,6 @@ export default function SearchPage() {
         localCollections: "Colecciones de Películas",
         loadCollection: "Cargar coleccion",
         loadingCollection: "Cargando coleccion...",
-        collectionNeedsApiKey: "Necesitas configurar TMDB para cargar una coleccion local.",
         collectionEmpty: "La coleccion no tiene suficientes peliculas.",
         collectionNotEnoughMatches:
           "No se pudieron encontrar 16 peliculas validas en TMDB para esta coleccion.",
@@ -80,7 +77,6 @@ export default function SearchPage() {
           "No se encontraron archivos .md en movies.",
       }
     : {
-        tmdbApiRequired: "TMDB API key is required. Please configure it in settings.",
         loadFromUrlError: "Failed to load movie list from URL.",
         movieNotFound: "Movie not found",
         unexpectedError: "An unexpected error occurred: ",
@@ -100,7 +96,6 @@ export default function SearchPage() {
         localCollections: "Movie Collections",
         loadCollection: "Load collection",
         loadingCollection: "Loading collection...",
-        collectionNeedsApiKey: "You need to configure TMDB before loading a local collection.",
         collectionEmpty: "This collection does not have enough movie titles.",
         collectionNotEnoughMatches:
           "Could not find 16 valid movies in TMDB for this collection.",
@@ -124,11 +119,6 @@ export default function SearchPage() {
   const localCollections = useMemo(() => loadLocalMovieCollections(), []);
 
   async function handleLoadLocalCollection(collection: LocalMovieCollection) {
-    if (!tmdbApiKey) {
-      setError(ui.collectionNeedsApiKey);
-      return;
-    }
-
     setIsLoading(true);
     setError(null);
     setActiveCollectionId(collection.id);
@@ -149,7 +139,7 @@ export default function SearchPage() {
         if (foundMovies.length >= COLLECTION_SIZE) break;
 
         try {
-          const response = await searchMovies(tmdbApiKey, title, 1, searchLanguage);
+          const response = await searchMovies(title, 1, searchLanguage);
           if (response.results && response.results.length > 0) {
             const convertedMovie = convertTMDBToAppMovie(response.results[0]);
             if (convertedMovie.Poster === "N/A") {
@@ -197,7 +187,6 @@ export default function SearchPage() {
     if (hasRestoredFromUrl.current) return;
 
     const idsParam = searchParams.get("ids");
-    if (!tmdbApiKey) return;
     if (!idsParam || movieList.length > 0) {
       hasRestoredFromUrl.current = true;
       return;
@@ -222,7 +211,7 @@ export default function SearchPage() {
       try {
         const loadedMovies = await Promise.all(
           ids.map(async (id) => {
-            const details = await getMovieDetails(tmdbApiKey, id, searchLanguage);
+            const details = await getMovieDetails(id, searchLanguage);
             return {
               imdbID: `tmdb_${details.id}`,
               Title: details.title,
@@ -243,7 +232,7 @@ export default function SearchPage() {
     };
 
     loadMoviesFromUrl();
-  }, [tmdbApiKey, searchLanguage, searchParams, movieList.length, setMovieList, ui.loadFromUrlError]);
+  }, [searchLanguage, searchParams, movieList.length, setMovieList, ui.loadFromUrlError]);
 
   useEffect(() => {
     const tmdbIds = movieList
@@ -273,7 +262,7 @@ export default function SearchPage() {
     if (previousLanguage.current === searchLanguage) return;
     previousLanguage.current = searchLanguage;
 
-    if (!tmdbApiKey || movieList.length === 0) return;
+    if (movieList.length === 0) return;
 
     const updateTitlesForLanguage = async () => {
       setIsLoading(true);
@@ -287,7 +276,7 @@ export default function SearchPage() {
             if (!Number.isFinite(tmdbId)) return movie;
 
             try {
-              const details = await getMovieDetails(tmdbApiKey, tmdbId, searchLanguage);
+              const details = await getMovieDetails(tmdbId, searchLanguage);
               return {
                 ...movie,
                 Title: details.title || movie.Title,
@@ -311,7 +300,7 @@ export default function SearchPage() {
     };
 
     updateTitlesForLanguage();
-  }, [searchLanguage, tmdbApiKey, movieList, setMovieList, ui.refreshTitlesError]);
+  }, [searchLanguage, movieList, setMovieList, ui.refreshTitlesError]);
   // This logic is for the search results preview (top 4 results)
   useEffect(() => {
     if (useTextarea) return;
@@ -321,15 +310,11 @@ export default function SearchPage() {
       return;
     }
     const fetchMovie = async () => {
-      if (!tmdbApiKey) {
-        setError(ui.tmdbApiRequired);
-        return;
-      }
       setIsLoading(true);
       setError(null);
       setSearchedMovies([]);
       try {
-        const response = await searchMovies(tmdbApiKey, searchTerm, 1, searchLanguage);
+        const response = await searchMovies(searchTerm, 1, searchLanguage);
         if (response.results && response.results.length > 0) {
           // Get top 4 results
           const topResults = response.results.slice(0, 4);
@@ -352,7 +337,7 @@ export default function SearchPage() {
     };
     const timerId = setTimeout(fetchMovie, 500);
     return () => clearTimeout(timerId);
-  }, [searchTerm, tmdbApiKey, useTextarea, searchLanguage, ui.movieNotFound, ui.tmdbApiRequired, ui.unexpectedError]);
+  }, [searchTerm, useTextarea, searchLanguage, ui.movieNotFound, ui.unexpectedError]);
 
   function handleAddMovie(movie: Movie) {
     // Add the selected movie to the list
@@ -363,10 +348,6 @@ export default function SearchPage() {
   }
 
   async function handleTextareaSearch() {
-    if (!tmdbApiKey) {
-      setError(ui.tmdbApiRequired);
-      return;
-    }
     const titles = searchTerm
       .split("\n")
       .map((t) => t.trim())
@@ -379,7 +360,7 @@ export default function SearchPage() {
 
     for (const title of titles) {
       try {
-        const response = await searchMovies(tmdbApiKey, title, 1, searchLanguage);
+        const response = await searchMovies(title, 1, searchLanguage);
         if (response.results && response.results.length > 0) {
           const tmdbMovie = response.results[0];
           const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
@@ -423,10 +404,6 @@ export default function SearchPage() {
     }
 
     // Handle string titles (from old selector)
-    if (!tmdbApiKey) {
-      setError(ui.tmdbApiRequired);
-      return;
-    }
     const movieTitles = movieData as string[];
     
     setIsLoading(true);
@@ -435,7 +412,7 @@ export default function SearchPage() {
 
     for (const title of movieTitles) {
       try {
-        const response = await searchMovies(tmdbApiKey, title, 1, searchLanguage);
+        const response = await searchMovies(title, 1, searchLanguage);
         if (response.results && response.results.length > 0) {
           const tmdbMovie = response.results[0];
           const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
@@ -595,21 +572,11 @@ export default function SearchPage() {
  
 
       {/* Movie discovery options */}
-      {tmdbApiKey ? (
-        // TMDB-powered discovery (preferred when API key is available)
-        <TMDBCategorySelector 
-          onSelectMovies={handleSelectMovies} 
-          tmdbBearerToken={tmdbApiKey}
-          isExpanded={isDiscoveryExpanded}
-          onToggleExpanded={setIsDiscoveryExpanded}
-        />
-      ) : (
-        // Fallback to static category selector
-        <CategorySelector 
-          onSelectMovies={handleSelectMovies}
-          tmdbBearerToken={tmdbApiKey} 
-        />
-      )}
+      <TMDBCategorySelector 
+        onSelectMovies={handleSelectMovies}
+        isExpanded={isDiscoveryExpanded}
+        onToggleExpanded={setIsDiscoveryExpanded}
+      />
 
       <div className="max-w-xl mx-auto px-4">
         <div className="mt-4">

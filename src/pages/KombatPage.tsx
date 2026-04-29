@@ -161,7 +161,7 @@ const KombatMatchup = ({
 };
 
 export default function KombatPage() {
-  const { movieList, setMovieList, searchLanguage, tmdbApiKey, selectedRegion } = useMovies();
+  const { movieList, setMovieList, searchLanguage, selectedRegion } = useMovies();
   const navigate = useNavigate();
   const isSpanish = searchLanguage === "es-ES";
   const ui = isSpanish
@@ -240,7 +240,7 @@ export default function KombatPage() {
   }, [movieList]);
 
   useEffect(() => {
-    if (!winner || !winner.id.startsWith("tmdb_") || !tmdbApiKey) {
+    if (!winner || !winner.id.startsWith("tmdb_")) {
       setWinnerProviders([]);
       return;
     }
@@ -254,7 +254,7 @@ export default function KombatPage() {
     let isActive = true;
     const loadProviders = async () => {
       try {
-        const providers = await getMovieProvidersForRegion(tmdbApiKey, tmdbId, selectedRegion);
+        const providers = await getMovieProvidersForRegion(tmdbId, selectedRegion);
         if (isActive) {
           setWinnerProviders(providers);
         }
@@ -269,7 +269,7 @@ export default function KombatPage() {
     return () => {
       isActive = false;
     };
-  }, [winner, tmdbApiKey, selectedRegion]);
+  }, [winner, selectedRegion]);
 
   const handleChooseWinner = (roundWinner: KombatOption) => {
     const updatedStages = [...stages];

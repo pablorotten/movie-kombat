@@ -100,12 +100,3 @@ describe('setSearchLanguage', () => {
   })
 })
 
-describe('setTmdbApiKey', () => {
-  it('updates the API key', () => {
-    const { result } = renderHook(() => useMovies(), { wrapper })
-    act(() => {
-      result.current.setTmdbApiKey('my-new-key')
-    })
-    expect(result.current.tmdbApiKey).toBe('my-new-key')
-  })
-})

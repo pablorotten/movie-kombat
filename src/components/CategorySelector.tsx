@@ -6,7 +6,6 @@ import { getGenreWithEmoji } from '../utils/genreUtils';
 
 interface CategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
-  tmdbBearerToken: string;
 }
 
 // Custom dropdown component for countries with flags
@@ -227,7 +226,7 @@ const getPopularRegions = (): (Region & { FlagComponent: React.ComponentType<{ c
     .sort((a, b) => a.english_name.localeCompare(b.english_name));
 };
 
-export default function CategorySelector({ onSelectMovies, tmdbBearerToken }: CategorySelectorProps) {
+export default function CategorySelector({ onSelectMovies }: CategorySelectorProps) {
   const [selectedCategory, setSelectedCategory] = useState<number | ''>('');
   const [selectedProvider, setSelectedProvider] = useState<number | ''>('');
   const [selectedRegion, setSelectedRegion] = useState('ES'); // Default to Spain
@@ -239,8 +238,8 @@ export default function CategorySelector({ onSelectMovies, tmdbBearerToken }: Ca
   const popularRegions = getPopularRegions();
 
   const handleLoadMovies = async () => {
-    if (!selectedCategory || !tmdbBearerToken) {
-      setError('Please select a genre and ensure TMDB API key is configured');
+    if (!selectedCategory) {
+      setError('Please select a genre');
       return;
     }
 
@@ -250,7 +249,7 @@ export default function CategorySelector({ onSelectMovies, tmdbBearerToken }: Ca
     try {
       // Fetch multiple pages to get more variety
       const promises = [1, 2, 3].map(page => 
-        discoverMovies(tmdbBearerToken, {
+        discoverMovies({
           genreId: Number(selectedCategory),
           providerId: selectedProvider ? Number(selectedProvider) : undefined,
           region: selectedRegion,
