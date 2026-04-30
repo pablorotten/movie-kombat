@@ -10,11 +10,13 @@ import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import SearchPage from "./pages/SearchPage";
 import KombatPage from "./pages/KombatPage";
 import Dialog from "./components/Dialog";
+import InitialPreferencesScreen from "./components/InitialPreferencesScreen";
+import { ProviderLogo } from "./components/ProviderLogo";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
 import tmdbLogo from "./assets/TMDB.svg";
 // // import ApiKeyIcon from "./assets/api-key.svg";
-import { getRegions } from "./services/tmdbService";
+import { getPopularProviders, getRegions } from "./services/tmdbService";
 import { getFlagComponent, selectedCountries } from "./constants/countries";
 
 function App() {
@@ -29,6 +31,10 @@ function App() {
     setSearchLanguage,
     selectedRegion,
     setSelectedRegion,
+    selectedProviderIds,
+    toggleSelectedProvider,
+    hasCompletedPreferences,
+    completePreferences,
   } = useMovies();
   const isSpanish = searchLanguage === "es-ES";
   const ui = isSpanish
@@ -43,6 +49,17 @@ function App() {
         needMoreMoviesTitle: "Agrega 16 peliculas para empezar!",
         understood: "Entendido",
         country: "Pais",
+        countryPlaceholder: "Selecciona un pais",
+        platform: "Plataformas",
+        platformPlaceholder: "Selecciona plataformas",
+        selectedPlatforms: "Plataformas seleccionadas",
+        onboardingTitle: "Antes de empezar",
+        onboardingDescription:
+          "Elige tu pais y las plataformas que quieres usar para descubrir peliculas.",
+        onboardingContinue: "Continuar",
+        onboardingPlatformHint: "Toca para seleccionar o quitar plataformas.",
+        onboardingPlatformError: "Selecciona al menos una plataforma.",
+        onboardingCountryError: "Selecciona un pais para continuar.",
         tmdbDataSource: "Datos proporcionados por",
         tmdbAttribution:
           "Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.",
@@ -59,6 +76,17 @@ function App() {
         needMoreMoviesTitle: "Add 16 movies to start!",
         understood: "Understood",
         country: "Country",
+        countryPlaceholder: "Select a country",
+        platform: "Platforms",
+        platformPlaceholder: "Select platforms",
+        selectedPlatforms: "Selected platforms",
+        onboardingTitle: "Before you start",
+        onboardingDescription:
+          "Choose your country and the streaming platforms you want to use for discovery.",
+        onboardingContinue: "Continue",
+        onboardingPlatformHint: "Tap to select or unselect platforms.",
+        onboardingPlatformError: "Select at least one platform.",
+        onboardingCountryError: "Select a country to continue.",
         tmdbDataSource: "Data provided by",
         tmdbAttribution:
           "This product uses the TMDB API but is not endorsed or certified by TMDB.",
@@ -67,11 +95,19 @@ function App() {
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isNotEnoughMoviesDialogOpen, setIsNotEnoughMoviesDialogOpen] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
+  const platformDropdownRef = useRef<HTMLDivElement>(null);
   const regions = useMemo(() => getRegions(), []);
+  const providers = useMemo(() => getPopularProviders(), []);
   const filteredRegions = useMemo(
     () => regions.filter((region) => selectedCountries.includes(region.iso_3166_1)),
     [regions]
+  );
+
+  const selectedProviderNames = useMemo(
+    () => providers.filter((provider) => selectedProviderIds.includes(provider.provider_id)),
+    [providers, selectedProviderIds]
   );
 
   // Add this function to handle kombat start with shuffle
@@ -97,6 +133,9 @@ function App() {
       if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
         setIsCountryDropdownOpen(false);
       }
+      if (platformDropdownRef.current && !platformDropdownRef.current.contains(event.target as Node)) {
+        setIsPlatformDropdownOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
@@ -116,6 +155,33 @@ function App() {
 
     handleStartKombat();
   };
+
+  const handleCompletePreferences = () => {
+    if (!selectedRegion) {
+      return;
+    }
+
+    if (selectedProviderIds.length === 0) {
+      return;
+    }
+
+    completePreferences();
+  };
+
+  if (!hasCompletedPreferences) {
+    return (
+      <InitialPreferencesScreen
+        ui={ui}
+        filteredRegions={filteredRegions}
+        providers={providers}
+        selectedRegion={selectedRegion}
+        selectedProviderIds={selectedProviderIds}
+        setSelectedRegion={setSelectedRegion}
+        toggleSelectedProvider={toggleSelectedProvider}
+        onCompletePreferences={handleCompletePreferences}
+      />
+    );
+  }
 
   return (
     <>
@@ -243,6 +309,78 @@ function App() {
                       </button>
                     );
                   })}
+                </div>
+              )}
+            </div>
+
+            <div className="relative" ref={platformDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsPlatformDropdownOpen(!isPlatformDropdownOpen)}
+                className="w-[112px] sm:w-[150px] bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between gap-2"
+                title={selectedProviderNames.length > 0
+                  ? selectedProviderNames.map((provider) => provider.provider_name).join(', ')
+                  : ui.platformPlaceholder}
+              >
+                <div className="flex min-w-0 items-center gap-1">
+                  {selectedProviderNames.length > 0 ? (
+                    selectedProviderNames.slice(0, 3).map((provider) => (
+                      <ProviderLogo
+                        key={provider.provider_id}
+                        logoPath={provider.logo_path}
+                        providerName={provider.provider_name}
+                        className="w-4 h-4 flex-shrink-0"
+                      />
+                    ))
+                  ) : (
+                    <span className="truncate text-xs text-slate-300">{ui.platform}</span>
+                  )}
+                  {selectedProviderNames.length > 3 && (
+                    <span className="text-[10px] font-semibold text-slate-300">+{selectedProviderNames.length - 3}</span>
+                  )}
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${isPlatformDropdownOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isPlatformDropdownOpen && (
+                <div className="absolute right-0 z-10 w-[280px] max-w-[calc(100vw-2rem)] mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
+                  <div className="px-3 py-2 border-b border-gray-600 text-xs text-slate-300">
+                    {ui.selectedPlatforms}: {selectedProviderIds.length}/{providers.length}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto p-2">
+                    <div className="flex flex-wrap gap-2">
+                      {providers.map((provider) => {
+                        const isSelected = selectedProviderIds.includes(provider.provider_id);
+                        return (
+                          <button
+                            key={provider.provider_id}
+                            type="button"
+                            onClick={() => toggleSelectedProvider(provider.provider_id)}
+                            title={provider.provider_name}
+                            aria-label={provider.provider_name}
+                            className={`inline-flex items-center justify-center rounded-full border p-2 text-xs transition-colors ${
+                              isSelected
+                                ? 'border-blue-500 bg-blue-600 text-white'
+                                : 'border-gray-500 bg-gray-800 text-slate-200 hover:bg-gray-600'
+                            }`}
+                          >
+                            <ProviderLogo
+                              logoPath={provider.logo_path}
+                              providerName={provider.provider_name}
+                              className="w-4 h-4 flex-shrink-0"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

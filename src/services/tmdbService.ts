@@ -161,7 +161,9 @@ export const getTMDBImageUrl = (posterPath: string | null): string | null => {
 // Discover movies by genre, provider, and country/region
 export const discoverMovies = async (
   options: {
+    genreIds?: number[];
     genreId?: number;
+    providerIds?: number[];
     providerId?: number;
     region?: string; // ISO 3166-1 country code (e.g., 'ES' for Spain, 'US' for United States)
     page?: number;
@@ -171,7 +173,9 @@ export const discoverMovies = async (
   }
 ): Promise<TMDBDiscoverResponse> => {
   const {
+    genreIds,
     genreId,
+    providerIds,
     providerId,
     region = 'ES', // Default to Spain
     page = 1,
@@ -188,13 +192,25 @@ export const discoverMovies = async (
     include_video: 'false'
   });
 
-  if (genreId) {
-    params.append('with_genres', genreId.toString());
+  const normalizedGenreIds = genreIds && genreIds.length > 0
+    ? genreIds
+    : genreId
+      ? [genreId]
+      : [];
+
+  if (normalizedGenreIds.length > 0) {
+    params.append('with_genres', normalizedGenreIds.join('|'));
   }
 
-  if (providerId && region) {
+  const normalizedProviderIds = providerIds && providerIds.length > 0
+    ? providerIds
+    : providerId
+      ? [providerId]
+      : [];
+
+  if (normalizedProviderIds.length > 0 && region) {
     params.append('watch_region', region);
-    params.append('with_watch_providers', providerId.toString());
+    params.append('with_watch_providers', normalizedProviderIds.join('|'));
   }
 
   const url = `${TMDB_PROXY_BASE_URL}/discover/movie?${params.toString()}`;

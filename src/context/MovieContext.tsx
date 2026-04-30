@@ -1,5 +1,14 @@
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { Movie } from '../types';
+import { getPopularProviders } from '../services/tmdbService';
+
+const SELECTED_REGION_STORAGE_KEY = 'selectedRegion';
+const SEARCH_LANGUAGE_STORAGE_KEY = 'searchLanguage';
+const SELECTED_PROVIDER_IDS_STORAGE_KEY = 'selectedProviderIds';
+const HAS_COMPLETED_PREFERENCES_STORAGE_KEY = 'hasCompletedPreferences';
+const DEFAULT_PROVIDER_IDS = getPopularProviders()
+  .filter((provider) => [8, 119, 337].includes(provider.provider_id))
+  .map((provider) => provider.provider_id);
 
 interface MovieContextType {
   movieList: Movie[];
@@ -12,6 +21,11 @@ interface MovieContextType {
   setSearchLanguage: (language: string) => void;
   selectedRegion: string;
   setSelectedRegion: (region: string) => void;
+  selectedProviderIds: number[];
+  setSelectedProviderIds: React.Dispatch<React.SetStateAction<number[]>>;
+  toggleSelectedProvider: (providerId: number) => void;
+  hasCompletedPreferences: boolean;
+  completePreferences: () => void;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -20,33 +34,51 @@ export function MovieProvider({ children }: { children: ReactNode }) {
   const [movieList, setMovieList] = useState<Movie[]>([]);
   const [arePostersVisible, setArePostersVisible] = useState(true);
   const [searchLanguage, setSearchLanguage] = useState<string>('en-US');
-  const [selectedRegion, setSelectedRegion] = useState<string>('ES');
+  const [selectedRegion, setSelectedRegion] = useState<string>('');
+  const [selectedProviderIds, setSelectedProviderIds] = useState<number[]>(DEFAULT_PROVIDER_IDS);
+  const [hasCompletedPreferences, setHasCompletedPreferences] = useState(false);
 
   useEffect(() => {
-    const storedLanguage = localStorage.getItem("searchLanguage");
+    const storedLanguage = localStorage.getItem(SEARCH_LANGUAGE_STORAGE_KEY);
     if (storedLanguage) {
       setSearchLanguage(storedLanguage);
     }
 
-    const storedRegion = localStorage.getItem("selectedRegion");
+    const storedRegion = localStorage.getItem(SELECTED_REGION_STORAGE_KEY);
     if (storedRegion) {
       setSelectedRegion(storedRegion.toUpperCase());
-      return;
     }
 
-    const localeRegion = navigator.language?.split('-')?.[1]?.toUpperCase();
-    if (localeRegion) {
-      setSelectedRegion(localeRegion);
+    const storedProviderIds = localStorage.getItem(SELECTED_PROVIDER_IDS_STORAGE_KEY);
+    if (storedProviderIds) {
+      try {
+        const parsedProviderIds = JSON.parse(storedProviderIds);
+        if (Array.isArray(parsedProviderIds) && parsedProviderIds.every((providerId) => typeof providerId === 'number')) {
+          setSelectedProviderIds(parsedProviderIds);
+        }
+      } catch {
+        setSelectedProviderIds(DEFAULT_PROVIDER_IDS);
+      }
+    }
+
+    if (localStorage.getItem(HAS_COMPLETED_PREFERENCES_STORAGE_KEY) === 'true') {
+      setHasCompletedPreferences(true);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("searchLanguage", searchLanguage);
+    localStorage.setItem(SEARCH_LANGUAGE_STORAGE_KEY, searchLanguage);
   }, [searchLanguage]);
 
   useEffect(() => {
-    localStorage.setItem("selectedRegion", selectedRegion);
+    if (selectedRegion) {
+      localStorage.setItem(SELECTED_REGION_STORAGE_KEY, selectedRegion);
+    }
   }, [selectedRegion]);
+
+  useEffect(() => {
+    localStorage.setItem(SELECTED_PROVIDER_IDS_STORAGE_KEY, JSON.stringify(selectedProviderIds));
+  }, [selectedProviderIds]);
 
   const addMovie = (movie: Movie) => {
     if (!movieList.find((m) => m.imdbID === movie.imdbID)) {
@@ -64,6 +96,19 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     setArePostersVisible(prevState => !prevState);
   };
 
+  const toggleSelectedProvider = (providerId: number) => {
+    setSelectedProviderIds((currentProviderIds) =>
+      currentProviderIds.includes(providerId)
+        ? currentProviderIds.filter((currentProviderId) => currentProviderId !== providerId)
+        : [...currentProviderIds, providerId]
+    );
+  };
+
+  const completePreferences = () => {
+    setHasCompletedPreferences(true);
+    localStorage.setItem(HAS_COMPLETED_PREFERENCES_STORAGE_KEY, 'true');
+  };
+
   const value = { 
     movieList, 
     addMovie, 
@@ -74,7 +119,12 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     searchLanguage,
     setSearchLanguage,
     selectedRegion,
-    setSelectedRegion
+    setSelectedRegion,
+    selectedProviderIds,
+    setSelectedProviderIds,
+    toggleSelectedProvider,
+    hasCompletedPreferences,
+    completePreferences
   };
 
   return (

@@ -1,5 +1,5 @@
 // Shared country flag components for the application
-import { BE, DE, ES, FR, NL, US, IT } from "country-flag-icons/react/3x2";
+import { BE, DE, ES, FR, GB, NL, US, IT } from "country-flag-icons/react/3x2";
 
 // Map of country codes to flag components (alphabetically by country name)
 export const countryFlagComponents: {
@@ -7,6 +7,7 @@ export const countryFlagComponents: {
 } = {
   BE: BE,
   FR: FR,
+  GB: GB,
   DE: DE,
   NL: NL,
   ES: ES,
@@ -14,8 +15,8 @@ export const countryFlagComponents: {
   IT: IT,
 };
 
-// Selected countries list (7 countries: Belgium, France, Germany, Netherlands, Spain, United States, Italy)
-export const selectedCountries = ["BE", "FR", "DE", "NL", "ES", "US", "IT"];
+// Selected countries list
+export const selectedCountries = ["BE", "FR", "DE", "GB", "NL", "ES", "US", "IT"];
 
 // Function to get flag component for a country code
 export const getFlagComponent = (
