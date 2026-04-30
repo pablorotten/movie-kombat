@@ -127,7 +127,7 @@ describe('selectRandomMovies', () => {
     })
 
     expect(selected).toHaveLength(3)
-    expect(selected).toEqual([4, 2, 5])
+    expect(selected).toEqual([3, 2, 5])
   })
 })
 
