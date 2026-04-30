@@ -22,11 +22,13 @@ export default function MovieCard({
 }: MovieCardProps) {
   const { selectedRegion, searchLanguage } = useMovies();
   const [providers, setProviders] = useState<WatchProvider[]>([]);
+  const [isLoadingProviders, setIsLoadingProviders] = useState(false);
 
   useEffect(() => {
     const tmdbId = imdbID.startsWith('tmdb_') ? Number(imdbID.slice(5)) : Number.NaN;
     if (!Number.isFinite(tmdbId)) {
       setProviders([]);
+      setIsLoadingProviders(false);
       return;
     }
 
@@ -35,8 +37,11 @@ export default function MovieCard({
     const cachedProviders = providerCache.get(cacheKey);
     if (cachedProviders) {
       setProviders(cachedProviders);
+      setIsLoadingProviders(false);
       return;
     }
+
+    setIsLoadingProviders(true);
 
     const loadProviders = async () => {
       try {
@@ -48,6 +53,10 @@ export default function MovieCard({
       } catch {
         if (isActive) {
           setProviders([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingProviders(false);
         }
       }
     };
@@ -81,7 +90,13 @@ export default function MovieCard({
         </div>
       </figcaption>
 
-      {providers.length > 0 && (
+      {isLoadingProviders && (
+        <div className="mt-3 w-full flex justify-center" role="status" aria-live="polite" aria-label="Loading platforms">
+          <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin dark:border-gray-600 dark:border-t-gray-200" />
+        </div>
+      )}
+
+      {!isLoadingProviders && providers.length > 0 && (
         <div className="mt-3 w-full">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-300 mb-2">
             {providersTitle}
