@@ -18,6 +18,12 @@ import tmdbLogo from "./assets/TMDB.svg";
 // // import ApiKeyIcon from "./assets/api-key.svg";
 import { getPopularProviders, getRegions } from "./services/tmdbService";
 import { getFlagComponent, selectedCountries } from "./constants/countries";
+import {
+  getKombatStartRequirement,
+  MAX_KOMBAT_MOVIES,
+  MIN_KOMBAT_MOVIES,
+  selectRandomMovies,
+} from "./utils/kombatUtils";
 
 function App() {
   const navigate = useNavigate();
@@ -46,7 +52,12 @@ function App() {
         blindPosters: "Ocultar posters",
         showPosters: "Mostrar posters",
         startKombat: "Empezar Kombat",
-        needMoreMoviesTitle: "Agrega 16 peliculas para empezar!",
+        needMoreMoviesTitle: (missingMovies: number) =>
+          `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
+        tooManyMoviesTitle: "Hay demasiadas peliculas seleccionadas",
+        tooManyMoviesMessage:
+          "Se seleccionaran 16 peliculas al azar del pool actual y el resto se descartara.",
+        tooManyMoviesConfirm: "OK, elegir 16",
         understood: "Entendido",
         country: "Pais",
         countryPlaceholder: "Selecciona un pais",
@@ -73,7 +84,12 @@ function App() {
         blindPosters: "Blind Posters",
         showPosters: "Show Posters",
         startKombat: "Start Kombat",
-        needMoreMoviesTitle: "Add 16 movies to start!",
+        needMoreMoviesTitle: (missingMovies: number) =>
+          `Add ${missingMovies} movie${missingMovies === 1 ? "" : "s"} to start!`,
+        tooManyMoviesTitle: "Too many movies selected",
+        tooManyMoviesMessage:
+          "16 movies will be randomly selected from your current pool and the rest will be discarded.",
+        tooManyMoviesConfirm: "OK, pick 16",
         understood: "Understood",
         country: "Country",
         countryPlaceholder: "Select a country",
@@ -94,6 +110,8 @@ function App() {
       };
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isNotEnoughMoviesDialogOpen, setIsNotEnoughMoviesDialogOpen] = useState(false);
+  const [isTooManyMoviesDialogOpen, setIsTooManyMoviesDialogOpen] = useState(false);
+  const [shouldAutoStartKombat, setShouldAutoStartKombat] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
@@ -109,6 +127,14 @@ function App() {
     () => providers.filter((provider) => selectedProviderIds.includes(provider.provider_id)),
     [providers, selectedProviderIds]
   );
+  const kombatStartRequirement = useMemo(
+    () => getKombatStartRequirement(movieList.length),
+    [movieList.length]
+  );
+  const canStartKombat = kombatStartRequirement.status === "ready";
+  const canProceedToKombat =
+    kombatStartRequirement.status === "ready" ||
+    kombatStartRequirement.status === "above-maximum";
 
   // Add this function to handle kombat start with shuffle
   const handleStartKombat = () => {
@@ -144,16 +170,38 @@ function App() {
     };
   }, []);
 
-  const canStartKombat =
-    movieList.length > 3 && (movieList.length & (movieList.length - 1)) === 0;
+  useEffect(() => {
+    if (!shouldAutoStartKombat || movieList.length !== MAX_KOMBAT_MOVIES) {
+      return;
+    }
+
+    setShouldAutoStartKombat(false);
+    handleStartKombat();
+  }, [handleStartKombat, movieList.length, shouldAutoStartKombat]);
 
   const handleStartButtonClick = () => {
-    if (!canStartKombat) {
+    if (kombatStartRequirement.status === "below-minimum") {
       setIsNotEnoughMoviesDialogOpen(true);
       return;
     }
 
+    if (kombatStartRequirement.status === "below-recommended") {
+      setIsNotEnoughMoviesDialogOpen(true);
+      return;
+    }
+
+    if (kombatStartRequirement.status === "above-maximum") {
+      setIsTooManyMoviesDialogOpen(true);
+      return;
+    }
+
     handleStartKombat();
+  };
+
+  const handleConfirmRandomSelection = () => {
+    setMovieList(selectRandomMovies(movieList, MAX_KOMBAT_MOVIES));
+    setIsTooManyMoviesDialogOpen(false);
+    setShouldAutoStartKombat(true);
   };
 
   const handleCompletePreferences = () => {
@@ -201,10 +249,26 @@ function App() {
       <Dialog
         open={isNotEnoughMoviesDialogOpen}
         onClose={() => setIsNotEnoughMoviesDialogOpen(false)}
-        title={ui.needMoreMoviesTitle}
+        title={ui.needMoreMoviesTitle(
+          kombatStartRequirement.status === "below-minimum"
+            ? Math.max(0, MIN_KOMBAT_MOVIES - movieList.length)
+            : Math.max(0, MAX_KOMBAT_MOVIES - movieList.length)
+        )}
         onCancel={() => setIsNotEnoughMoviesDialogOpen(false)}
         cancelText={ui.understood}
       />
+
+      <Dialog
+        open={isTooManyMoviesDialogOpen}
+        onClose={() => setIsTooManyMoviesDialogOpen(false)}
+        title={ui.tooManyMoviesTitle}
+        onConfirm={handleConfirmRandomSelection}
+        onCancel={() => setIsTooManyMoviesDialogOpen(false)}
+        confirmText={ui.tooManyMoviesConfirm}
+        cancelText={ui.cancel}
+      >
+        <p>{ui.tooManyMoviesMessage}</p>
+      </Dialog>
 
       <div className="min-h-screen flex flex-col pb-24">
         <header className="flex items-center justify-between gap-2 p-3 sm:p-4 bg-gray-800 text-white">
@@ -443,7 +507,9 @@ function App() {
             className={`fixed bottom-6 right-6 z-50 inline-flex h-20 w-20 flex-col items-center justify-center rounded-full text-white transition ${
               canStartKombat
                 ? "bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.95),0_0_42px_rgba(16,185,129,0.65)] animate-pulse"
-                : "bg-emerald-600 hover:bg-emerald-500 shadow-xl"
+                : canProceedToKombat
+                  ? "bg-emerald-500 hover:bg-emerald-400 shadow-xl"
+                  : "bg-slate-500/55 hover:bg-slate-500/65 shadow-lg backdrop-blur-sm"
             }`}
           >
             <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-black/20">
