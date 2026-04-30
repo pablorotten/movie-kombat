@@ -5,7 +5,7 @@ import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import Dialog from "../components/Dialog";
 import TMDBCategorySelector from "../components/TMDBCategorySelector";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
@@ -43,7 +43,6 @@ const LoadingSpinner = () => (
 );
 
 export default function SearchPage() {
-  const navigate = useNavigate();
   const { addMovie, movieList, removeMovie, searchLanguage, setMovieList } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasRestoredFromUrl = useRef(false);
@@ -134,6 +133,7 @@ export default function SearchPage() {
       const shuffledTitles = shuffle(titles);
       const foundMovies: Movie[] = [];
       const foundIds = new Set<string>(movieList.map((movie) => movie.imdbID));
+      const addedFromCollection = new Set<string>();
       const notFound: string[] = [];
       let nextTitleIndex = 0;
       const getNextTitle = () => {
@@ -171,6 +171,8 @@ export default function SearchPage() {
               ) {
                 foundIds.add(convertedMovie.imdbID);
                 foundMovies.push(convertedMovie);
+                addedFromCollection.add(convertedMovie.imdbID);
+                setMovieList((prevMovies) => [...prevMovies, convertedMovie]);
               }
             } else {
               notFound.push(title);
@@ -190,6 +192,11 @@ export default function SearchPage() {
       );
 
       if (foundMovies.length < COLLECTION_SIZE) {
+        if (addedFromCollection.size > 0) {
+          setMovieList((prevMovies) =>
+            prevMovies.filter((movie) => !addedFromCollection.has(movie.imdbID))
+          );
+        }
         setError(ui.collectionNotEnoughMatches);
         if (notFound.length > 0) {
           setNotFoundMovies(notFound.slice(0, 20));
@@ -199,13 +206,11 @@ export default function SearchPage() {
         return;
       }
 
-      setMovieList((prevMovies) => [...prevMovies, ...foundMovies]);
       if (notFound.length > 0) {
         setNotFoundMovies(notFound.slice(0, 20));
         setIsCollectionNotFoundDialog(true);
         setIsNotFoundDialogOpen(true);
       }
-      navigate("/kombat");
     } catch {
       setError(ui.loadFromUrlError);
     } finally {
