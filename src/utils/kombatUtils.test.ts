@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { createInitialStages, getStageName } from './kombatUtils'
+import {
+  createInitialStages,
+  getKombatStartRequirement,
+  getStageName,
+  MAX_KOMBAT_MOVIES,
+  MIN_KOMBAT_MOVIES,
+  selectRandomMovies,
+} from './kombatUtils'
 import { Movie } from '../types'
 
 const makeMovie = (n: number): Movie => ({
@@ -61,6 +68,66 @@ describe('createInitialStages', () => {
     const { first, second } = stages[0][0]
     expect(first).toMatchObject({ id: 'tt1', title: 'Movie 1', poster: '/poster1.jpg' })
     expect(second).toMatchObject({ id: 'tt2', title: 'Movie 2', poster: '/poster2.jpg' })
+  })
+})
+
+describe('getKombatStartRequirement', () => {
+  it('reports how many movies are needed to reach the minimum bracket size', () => {
+    expect(getKombatStartRequirement(5)).toEqual({
+      status: 'below-minimum',
+      missingMovies: 3,
+      targetMovieCount: MIN_KOMBAT_MOVIES,
+    })
+  })
+
+  it('allows starting immediately when minimum count is reached', () => {
+    expect(getKombatStartRequirement(8)).toEqual({ status: 'ready' })
+  })
+
+  it('requires more movies when count is between 9 and 15', () => {
+    expect(getKombatStartRequirement(12)).toEqual({
+      status: 'below-recommended',
+      missingMovies: 4,
+      targetMovieCount: MAX_KOMBAT_MOVIES,
+    })
+  })
+
+  it('allows starting immediately with 16 movies', () => {
+    expect(getKombatStartRequirement(16)).toEqual({ status: 'ready' })
+  })
+
+  it('allows starting immediately with exactly 16 movies', () => {
+    expect(getKombatStartRequirement(16)).toEqual({ status: 'ready' })
+  })
+
+  it('requires trimming when more than 16 movies are selected', () => {
+    expect(getKombatStartRequirement(21)).toEqual({
+      status: 'above-maximum',
+      extraMovies: 5,
+      targetMovieCount: MAX_KOMBAT_MOVIES,
+    })
+  })
+})
+
+describe('selectRandomMovies', () => {
+  it('returns all movies unchanged when the pool is already within the limit', () => {
+    const movies = [1, 2, 3]
+    expect(selectRandomMovies(movies, 16, () => 0.5)).toEqual(movies)
+  })
+
+  it('shuffles and trims the pool to the requested size', () => {
+    const pool = [1, 2, 3, 4, 5]
+    const randomValues = [0.1, 0.8, 0.2, 0.6]
+    let randomIndex = 0
+
+    const selected = selectRandomMovies(pool, 3, () => {
+      const value = randomValues[randomIndex]
+      randomIndex += 1
+      return value
+    })
+
+    expect(selected).toHaveLength(3)
+    expect(selected).toEqual([4, 2, 5])
   })
 })
 
