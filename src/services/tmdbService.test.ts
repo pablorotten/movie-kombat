@@ -181,6 +181,25 @@ describe('discoverMovies', () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response('', { status: 401, statusText: 'Unauthorized' }))
     await expect(discoverMovies({})).rejects.toThrow('TMDB API error: 401')
   })
+
+  it('sends multiple providers in a single discover request', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse(emptyDiscoverResponse))
+
+    await discoverMovies({ providerIds: [8, 119], region: 'ES' })
+
+    const [url] = vi.mocked(fetch).mock.calls[0]
+    expect(String(url)).toContain('watch_region=ES')
+    expect(String(url)).toContain('with_watch_providers=8%7C119')
+  })
+
+  it('sends multiple genres in a single discover request', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse(emptyDiscoverResponse))
+
+    await discoverMovies({ genreIds: [28, 12] })
+
+    const [url] = vi.mocked(fetch).mock.calls[0]
+    expect(String(url)).toContain('with_genres=28%7C12')
+  })
 })
 
 describe('searchMovies', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import React from 'react'
 import { MovieProvider, useMovies } from './MovieContext'
@@ -14,6 +14,10 @@ const makeMovie = (n: number): Movie => ({
   imdbID: `tt${n}`,
   Type: 'movie',
   Poster: `/poster${n}.jpg`,
+})
+
+beforeEach(() => {
+  localStorage.clear()
 })
 
 describe('useMovies', () => {
@@ -97,6 +101,33 @@ describe('setSearchLanguage', () => {
       result.current.setSearchLanguage('es-ES')
     })
     expect(result.current.searchLanguage).toBe('es-ES')
+  })
+})
+
+describe('preferences onboarding', () => {
+  it('starts with onboarding incomplete and all popular providers selected', () => {
+    const { result } = renderHook(() => useMovies(), { wrapper })
+
+    expect(result.current.hasCompletedPreferences).toBe(false)
+    expect(result.current.selectedRegion).toBe('')
+    expect(result.current.selectedProviderIds.length).toBeGreaterThan(0)
+  })
+
+  it('completes onboarding and persists provider selection changes', () => {
+    const { result } = renderHook(() => useMovies(), { wrapper })
+
+    act(() => {
+      result.current.setSelectedRegion('US')
+      result.current.toggleSelectedProvider(result.current.selectedProviderIds[0])
+      result.current.completePreferences()
+    })
+
+    expect(result.current.hasCompletedPreferences).toBe(true)
+    expect(localStorage.getItem('hasCompletedPreferences')).toBe('true')
+    expect(localStorage.getItem('selectedRegion')).toBe('US')
+    expect(JSON.parse(localStorage.getItem('selectedProviderIds') || '[]')).toHaveLength(
+      result.current.selectedProviderIds.length
+    )
   })
 })
 
