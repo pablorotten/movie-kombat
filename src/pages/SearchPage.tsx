@@ -5,7 +5,7 @@ import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import Dialog from "../components/Dialog";
 import TMDBCategorySelector from "../components/TMDBCategorySelector";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
@@ -18,6 +18,7 @@ import {
 } from "../services/localMovieCollectionsService";
 
 const COLLECTION_SIZE = 16;
+const COLLECTION_LOOKUP_CONCURRENCY = 4;
 
 const LoadingSpinner = () => (
   <div role="status" className="flex justify-center items-center">
@@ -42,7 +43,6 @@ const LoadingSpinner = () => (
 );
 
 export default function SearchPage() {
-  const navigate = useNavigate();
   const { addMovie, movieList, removeMovie, searchLanguage, setMovieList } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasRestoredFromUrl = useRef(false);
@@ -133,32 +133,70 @@ export default function SearchPage() {
       const shuffledTitles = shuffle(titles);
       const foundMovies: Movie[] = [];
       const foundIds = new Set<string>(movieList.map((movie) => movie.imdbID));
+      const addedFromCollection = new Set<string>();
       const notFound: string[] = [];
+      let nextTitleIndex = 0;
+      const getNextTitle = () => {
+        if (nextTitleIndex >= shuffledTitles.length) {
+          return null;
+        }
 
-      for (const title of shuffledTitles) {
-        if (foundMovies.length >= COLLECTION_SIZE) break;
+        const nextTitle = shuffledTitles[nextTitleIndex];
+        nextTitleIndex += 1;
+        return nextTitle;
+      };
 
-        try {
-          const response = await searchMovies(title, 1, searchLanguage);
-          if (response.results && response.results.length > 0) {
-            const convertedMovie = convertTMDBToAppMovie(response.results[0]);
-            if (convertedMovie.Poster === "N/A") {
-              convertedMovie.Poster = getPlaceholder();
+      const worker = async () => {
+        while (true) {
+          if (foundMovies.length >= COLLECTION_SIZE) {
+            return;
+          }
+
+          const title = getNextTitle();
+          if (!title) {
+            return;
+          }
+
+          try {
+            const response = await searchMovies(title, 1, searchLanguage);
+            if (response.results && response.results.length > 0) {
+              const convertedMovie = convertTMDBToAppMovie(response.results[0]);
+              if (convertedMovie.Poster === "N/A") {
+                convertedMovie.Poster = getPlaceholder();
+              }
+
+              if (
+                foundMovies.length < COLLECTION_SIZE &&
+                !foundIds.has(convertedMovie.imdbID)
+              ) {
+                foundIds.add(convertedMovie.imdbID);
+                foundMovies.push(convertedMovie);
+                addedFromCollection.add(convertedMovie.imdbID);
+                setMovieList((prevMovies) => [...prevMovies, convertedMovie]);
+              }
+            } else {
+              notFound.push(title);
             }
-
-            if (!foundIds.has(convertedMovie.imdbID)) {
-              foundIds.add(convertedMovie.imdbID);
-              foundMovies.push(convertedMovie);
-            }
-          } else {
+          } catch {
             notFound.push(title);
           }
-        } catch {
-          notFound.push(title);
         }
-      }
+      };
+
+      const workerCount = Math.min(
+        COLLECTION_LOOKUP_CONCURRENCY,
+        shuffledTitles.length
+      );
+      await Promise.all(
+        Array.from({ length: workerCount }, () => worker())
+      );
 
       if (foundMovies.length < COLLECTION_SIZE) {
+        if (addedFromCollection.size > 0) {
+          setMovieList((prevMovies) =>
+            prevMovies.filter((movie) => !addedFromCollection.has(movie.imdbID))
+          );
+        }
         setError(ui.collectionNotEnoughMatches);
         if (notFound.length > 0) {
           setNotFoundMovies(notFound.slice(0, 20));
@@ -168,13 +206,11 @@ export default function SearchPage() {
         return;
       }
 
-      setMovieList((prevMovies) => [...prevMovies, ...foundMovies]);
       if (notFound.length > 0) {
         setNotFoundMovies(notFound.slice(0, 20));
         setIsCollectionNotFoundDialog(true);
         setIsNotFoundDialogOpen(true);
       }
-      navigate("/kombat");
     } catch {
       setError(ui.loadFromUrlError);
     } finally {
@@ -514,11 +550,14 @@ export default function SearchPage() {
                         }}
                       >
                         {/* Background Image */}
-                        {collection.image ? (
+                        {collection.image || collection.localImage ? (
                           <img
-                            src={collection.image}
+                            src={collection.localImage || collection.image}
                             alt={collection.title}
                             className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 22vw, 18vw"
                           />
                         ) : (
                           <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-900" />

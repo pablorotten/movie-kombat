@@ -38,7 +38,7 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
         noMoviesFound: 'No se encontraron peliculas',
         noMoviesFoundHint: 'Prueba otro genero, plataforma o pais.',
         loadMoviesError: 'No se pudieron cargar las peliculas. Revisa tu API key de TMDB e intentalo de nuevo.',
-        discoverMovies: 'Descubrir peliculas con TMDB',
+        discoverMovies: 'Buscar peliculas por plataforma',
         genre: 'Genero',
         selectGenre: 'Selecciona al menos un genero',
         selectedGenres: 'Generos seleccionados',
@@ -58,7 +58,7 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
         noMoviesFound: 'No movies found',
         noMoviesFoundHint: 'Try a different genre, platform, or country.',
         loadMoviesError: 'Failed to load movies. Please check your TMDB API key and try again.',
-        discoverMovies: 'Discover Movies with TMDB',
+        discoverMovies: 'Search Movies by Platform',
         genre: 'Genre',
         selectGenre: 'Select at least one genre',
         selectedGenres: 'Selected genres',
@@ -235,7 +235,7 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
 
         {isExpanded && (
           <div className="px-6 pb-6">
-            <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_auto] gap-4 mb-4 items-end">
+            <div className="grid grid-cols-1 gap-4 mb-4">
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {ui.genre} *
@@ -306,24 +306,24 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
               </div>
             </div>
           </div>
-
-          <div className="flex flex-col justify-end">
-            <button
-              onClick={handleLoadMovies}
-              disabled={selectedGenreIds.length === 0 || !selectedRegion || selectedProviderIds.length === 0 || isLoading}
-              className="self-start bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-3 rounded-lg text-xs transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-md"
-            >
-              {isLoading ? (
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  {ui.loading}
-                </div>
-              ) : (
-                ui.discoverButton
-              )}
-            </button>
-          </div>
         </div>
+
+            <div className="mb-4 flex justify-center">
+              <button
+                onClick={handleLoadMovies}
+                disabled={selectedGenreIds.length === 0 || !selectedRegion || selectedProviderIds.length === 0 || isLoading}
+                className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-3 rounded-lg text-xs transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-md"
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    {ui.loading}
+                  </div>
+                ) : (
+                  ui.discoverButton
+                )}
+              </button>
+            </div>
 
             {error && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
