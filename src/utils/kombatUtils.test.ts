@@ -154,6 +154,6 @@ describe('getStageName', () => {
 
   it('earlier stages use powers of two', () => {
     expect(getStageName(0, 5)).toBe('1/16')
-    expect(getStageName(1, 6)).toBe('1/32')
+    expect(getStageName(1, 6)).toBe('1/16')
   })
 })
