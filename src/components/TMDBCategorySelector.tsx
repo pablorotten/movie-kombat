@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   getGenres, 
   getPopularProviders, 
@@ -78,6 +78,8 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
   
   // Use controlled state if provided, otherwise use internal state
   const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
+  const [visible, setVisible] = useState(isExpanded);
+  const [isClosing, setIsClosing] = useState(false);
   const setIsExpanded = (expanded: boolean) => {
     if (onToggleExpanded) {
       onToggleExpanded(expanded);
@@ -85,6 +87,24 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
       setInternalExpanded(expanded);
     }
   };
+
+  useEffect(() => {
+    if (isExpanded) {
+      setVisible(true);
+      setIsClosing(false);
+      return;
+    }
+
+    if (!visible) return;
+
+    setIsClosing(true);
+    const timeout = window.setTimeout(() => {
+      setVisible(false);
+      setIsClosing(false);
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [isExpanded, visible]);
   // Static data from TMDB JSON files
   const [genres] = useState<Genre[]>(getGenres());
   const [providers] = useState<Provider[]>(getPopularProviders());
@@ -106,6 +126,7 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
       return;
     }
 
+    setIsExpanded(false);
     setIsLoading(true);
     setError(null);
 
@@ -233,8 +254,8 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
           </div>
         </button>
 
-        {isExpanded && (
-          <div className="px-6 pb-6">
+        {visible && (
+          <div className={`px-6 pb-6 transition-all duration-250 ease-in-out ${isClosing ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[2000px] opacity-100'}`}>
             <div className="grid grid-cols-1 gap-4 mb-4">
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
