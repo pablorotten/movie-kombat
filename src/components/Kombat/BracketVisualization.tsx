@@ -61,7 +61,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
         className="flex items-center justify-center h-full"
       >
         <div 
-          className={`bg-slate-800 border rounded-md transition-all w-full mx-0.5 ${
+          className={`bg-slate-800 border rounded-md transition-all w-full ${
             isCurrentMatch && !isFinished ? 'border-blue-500 bg-blue-900/30 ring-2 ring-blue-500/50' : 
             isFinished ? 'border-green-600 bg-slate-800' :
             'border-slate-600 hover:border-blue-500'
@@ -82,7 +82,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
     return (
       <div 
         key={stageIndex}
-        className={`flex flex-col justify-evenly h-full ${isFinalRound ? 'pr-0' : 'px-1 sm:px-2'}`}
+        className={`flex flex-col justify-evenly h-full ${isFinalRound ? 'pr-0' : 'px-0 sm:px-1'}`}
       >
         {round.map((match, matchIndex) => 
           renderMatch(match, stageIndex, matchIndex)
