@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import React from 'react'
-import { MovieProvider, useMovies } from './MovieContext'
+import { MAX_MOVIES_IN_LIST, MovieProvider, useMovies } from './MovieContext'
 import { Movie } from '../types'
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -50,6 +50,35 @@ describe('addMovie', () => {
       result.current.addMovie(makeMovie(1))
     })
     expect(result.current.movieList).toHaveLength(1)
+  })
+
+  it('does not add more than the max movie limit', () => {
+    const { result } = renderHook(() => useMovies(), { wrapper })
+
+    act(() => {
+      for (let i = 1; i <= MAX_MOVIES_IN_LIST + 1; i += 1) {
+        result.current.addMovie(makeMovie(i))
+      }
+    })
+
+    expect(result.current.movieList).toHaveLength(MAX_MOVIES_IN_LIST)
+    expect(result.current.movieList[result.current.movieList.length - 1]?.imdbID).toBe(`tt${MAX_MOVIES_IN_LIST}`)
+  })
+})
+
+describe('setMovieList', () => {
+  it('truncates direct list updates above the max movie limit', () => {
+    const { result } = renderHook(() => useMovies(), { wrapper })
+    const overLimitMovies = Array.from({ length: MAX_MOVIES_IN_LIST + 5 }, (_, index) =>
+      makeMovie(index + 1)
+    )
+
+    act(() => {
+      result.current.setMovieList(overLimitMovies)
+    })
+
+    expect(result.current.movieList).toHaveLength(MAX_MOVIES_IN_LIST)
+    expect(result.current.movieList[result.current.movieList.length - 1]?.imdbID).toBe(`tt${MAX_MOVIES_IN_LIST}`)
   })
 })
 

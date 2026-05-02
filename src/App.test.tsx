@@ -109,13 +109,13 @@ describe('App kombat start flow', () => {
     expect(screen.getByText('Search Page')).toBeInTheDocument()
   })
 
-  it('randomly trims to 16 movies and starts kombat when the user confirms', () => {
+  it('randomly trims to 16 movies and starts kombat when the user confirms', async () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5)
     renderApp(Array.from({ length: 18 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
     fireEvent.click(screen.getByRole('button', { name: 'OK, pick 16' }))
 
-    expect(screen.getByText('Kombat Page 16')).toBeInTheDocument()
+    expect(await screen.findByText('Kombat Page 16')).toBeInTheDocument()
   })
 })

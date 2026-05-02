@@ -1,6 +1,8 @@
-import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import { Movie } from '../types';
 import { getPopularProviders } from '../services/tmdbService';
+
+export const MAX_MOVIES_IN_LIST = 32;
 
 const SELECTED_REGION_STORAGE_KEY = 'selectedRegion';
 const SEARCH_LANGUAGE_STORAGE_KEY = 'searchLanguage';
@@ -31,7 +33,7 @@ interface MovieContextType {
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
 
 export function MovieProvider({ children }: { children: ReactNode }) {
-  const [movieList, setMovieList] = useState<Movie[]>([]);
+  const [movieList, setMovieListState] = useState<Movie[]>([]);
   const [arePostersVisible, setArePostersVisible] = useState(true);
   const [searchLanguage, setSearchLanguage] = useState<string>('en-US');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
@@ -81,16 +83,38 @@ export function MovieProvider({ children }: { children: ReactNode }) {
   }, [selectedProviderIds]);
 
   const addMovie = (movie: Movie) => {
-    if (!movieList.find((m) => m.imdbID === movie.imdbID)) {
-      setMovieList((prevList) => [...prevList, movie]);
-    }
+    setMovieListState((prevList) => {
+      if (prevList.length >= MAX_MOVIES_IN_LIST) {
+        return prevList;
+      }
+
+      if (prevList.some((existingMovie) => existingMovie.imdbID === movie.imdbID)) {
+        return prevList;
+      }
+
+      return [...prevList, movie];
+    });
   };
 
   const removeMovie = (imdbID: string) => {
-    setMovieList((currentMovies) =>
+    setMovieListState((currentMovies) =>
       currentMovies.filter((movie) => movie.imdbID !== imdbID)
     );
   };
+
+  const setMovieList: React.Dispatch<React.SetStateAction<Movie[]>> = useCallback((updater) => {
+    setMovieListState((prevMovies) => {
+      const nextMovies = typeof updater === 'function'
+        ? updater(prevMovies)
+        : updater;
+
+      if (nextMovies.length <= MAX_MOVIES_IN_LIST) {
+        return nextMovies;
+      }
+
+      return nextMovies.slice(0, MAX_MOVIES_IN_LIST);
+    });
+  }, []);
 
   const togglePostersVisibility = () => {
     setArePostersVisible(prevState => !prevState);
@@ -109,12 +133,12 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(HAS_COMPLETED_PREFERENCES_STORAGE_KEY, 'true');
   };
 
-  const value = { 
-    movieList, 
-    addMovie, 
-    removeMovie, 
-    setMovieList, 
-    arePostersVisible, 
+  const value = useMemo(() => ({
+    movieList,
+    addMovie,
+    removeMovie,
+    setMovieList,
+    arePostersVisible,
     togglePostersVisibility,
     searchLanguage,
     setSearchLanguage,
@@ -124,8 +148,24 @@ export function MovieProvider({ children }: { children: ReactNode }) {
     setSelectedProviderIds,
     toggleSelectedProvider,
     hasCompletedPreferences,
-    completePreferences
-  };
+    completePreferences,
+  }), [
+    movieList,
+    addMovie,
+    removeMovie,
+    setMovieList,
+    arePostersVisible,
+    togglePostersVisibility,
+    searchLanguage,
+    setSearchLanguage,
+    selectedRegion,
+    setSelectedRegion,
+    selectedProviderIds,
+    setSelectedProviderIds,
+    toggleSelectedProvider,
+    hasCompletedPreferences,
+    completePreferences,
+  ]);
 
   return (
     <MovieContext.Provider value={value}>
