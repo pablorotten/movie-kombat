@@ -38,10 +38,10 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
             <img 
               src={option.poster} 
               alt={option.title}
-              className="h-12 w-8 flex-shrink-0 rounded object-cover sm:h-8 sm:w-6 sm:mr-2"
+              className="h-14 w-10 flex-shrink-0 rounded object-cover sm:h-8 sm:w-6 sm:mr-2"
             />
           )}
-          <span className="text-sm font-medium truncate">
+          <span className="text-sm font-medium truncate sm:inline hidden">
             {isPlaceholder ? 'TBD' : option.title}
           </span>
         </div>
@@ -67,7 +67,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
             'border-slate-600 hover:border-blue-500'
           }`}
         >
-          <div className="p-2 cursor-pointer">
+          <div className="p-1 sm:p-2 cursor-pointer">
             {renderTeam(match.first, isWinnerFirst, isWinnerSecond)}
             {renderTeam(match.second, isWinnerSecond, isWinnerFirst)}
           </div>
@@ -82,7 +82,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
     return (
       <div 
         key={stageIndex}
-        className={`flex flex-col justify-evenly h-full ${isFinalRound ? 'pr-0' : 'px-2'}`}
+        className={`flex flex-col justify-evenly h-full ${isFinalRound ? 'pr-0' : 'px-1 sm:px-2'}`}
       >
         {round.map((match, matchIndex) => 
           renderMatch(match, stageIndex, matchIndex)
