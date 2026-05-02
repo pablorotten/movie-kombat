@@ -33,3 +33,6 @@ backup
 
 # Business files
 Business/
+
+# Vercel
+.vercel
