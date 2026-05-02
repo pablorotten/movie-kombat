@@ -103,13 +103,13 @@ export const getProviderByName = (name: string): Provider | undefined => {
 
 // Popular streaming providers for quick selection
 export const getPopularProviders = (): Provider[] => {
-  const popularProviderIds = [8, 119, 337, 350, 63]; // Netflix, Amazon Prime, Disney+, Apple TV+, Filmin
+  const popularProviderIds = [8, 119, 337, 350, 63, 283]; // Netflix, Amazon Prime, Disney+, Apple TV+, Filmin, Crunchyroll
   return popularProviderIds
     .map(id => getProviderById(id))
     .filter((provider): provider is Provider => provider !== undefined);
 };
 
-const DISCOVER_PROVIDER_IDS = new Set<number>([8, 63, 119, 337, 350]);
+const DISCOVER_PROVIDER_IDS = new Set<number>([8, 63, 119, 337, 350, 283]);
 
 const pickAllowedProviders = (providers: WatchProvider[] = []): WatchProvider[] => {
   const unique = new Map<number, WatchProvider>();
