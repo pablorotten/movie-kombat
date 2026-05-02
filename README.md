@@ -48,6 +48,7 @@ Example (`movies/my-collection.md`):
 * Movie Title 14
 * Movie Title 15
 * Movie Title 16
+... (add more if you want)
 ```
 
 Notes:
@@ -86,21 +87,48 @@ npm run dev
 
 Open the local URL shown by Vite (usually `http://localhost:5173`).
 
-## API keys
+### 3) Run full local stack (frontend + serverless API)
 
-The app uses TMDB through the in-app **⚙️ API Configuration** dialog.
+If you are working on TMDB search/discovery flows locally, use:
 
-- **TMDB Bearer token** is used for title search and discovery filters (genre/provider/country).
+```sh
+npm run dev:vercel
+```
 
-Keys are saved in browser `localStorage` under:
+This runs Vercel's local runtime so `/api/*` serverless endpoints are available.
+Use `npm run dev` only for frontend-only work.
 
-- `tmdbApiKey`
+Request routing summary:
 
-If no custom key is provided, the app can still run using default values defined in the context.
+- `npm run dev` + TMDB search/discover = it should fail locally for API-backed flows
+- `npm run dev:vercel` = local serverless functions handle the request
+- deployed app on Vercel = Vercel serverless functions handle the request
+
+## TMDB proxy (server-side key)
+
+The app now uses serverless proxy endpoints under `/api/*`.
+
+- Frontend never sends or stores the TMDB key.
+- Serverless functions call TMDB with a server-side bearer token.
+
+Copy `.env.example` to `.env.local` and set the token:
+
+```sh
+TMDB_API_KEY=your_tmdb_bearer_token_here
+```
+
+Proxy endpoints implemented:
+
+- `/api/search/movie`
+- `/api/discover/movie`
+- `/api/movie/[id]`
+- `/api/movie/[id]/watch/providers`
 
 ## Available scripts
 
 - `npm run dev` — start Vite dev server
+- `npm run dev:vercel` — start local Vercel runtime (frontend + `/api/*` functions)
+- `npm run dev:full` — alias of `dev:vercel`
 - `npm run build` — type-check and build production bundle
 - `npm run preview` — preview production build locally
 - `npm run lint` — run ESLint
@@ -110,6 +138,7 @@ If no custom key is provided, the app can still run using default values defined
 ## Project structure
 
 ```text
+api/                Serverless TMDB proxy functions (Vercel runtime)
 src/
 	components/        Reusable UI and kombat components
 	context/           Global movie/app state
@@ -118,16 +147,6 @@ src/
 	utils/             Utility functions (genres, providers, kombat logic)
 	assets/            Static data and images
 ```
-
-## Deployment
-
-This repository includes GitHub Pages deployment via `gh-pages`:
-
-```sh
-npm run deploy
-```
-
-Make sure your repository Pages settings are configured to serve the published branch.
 
 ## License
 
@@ -163,3 +182,77 @@ python filmaffinity-scrapper.py
 ```
 
 Output will be saved to movies file in the same folder.
+
+## TMDB API
+
+### Query examples
+
+Seach movies starting with "The last":
+
+`https://api.themoviedb.org/3/search/movie?language=en-US&query=The%2520last&page=1&include_adult=false`
+```json
+"page": 1,
+    "results": [
+        {
+            "adult": false,
+            "backdrop_path": "/sS3zGYFPcfM5pArVNWl6qLyaSmU.jpg",
+            "genre_ids": [ 16, 28, 12, 14],
+            "id": 980431,
+            "title": "Avatar Aang: The Last Airbender",
+            "original_language": "en",
+            "original_title": "Avatar Aang: The Last Airbender",
+            "overview": "Avatar Aang, the world's last Airbender, learns of an ancient power that could save his culture from extinction. With the help of his friends, he embarks on a global quest to find it before it falls into the wrong hands and threatens to upend the peace they sacrificed everything to achieve.",
+            "popularity": 253.5738,
+            "poster_path": "/29Jdsak3SrwGds5k1t43kH6Khed.jpg",
+            "release_date": "2026-10-09",
+            "softcore": false,
+            "video": false,
+            "vote_average": 0.0,
+            "vote_count": 0
+        },
+        {
+            ...
+            "id": 1038392,
+            "title": "The Conjuring: Last Rites",
+            ...
+        {
+            ...
+            "id": 912649,
+            "title": "Venom: The Last Dance",
+			...
+        },
+        {
+            ...
+            "id": 1451398,
+            "title": "Re/Member: The Last Night",
+			...
+        },
+        ...
+    ],
+    "total_pages": 233,
+    "total_results": 4649
+}
+```
+
+Search `Action` moviess in `Spain` with `Netflix` streaming. Sorted by popularity:
+`https://api.themoviedb.org/3/discover/movie?language=en-US&page=2&sort_by=popularity.desc&include_adult=false&include_video=false&with_genres=28&watch_region=ES&with_watch_providers=8`
+```json
+{
+    "page": 1,
+    "results": [
+        {
+            ...
+            "title": "Apex",
+            "original_language": "en",
+            "original_title": "Apex",
+            ...
+        },
+        {
+            ...
+            "id": 1265609,
+            "title": "War Machine",
+            "original_language": "en"
+			...
+		}
+	...
+```

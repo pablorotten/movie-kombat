@@ -1,11 +1,80 @@
 import { BracketMatch, KombatOption } from "../components/Kombat/KombatModels";
 import { Movie } from "../types";
 
+export const MIN_KOMBAT_MOVIES = 8;
+export const MAX_KOMBAT_MOVIES = 16;
+
+export type KombatStartRequirement =
+  | {
+      status: "below-minimum";
+      missingMovies: number;
+      targetMovieCount: typeof MIN_KOMBAT_MOVIES;
+    }
+  | {
+      status: "below-recommended";
+      missingMovies: number;
+      targetMovieCount: typeof MAX_KOMBAT_MOVIES;
+    }
+  | {
+      status: "ready";
+    }
+  | {
+      status: "above-maximum";
+      extraMovies: number;
+      targetMovieCount: typeof MAX_KOMBAT_MOVIES;
+    };
+
 // A placeholder for empty slots or "BYE" rounds
 const TBD_OPTION: KombatOption = {
   id: 'tbd',
   title: 'TBD',
   poster: 'https://placehold.co/400x600/242424/646cff?text=TBD',
+};
+
+export const getKombatStartRequirement = (movieCount: number): KombatStartRequirement => {
+  if (movieCount < MIN_KOMBAT_MOVIES) {
+    return {
+      status: "below-minimum",
+      missingMovies: MIN_KOMBAT_MOVIES - movieCount,
+      targetMovieCount: MIN_KOMBAT_MOVIES,
+    };
+  }
+
+  if (movieCount > MIN_KOMBAT_MOVIES && movieCount < MAX_KOMBAT_MOVIES) {
+    return {
+      status: "below-recommended",
+      missingMovies: MAX_KOMBAT_MOVIES - movieCount,
+      targetMovieCount: MAX_KOMBAT_MOVIES,
+    };
+  }
+
+  if (movieCount > MAX_KOMBAT_MOVIES) {
+    return {
+      status: "above-maximum",
+      extraMovies: movieCount - MAX_KOMBAT_MOVIES,
+      targetMovieCount: MAX_KOMBAT_MOVIES,
+    };
+  }
+
+  return { status: "ready" };
+};
+
+export const selectRandomMovies = <T,>(
+  movies: T[],
+  maxMovies: number,
+  random: () => number = Math.random
+): T[] => {
+  if (movies.length <= maxMovies) {
+    return [...movies];
+  }
+
+  const shuffled = [...movies];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+
+  return shuffled.slice(0, maxMovies);
 };
 
 // This is the core function that sets up the kombat

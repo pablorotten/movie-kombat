@@ -9,6 +9,12 @@ import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import PosterImage from "../components/PosterImage";
 import BracketVisualization from "../components/Kombat/BracketVisualization";
+import {
+  getMovieProvidersForRegion,
+  getRegionByCode,
+  type WatchProvider,
+} from "../services/tmdbService";
+import { ProviderLogo } from "../components/ProviderLogo";
 
 type Fatality = "slice" | "explode" | "smash";
 const ALL_FATALITIES: Fatality[] = ["slice", "explode", "smash"];
@@ -155,7 +161,7 @@ const KombatMatchup = ({
 };
 
 export default function KombatPage() {
-  const { movieList, setMovieList, searchLanguage } = useMovies();
+  const { movieList, setMovieList, searchLanguage, selectedRegion } = useMovies();
   const navigate = useNavigate();
   const isSpanish = searchLanguage === "es-ES";
   const ui = isSpanish
@@ -168,6 +174,8 @@ export default function KombatPage() {
         winnerTitle: "🏆 El ganador es! 🏆",
         startNewKombat: "Empezar un nuevo Kombat",
         finalBracket: "Bracket final del Kombat",
+        availableOn: "Disponible en",
+        noPlatforms: "No hay plataformas disponibles para este pais.",
         round: "Ronda",
         of: "de",
         bracket: "Bracket del Kombat",
@@ -181,6 +189,8 @@ export default function KombatPage() {
         winnerTitle: "🏆 The Winner Is! 🏆",
         startNewKombat: "Start a New Kombat",
         finalBracket: "Final Kombat Bracket",
+        availableOn: "Available on",
+        noPlatforms: "No platforms available in this country.",
         round: "Round",
         of: "of",
         bracket: "Kombat Bracket",
@@ -190,6 +200,22 @@ export default function KombatPage() {
   const [currentStage, setCurrentStage] = useState(0);
   const [currentRound, setCurrentRound] = useState(0);
   const [winner, setWinner] = useState<KombatOption | null>(null);
+  const [winnerProviders, setWinnerProviders] = useState<WatchProvider[]>([]);
+
+  const getTMDBMovieUrl = (option: KombatOption): string => {
+    if (option.id.startsWith("tmdb_")) {
+      const tmdbId = Number(option.id.slice(5));
+      if (Number.isFinite(tmdbId)) {
+        return `https://www.themoviedb.org/movie/${tmdbId}`;
+      }
+    }
+
+    return `https://www.themoviedb.org/search?query=${encodeURIComponent(option.title)}`;
+  };
+
+  const handleOpenMovieInTMDB = (option: KombatOption) => {
+    window.open(getTMDBMovieUrl(option), "_blank", "noopener,noreferrer");
+  };
 
   const shuffleMovies = <T,>(movies: T[]): T[] => {
     const shuffled = [...movies];
@@ -212,6 +238,42 @@ export default function KombatPage() {
       setCurrentRound(firstPlayableRound >= 0 ? firstPlayableRound : 0);
     }
   }, [movieList]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, []);
+
+  useEffect(() => {
+    if (!winner || !winner.id.startsWith("tmdb_")) {
+      setWinnerProviders([]);
+      return;
+    }
+
+    const tmdbId = Number(winner.id.slice(5));
+    if (!Number.isFinite(tmdbId)) {
+      setWinnerProviders([]);
+      return;
+    }
+
+    let isActive = true;
+    const loadProviders = async () => {
+      try {
+        const providers = await getMovieProvidersForRegion(tmdbId, selectedRegion);
+        if (isActive) {
+          setWinnerProviders(providers);
+        }
+      } catch {
+        if (isActive) {
+          setWinnerProviders([]);
+        }
+      }
+    };
+
+    loadProviders();
+    return () => {
+      isActive = false;
+    };
+  }, [winner, selectedRegion]);
 
   const handleChooseWinner = (roundWinner: KombatOption) => {
     const updatedStages = [...stages];
@@ -279,6 +341,7 @@ export default function KombatPage() {
   const currentMatch = stages[currentStage]?.[currentRound];
   const totalStages = stages.length;
   const stageName = getStageName(currentStage, totalStages);
+  const regionName = getRegionByCode(selectedRegion)?.english_name || selectedRegion;
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -297,6 +360,41 @@ export default function KombatPage() {
               alt={winner.title}
               className="rounded-lg shadow-2xl"
             />
+            <a
+              href={getTMDBMovieUrl(winner)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-500 hover:text-blue-400 underline"
+            >
+              TMDB
+            </a>
+            <div className="w-full rounded-lg border border-gray-300 dark:border-gray-700 p-3 bg-white/70 dark:bg-gray-800/60">
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                {ui.availableOn} ({regionName})
+              </p>
+              {winnerProviders.length > 0 ? (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {winnerProviders.map((provider) => (
+                    <div
+                      key={provider.provider_id}
+                      title={provider.provider_name}
+                      className="inline-flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 rounded-md px-2 py-1"
+                    >
+                      <ProviderLogo
+                        logoPath={provider.logo_path}
+                        providerName={provider.provider_name}
+                        className="w-5 h-5"
+                      />
+                      <span className="text-xs text-gray-700 dark:text-gray-200">
+                        {provider.provider_name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 dark:text-gray-400">{ui.noPlatforms}</p>
+              )}
+            </div>
             <div className="flex justify-center mb-4">
               <Button
                 variant="success"
@@ -321,6 +419,7 @@ export default function KombatPage() {
                   stages={stages}
                   currentStage={stages.length - 1}
                   currentRound={0}
+                  onMovieClick={handleOpenMovieInTMDB}
                 />
               </div>
             </div>
@@ -354,6 +453,7 @@ export default function KombatPage() {
                     stages={stages}
                     currentStage={currentStage}
                     currentRound={currentRound}
+                    onMovieClick={handleOpenMovieInTMDB}
                   />
                 </div>
               </div>

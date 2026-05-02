@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import MovieCard from './MovieCard'
 import { MovieProvider, useMovies } from '../context/MovieContext'
@@ -75,5 +75,43 @@ describe('MovieCard', () => {
 
     // PosterImage renders an h2 with the uppercased title when posters are hidden
     expect(screen.getByRole('heading', { name: 'INCEPTION' })).toBeInTheDocument()
+  })
+
+  it('shows a loading spinner while platform providers are being fetched', async () => {
+    let resolveFetch: ((response: Response) => void) | undefined
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            resolveFetch = resolve
+          })
+      )
+    )
+
+    renderWithContext(
+      <MovieCard
+        title="Inception"
+        poster="/poster.jpg"
+        imdbID="tmdb_999999"
+        onDelete={vi.fn()}
+      />
+    )
+
+    expect(screen.getByRole('status', { name: 'Loading platforms' })).toBeInTheDocument()
+
+    resolveFetch?.(
+      new Response(JSON.stringify({ id: 999999, results: {} }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    )
+
+    await waitFor(() => {
+      expect(screen.queryByRole('status', { name: 'Loading platforms' })).not.toBeInTheDocument()
+    })
+
+    vi.unstubAllGlobals()
   })
 })

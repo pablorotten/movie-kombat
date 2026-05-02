@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Routes,
   Route,
@@ -9,93 +9,21 @@ import {
 import movieKombatLogo from "./assets/movie-kombat-logo.svg";
 import SearchPage from "./pages/SearchPage";
 import KombatPage from "./pages/KombatPage";
-import Button from "./components/Button";
 import Dialog from "./components/Dialog";
+import InitialPreferencesScreen from "./components/InitialPreferencesScreen";
+import { ProviderLogo } from "./components/ProviderLogo";
 import { useMovies } from "./context/MovieContext";
 import "./App.css";
-import KombatIcon from "./assets/kombat.svg";
 import tmdbLogo from "./assets/TMDB.svg";
 // // import ApiKeyIcon from "./assets/api-key.svg";
-import EyeOpenIcon from "./assets/eye-open.svg";
-import EyeCloseIcon from "./assets/eye-close.svg";
-
-// A simple modal component for API keys
-const ApiKeyModal = ({
-  isOpen,
-  onClose,
-  tmdbApiKey = "",
-  setTmdbApiKey,
-  searchLanguage,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  tmdbApiKey?: string;
-  setTmdbApiKey: (key: string) => void;
-  searchLanguage: string;
-}) => {
-  const isSpanish = searchLanguage === "es-ES";
-  const ui = isSpanish
-    ? {
-        apiConfig: "Configuracion de API",
-        tmdbTokenLabel: "TMDB Bearer Token (para buscar y descubrir peliculas)",
-        tmdbPlaceholder: "Escribe tu token Bearer de TMDB...",
-        getToken: "Consigue un token gratis en:",
-        cancel: "Cancelar",
-        save: "Guardar",
-      }
-    : {
-        apiConfig: "API Configuration",
-        tmdbTokenLabel: "TMDB Bearer Token (for movie search and discovery)",
-        tmdbPlaceholder: "Enter your TMDB Bearer token...",
-        getToken: "Get free token at:",
-        cancel: "Cancel",
-        save: "Save",
-      };
-  const [tmdbInputValue, setTmdbInputValue] = useState(tmdbApiKey);
-
-  if (!isOpen) return null;
-
-  const handleSave = () => {
-    setTmdbApiKey(tmdbInputValue);
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-      <div className="bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-md">
-        <h2 className="text-xl font-bold mb-6 text-white">{ui.apiConfig}</h2>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              {ui.tmdbTokenLabel}
-            </label>
-            <input
-              type="text"
-              value={tmdbInputValue}
-              onChange={(e) => setTmdbInputValue(e.target.value)}
-              className="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg block w-full p-2.5"
-              placeholder={ui.tmdbPlaceholder}
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              {ui.getToken}{" "}
-              <span className="text-blue-400">https://www.themoviedb.org/settings/api</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3 mt-6">
-          <Button variant="secondary" onClick={onClose} fullWidth>
-            {ui.cancel}
-          </Button>
-          <Button variant="primary" onClick={handleSave} fullWidth>
-            {ui.save}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { getPopularProviders, getRegions } from "./services/tmdbService";
+import { getFlagComponent, selectedCountries } from "./constants/countries";
+import {
+  getKombatStartRequirement,
+  MAX_KOMBAT_MOVIES,
+  MIN_KOMBAT_MOVIES,
+  selectRandomMovies,
+} from "./utils/kombatUtils";
 
 function App() {
   const navigate = useNavigate();
@@ -103,11 +31,16 @@ function App() {
   const {
     movieList,
     setMovieList,
-    setTmdbApiKey,
-    tmdbApiKey,
     arePostersVisible,
     togglePostersVisibility,
     searchLanguage,
+    setSearchLanguage,
+    selectedRegion,
+    setSelectedRegion,
+    selectedProviderIds,
+    toggleSelectedProvider,
+    hasCompletedPreferences,
+    completePreferences,
   } = useMovies();
   const isSpanish = searchLanguage === "es-ES";
   const ui = isSpanish
@@ -116,29 +49,92 @@ function App() {
         startNewKombatWarning: "Se perderá el progreso del Kombat actual",
         confirmStartNew: "Sí, empezar nuevo",
         cancel: "Cancelar",
-        configureApiKeys: "Configurar API Keys",
         blindPosters: "Ocultar posters",
         showPosters: "Mostrar posters",
         startKombat: "Empezar Kombat",
+        needMoreMoviesTitle: (missingMovies: number) =>
+          `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
+        tooManyMoviesTitle: "Hay demasiadas peliculas seleccionadas",
+        tooManyMoviesMessage:
+          "Se seleccionaran 16 peliculas al azar del pool actual y el resto se descartara.",
+        tooManyMoviesConfirm: "OK, elegir 16",
+        understood: "Entendido",
+        country: "Pais",
+        countryPlaceholder: "Selecciona un pais",
+        platform: "Plataformas",
+        platformPlaceholder: "Selecciona plataformas",
+        selectedPlatforms: "Plataformas seleccionadas",
+        onboardingTitle: "Antes de empezar",
+        onboardingDescription:
+          "Elige tu pais y las plataformas que quieres usar para descubrir peliculas.",
+        onboardingContinue: "Continuar",
+        onboardingPlatformHint: "Toca para seleccionar o quitar plataformas.",
+        onboardingPlatformError: "Selecciona al menos una plataforma.",
+        onboardingCountryError: "Selecciona un pais para continuar.",
         tmdbDataSource: "Datos proporcionados por",
         tmdbAttribution:
           "Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.",
+        appLanguage: "Idioma de la app:",
       }
     : {
         startNewKombatTitle: "Start New Kombat?",
         startNewKombatWarning: "Current Kombat progress will be lost",
         confirmStartNew: "Yes, Start New",
         cancel: "Cancel",
-        configureApiKeys: "Configure API Keys",
         blindPosters: "Blind Posters",
         showPosters: "Show Posters",
         startKombat: "Start Kombat",
+        needMoreMoviesTitle: (missingMovies: number) =>
+          `Add ${missingMovies} movie${missingMovies === 1 ? "" : "s"} to start!`,
+        tooManyMoviesTitle: "Too many movies selected",
+        tooManyMoviesMessage:
+          "16 movies will be randomly selected from your current pool and the rest will be discarded.",
+        tooManyMoviesConfirm: "OK, pick 16",
+        understood: "Understood",
+        country: "Country",
+        countryPlaceholder: "Select a country",
+        platform: "Platforms",
+        platformPlaceholder: "Select platforms",
+        selectedPlatforms: "Selected platforms",
+        onboardingTitle: "Before you start",
+        onboardingDescription:
+          "Choose your country and the streaming platforms you want to use for discovery.",
+        onboardingContinue: "Continue",
+        onboardingPlatformHint: "Tap to select or unselect platforms.",
+        onboardingPlatformError: "Select at least one platform.",
+        onboardingCountryError: "Select a country to continue.",
         tmdbDataSource: "Data provided by",
         tmdbAttribution:
           "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+        appLanguage: "App language:",
       };
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isNotEnoughMoviesDialogOpen, setIsNotEnoughMoviesDialogOpen] = useState(false);
+  const [isTooManyMoviesDialogOpen, setIsTooManyMoviesDialogOpen] = useState(false);
+  const [shouldAutoStartKombat, setShouldAutoStartKombat] = useState(false);
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
+  const platformDropdownRef = useRef<HTMLDivElement>(null);
+  const regions = useMemo(() => getRegions(), []);
+  const providers = useMemo(() => getPopularProviders(), []);
+  const filteredRegions = useMemo(
+    () => regions.filter((region) => selectedCountries.includes(region.iso_3166_1)),
+    [regions]
+  );
+
+  const selectedProviderNames = useMemo(
+    () => providers.filter((provider) => selectedProviderIds.includes(provider.provider_id)),
+    [providers, selectedProviderIds]
+  );
+  const kombatStartRequirement = useMemo(
+    () => getKombatStartRequirement(movieList.length),
+    [movieList.length]
+  );
+  const canStartKombat = kombatStartRequirement.status === "ready";
+  const canProceedToKombat =
+    kombatStartRequirement.status === "ready" ||
+    kombatStartRequirement.status === "above-maximum";
 
   // Add this function to handle kombat start with shuffle
   const handleStartKombat = () => {
@@ -158,16 +154,87 @@ function App() {
     navigate("/");
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
+        setIsCountryDropdownOpen(false);
+      }
+      if (platformDropdownRef.current && !platformDropdownRef.current.contains(event.target as Node)) {
+        setIsPlatformDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!shouldAutoStartKombat || movieList.length !== MAX_KOMBAT_MOVIES) {
+      return;
+    }
+
+    setShouldAutoStartKombat(false);
+    handleStartKombat();
+  }, [handleStartKombat, movieList.length, shouldAutoStartKombat]);
+
+  const handleStartButtonClick = () => {
+    if (kombatStartRequirement.status === "below-minimum") {
+      setIsNotEnoughMoviesDialogOpen(true);
+      return;
+    }
+
+    if (kombatStartRequirement.status === "below-recommended") {
+      setIsNotEnoughMoviesDialogOpen(true);
+      return;
+    }
+
+    if (kombatStartRequirement.status === "above-maximum") {
+      setIsTooManyMoviesDialogOpen(true);
+      return;
+    }
+
+    handleStartKombat();
+  };
+
+  const handleConfirmRandomSelection = () => {
+    setMovieList((currentMovies) => selectRandomMovies(currentMovies, MAX_KOMBAT_MOVIES));
+    setIsTooManyMoviesDialogOpen(false);
+    setShouldAutoStartKombat(true);
+  };
+
+  const handleCompletePreferences = () => {
+    if (!selectedRegion) {
+      return;
+    }
+
+    if (selectedProviderIds.length === 0) {
+      return;
+    }
+
+    completePreferences();
+  };
+
+  if (!hasCompletedPreferences) {
+    return (
+      <InitialPreferencesScreen
+        ui={ui}
+        filteredRegions={filteredRegions}
+        providers={providers}
+        selectedRegion={selectedRegion}
+        selectedProviderIds={selectedProviderIds}
+        setSelectedRegion={setSelectedRegion}
+        toggleSelectedProvider={toggleSelectedProvider}
+        searchLanguage={searchLanguage}
+        setSearchLanguage={setSearchLanguage}
+        onCompletePreferences={handleCompletePreferences}
+      />
+    );
+  }
+
   return (
     <>
-      <ApiKeyModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        tmdbApiKey={tmdbApiKey}
-        setTmdbApiKey={setTmdbApiKey}
-        searchLanguage={searchLanguage}
-      />
-
       <Dialog
         open={isConfirmDialogOpen}
         onClose={() => setIsConfirmDialogOpen(false)}
@@ -181,68 +248,209 @@ function App() {
         <p>{ui.startNewKombatWarning}</p>
       </Dialog>
 
-      <div className="min-h-screen flex flex-col">
-        <header className="flex items-center justify-between p-4 bg-gray-800 text-white">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2">
+      <Dialog
+        open={isNotEnoughMoviesDialogOpen}
+        onClose={() => setIsNotEnoughMoviesDialogOpen(false)}
+        title={ui.needMoreMoviesTitle(
+          kombatStartRequirement.status === "below-minimum"
+            ? Math.max(0, MIN_KOMBAT_MOVIES - movieList.length)
+            : Math.max(0, MAX_KOMBAT_MOVIES - movieList.length)
+        )}
+        onCancel={() => setIsNotEnoughMoviesDialogOpen(false)}
+        cancelText={ui.understood}
+      />
+
+      <Dialog
+        open={isTooManyMoviesDialogOpen}
+        onClose={() => setIsTooManyMoviesDialogOpen(false)}
+        title={ui.tooManyMoviesTitle}
+        onConfirm={handleConfirmRandomSelection}
+        onCancel={() => setIsTooManyMoviesDialogOpen(false)}
+        confirmText={ui.tooManyMoviesConfirm}
+        cancelText={ui.cancel}
+      >
+        <p>{ui.tooManyMoviesMessage}</p>
+      </Dialog>
+
+      <div className="min-h-screen flex flex-col pb-24">
+        <header className="flex items-center justify-between gap-2 p-3 sm:p-4 bg-gray-800 text-white">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <Link to="/" className="flex items-center gap-2 min-w-0">
               <img
                 src={movieKombatLogo}
                 alt="Movie Kombat Logo"
-                className="h-8 w-8"
+                className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0"
               />
-              <h1 className="text-2xl font-bold">Movie Kombat</h1>
+              <h1 className="hidden sm:block text-xl sm:text-2xl font-bold truncate max-w-[140px] sm:max-w-none">Movie Kombat</h1>
             </Link>
 
-            {/* API Configuration button */}
-            <button
-              onClick={() => setIsModalOpen(true)}
-              title={ui.configureApiKeys}
-              className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300"
-            >
-              <span className="inline-block" aria-label="settings">
-                ⚙️
-              </span>
-            </button>
           </div>
 
-          <button
-            onClick={togglePostersVisibility}
-            title={arePostersVisible ? ui.blindPosters : ui.showPosters}
-            className="p-2 rounded-full hover:bg-gray-700 transition-colors text-slate-300 btn-primary"
-          >
-            {arePostersVisible ? (
-              <span className="inline-block" aria-label="star">
-                <img src={EyeCloseIcon} className="w-6 h-6 dark:invert" />
-              </span>
-            ) : (
-              <span className="inline-block" aria-label="star">
-                <img src={EyeOpenIcon} className="w-6 h-6 dark:invert" />
-              </span>
-            )}
-          </button>
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <button
+              onClick={togglePostersVisibility}
+              title={arePostersVisible ? ui.blindPosters : ui.showPosters}
+              className="h-14 w-14 p-0 inline-flex items-center justify-center rounded-full bg-gray-700 hover:bg-gray-600 transition-colors text-slate-200 border border-gray-600"
+            >
+              {arePostersVisible ? (
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="block w-7 h-7 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7" />
+                  <path d="M9.9 9.9a3 3 0 1 0 4.2 4.2" />
+                  <path d="M3 3l18 18" />
+                </svg>
+              ) : (
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="block w-7 h-7 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
+            </button>
 
-          <Button
-            variant="success"
-            size="small"
-            fullWidth={true}
-            icon={
-              <span className="inline-block" aria-label="star">
-                <img src={KombatIcon} className="w-4 h-4" />
-              </span>
-            }
-            onClick={handleStartKombat}
-            disabled={
-              movieList.length <= 3 ||
-              (movieList.length & (movieList.length - 1)) !== 0
-            } // Disable if not a power of 2 or empty
-          >
-            {ui.startKombat}
-            {movieList.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                {movieList.length}
-              </span>
-            )}
-          </Button>
+            <div className="relative" ref={countryDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsCountryDropdownOpen(!isCountryDropdownOpen)}
+                className="w-[138px] sm:w-[180px] bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-2.5 sm:px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {(() => {
+                    const FlagComponent = getFlagComponent(selectedRegion);
+                    const region = regions.find((r) => r.iso_3166_1 === selectedRegion);
+                    return (
+                      <>
+                        {FlagComponent && <FlagComponent className="w-4 h-3 object-cover rounded-sm" />}
+                        <span className="truncate">{region?.english_name || selectedRegion}</span>
+                      </>
+                    );
+                  })()}
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${isCountryDropdownOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isCountryDropdownOpen && (
+                <div className="absolute right-0 z-10 w-full mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {filteredRegions.map((region) => {
+                    const FlagComponent = getFlagComponent(region.iso_3166_1);
+                    return (
+                      <button
+                        key={region.iso_3166_1}
+                        type="button"
+                        onClick={() => {
+                          setSelectedRegion(region.iso_3166_1);
+                          setIsCountryDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 hover:bg-gray-600 flex items-center gap-2 ${
+                          selectedRegion === region.iso_3166_1 ? "bg-blue-900/30" : ""
+                        }`}
+                      >
+                        {FlagComponent && (
+                          <FlagComponent className="w-4 h-3 object-cover rounded-sm flex-shrink-0" />
+                        )}
+                        <span className="text-sm text-white">{region.english_name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="relative" ref={platformDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsPlatformDropdownOpen(!isPlatformDropdownOpen)}
+                className="w-[112px] sm:w-[150px] bg-gray-700 border border-gray-600 text-white text-sm rounded-lg px-2.5 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between gap-2"
+                title={selectedProviderNames.length > 0
+                  ? selectedProviderNames.map((provider) => provider.provider_name).join(', ')
+                  : ui.platformPlaceholder}
+              >
+                <div className="flex min-w-0 items-center gap-1">
+                  {selectedProviderNames.length > 0 ? (
+                    selectedProviderNames.slice(0, 3).map((provider) => (
+                      <ProviderLogo
+                        key={provider.provider_id}
+                        logoPath={provider.logo_path}
+                        providerName={provider.provider_name}
+                        className="w-4 h-4 flex-shrink-0"
+                      />
+                    ))
+                  ) : (
+                    <span className="truncate text-xs text-slate-300">{ui.platform}</span>
+                  )}
+                  {selectedProviderNames.length > 3 && (
+                    <span className="text-[10px] font-semibold text-slate-300">+{selectedProviderNames.length - 3}</span>
+                  )}
+                </div>
+                <svg
+                  className={`w-4 h-4 transition-transform ${isPlatformDropdownOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isPlatformDropdownOpen && (
+                <div className="absolute right-0 z-10 w-[280px] max-w-[calc(100vw-2rem)] mt-1 bg-gray-700 border border-gray-600 rounded-lg shadow-lg">
+                  <div className="px-3 py-2 border-b border-gray-600 text-xs text-slate-300">
+                    {ui.selectedPlatforms}: {selectedProviderIds.length}/{providers.length}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto p-2">
+                    <div className="flex flex-wrap gap-2">
+                      {providers.map((provider) => {
+                        const isSelected = selectedProviderIds.includes(provider.provider_id);
+                        return (
+                          <button
+                            key={provider.provider_id}
+                            type="button"
+                            onClick={() => toggleSelectedProvider(provider.provider_id)}
+                            title={provider.provider_name}
+                            aria-label={provider.provider_name}
+                            className={`inline-flex items-center justify-center rounded-full border p-2 text-xs transition-colors ${
+                              isSelected
+                                ? 'border-blue-500 bg-blue-600 text-white'
+                                : 'border-gray-500 bg-gray-800 text-slate-200 hover:bg-gray-600'
+                            }`}
+                          >
+                            <ProviderLogo
+                              logoPath={provider.logo_path}
+                              providerName={provider.provider_name}
+                              className="w-4 h-4 flex-shrink-0"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </header>
 
         <main className="flex-1">
@@ -266,9 +474,63 @@ function App() {
                 <img src={tmdbLogo} alt="TMDB" className="h-4 w-auto" />
               </a>
             </div>
+            <div className="flex items-center gap-1">
+              <span className="mr-1">{ui.appLanguage}</span>
+              <button
+                onClick={() => setSearchLanguage('en-US')}
+                className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
+                  searchLanguage === 'en-US'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => setSearchLanguage('es-ES')}
+                className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
+                  searchLanguage === 'es-ES'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                Español
+              </button>
+            </div>
             <p className="hidden md:block text-right">{ui.tmdbAttribution}</p>
           </div>
         </footer>
+
+        {location.pathname !== "/kombat" && (
+          <button
+            onClick={handleStartButtonClick}
+            aria-label={ui.startKombat}
+            title={ui.startKombat}
+            className={`fixed bottom-6 right-6 z-50 inline-flex h-20 w-20 flex-col items-center justify-center rounded-full text-white transition ${
+              canStartKombat
+                ? "bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.95),0_0_42px_rgba(16,185,129,0.65)] animate-pulse"
+                : canProceedToKombat
+                  ? "bg-emerald-500 hover:bg-emerald-400 shadow-xl"
+                  : "bg-slate-500/55 hover:bg-slate-500/65 shadow-lg backdrop-blur-sm"
+            }`}
+          >
+            <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-black/20">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="h-5 w-5 fill-current"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+            <span className="mt-1 text-[10px] font-black tracking-[0.12em]">START</span>
+            {movieList.length > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-pink-500 px-1 text-xs font-bold text-white">
+                {movieList.length}
+              </span>
+            )}
+          </button>
+        )}
       </div>
     </>
   );

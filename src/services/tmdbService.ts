@@ -41,8 +41,26 @@ export interface Region {
   native_name: string;
 }
 
+export interface WatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+  display_priority?: number;
+}
+
+interface WatchProviderRegionResult {
+  flatrate?: WatchProvider[];
+  rent?: WatchProvider[];
+  buy?: WatchProvider[];
+}
+
+interface WatchProvidersResponse {
+  id: number;
+  results: Record<string, WatchProviderRegionResult>;
+}
+
 // TMDB API configuration
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+const TMDB_PROXY_BASE_URL = '/api';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 // Utility functions to work with static data
@@ -85,10 +103,53 @@ export const getProviderByName = (name: string): Provider | undefined => {
 
 // Popular streaming providers for quick selection
 export const getPopularProviders = (): Provider[] => {
-  const popularProviderIds = [8, 119, 337, 350, 384, 63]; // Netflix, Amazon Prime, Disney+, Apple TV+, HBO Max
+  const popularProviderIds = [8, 119, 337, 350, 63]; // Netflix, Amazon Prime, Disney+, Apple TV+, Filmin
   return popularProviderIds
     .map(id => getProviderById(id))
     .filter((provider): provider is Provider => provider !== undefined);
+};
+
+const DISCOVER_PROVIDER_IDS = new Set<number>([8, 63, 119, 337, 350]);
+
+const pickAllowedProviders = (providers: WatchProvider[] = []): WatchProvider[] => {
+  const unique = new Map<number, WatchProvider>();
+  for (const provider of providers) {
+    if (DISCOVER_PROVIDER_IDS.has(provider.provider_id) && !unique.has(provider.provider_id)) {
+      unique.set(provider.provider_id, provider);
+    }
+  }
+  return Array.from(unique.values());
+};
+
+export const getMovieProvidersForRegion = async (
+  movieId: number,
+  region: string
+): Promise<WatchProvider[]> => {
+  const params = new URLSearchParams({
+    region: region.toUpperCase()
+  });
+  const url = `${TMDB_PROXY_BASE_URL}/movie/${movieId}/watch/providers?${params.toString()}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
+  }
+
+  const data: WatchProvidersResponse = await response.json();
+  const normalizedRegion = region.toUpperCase();
+  const regionalProviders = data.results?.[normalizedRegion];
+  if (!regionalProviders) {
+    return [];
+  }
+
+  const mergedProviders = [
+    ...(regionalProviders.flatrate || []),
+    ...(regionalProviders.rent || []),
+    ...(regionalProviders.buy || []),
+  ];
+
+  return pickAllowedProviders(mergedProviders);
 };
 
 // Convert TMDB poster path to full URL
@@ -99,9 +160,10 @@ export const getTMDBImageUrl = (posterPath: string | null): string | null => {
 
 // Discover movies by genre, provider, and country/region
 export const discoverMovies = async (
-  bearerToken: string,
   options: {
+    genreIds?: number[];
     genreId?: number;
+    providerIds?: number[];
     providerId?: number;
     region?: string; // ISO 3166-1 country code (e.g., 'ES' for Spain, 'US' for United States)
     page?: number;
@@ -111,7 +173,9 @@ export const discoverMovies = async (
   }
 ): Promise<TMDBDiscoverResponse> => {
   const {
+    genreIds,
     genreId,
+    providerIds,
     providerId,
     region = 'ES', // Default to Spain
     page = 1,
@@ -128,24 +192,31 @@ export const discoverMovies = async (
     include_video: 'false'
   });
 
-  if (genreId) {
-    params.append('with_genres', genreId.toString());
+  const normalizedGenreIds = genreIds && genreIds.length > 0
+    ? genreIds
+    : genreId
+      ? [genreId]
+      : [];
+
+  if (normalizedGenreIds.length > 0) {
+    params.append('with_genres', normalizedGenreIds.join('|'));
   }
 
-  if (providerId && region) {
+  const normalizedProviderIds = providerIds && providerIds.length > 0
+    ? providerIds
+    : providerId
+      ? [providerId]
+      : [];
+
+  if (normalizedProviderIds.length > 0 && region) {
     params.append('watch_region', region);
-    params.append('with_watch_providers', providerId.toString());
+    params.append('with_watch_providers', normalizedProviderIds.join('|'));
   }
 
-  const url = `${TMDB_BASE_URL}/discover/movie?${params.toString()}`;
+  const url = `${TMDB_PROXY_BASE_URL}/discover/movie?${params.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
@@ -201,19 +272,14 @@ export interface TMDBMovieDetails {
 
 // Get movie details by TMDB ID
 export const getMovieDetails = async (
-  bearerToken: string,
   movieId: number,
   language: string = 'en-US'
 ): Promise<TMDBMovieDetails> => {
-  const url = `${TMDB_BASE_URL}/movie/${movieId}?language=${language}`;
+  const params = new URLSearchParams({ language });
+  const url = `${TMDB_PROXY_BASE_URL}/movie/${movieId}?${params.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
@@ -228,27 +294,21 @@ export const getMovieDetails = async (
 
 // Search for movies by title
 export const searchMovies = async (
-  bearerToken: string,
   query: string,
   page: number = 1,
   language: string = 'en-US'
 ): Promise<TMDBDiscoverResponse> => {
   const params = new URLSearchParams({
     language: language,
-    query: encodeURIComponent(query),
+    query,
     page: page.toString(),
     include_adult: 'false'
   });
 
-  const url = `${TMDB_BASE_URL}/search/movie?${params.toString()}`;
+  const url = `${TMDB_PROXY_BASE_URL}/search/movie?${params.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);

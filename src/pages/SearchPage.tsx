@@ -4,9 +4,8 @@ import { useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import Dialog from "../components/Dialog";
-import CategorySelector from "../components/CategorySelector";
 import TMDBCategorySelector from "../components/TMDBCategorySelector";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import arrowsExpandIcon from "../assets/arrows-angle-expand.svg";
 import arrowsContractIcon from "../assets/arrows-angle-contract.svg";
 import { getPlaceholder } from "../utils/placeholderUtils";
@@ -19,6 +18,7 @@ import {
 } from "../services/localMovieCollectionsService";
 
 const COLLECTION_SIZE = 16;
+const COLLECTION_LOOKUP_CONCURRENCY = 4;
 
 const LoadingSpinner = () => (
   <div role="status" className="flex justify-center items-center">
@@ -43,15 +43,13 @@ const LoadingSpinner = () => (
 );
 
 export default function SearchPage() {
-  const navigate = useNavigate();
-  const { addMovie, movieList, removeMovie, tmdbApiKey, searchLanguage, setSearchLanguage, setMovieList } = useMovies();
+  const { addMovie, movieList, removeMovie, searchLanguage, setMovieList } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasRestoredFromUrl = useRef(false);
   const previousLanguage = useRef(searchLanguage);
   const isSpanish = searchLanguage === "es-ES";
   const ui = isSpanish
     ? {
-        tmdbApiRequired: "Se requiere la API key de TMDB. Configurala en ajustes.",
         loadFromUrlError: "No se pudo cargar la lista de peliculas desde la URL.",
         movieNotFound: "Pelicula no encontrada",
         unexpectedError: "Ocurrio un error inesperado: ",
@@ -68,10 +66,10 @@ export default function SearchPage() {
         myAddedMovies: "Mis peliculas agregadas",
         deleteMovies: "Eliminar peliculas",
         refreshTitlesError: "No se pudieron actualizar los titulos al cambiar el idioma.",
+        searchLanguageHint: "Busca títulos de películas en español.",
         localCollections: "Colecciones de Películas",
         loadCollection: "Cargar coleccion",
         loadingCollection: "Cargando coleccion...",
-        collectionNeedsApiKey: "Necesitas configurar TMDB para cargar una coleccion local.",
         collectionEmpty: "La coleccion no tiene suficientes peliculas.",
         collectionNotEnoughMatches:
           "No se pudieron encontrar 16 peliculas validas en TMDB para esta coleccion.",
@@ -80,7 +78,6 @@ export default function SearchPage() {
           "No se encontraron archivos .md en movies.",
       }
     : {
-        tmdbApiRequired: "TMDB API key is required. Please configure it in settings.",
         loadFromUrlError: "Failed to load movie list from URL.",
         movieNotFound: "Movie not found",
         unexpectedError: "An unexpected error occurred: ",
@@ -97,10 +94,10 @@ export default function SearchPage() {
         myAddedMovies: "My Added Movies",
         deleteMovies: "Delete Movies",
         refreshTitlesError: "Failed to refresh movie titles after language change.",
+        searchLanguageHint: "Search movie titles in English.",
         localCollections: "Movie Collections",
         loadCollection: "Load collection",
         loadingCollection: "Loading collection...",
-        collectionNeedsApiKey: "You need to configure TMDB before loading a local collection.",
         collectionEmpty: "This collection does not have enough movie titles.",
         collectionNotEnoughMatches:
           "Could not find 16 valid movies in TMDB for this collection.",
@@ -119,16 +116,14 @@ export default function SearchPage() {
     useState(false);
   const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState(false);
   const [isLocalCollectionsExpanded, setIsLocalCollectionsExpanded] = useState(false);
+  const [isLocalCollectionsVisible, setIsLocalCollectionsVisible] = useState(false);
+  const [isLocalCollectionsClosing, setIsLocalCollectionsClosing] = useState(false);
   const [activeCollectionId, setActiveCollectionId] = useState<string | null>(null);
   const addedMoviesRef = useRef<HTMLDivElement>(null);
   const localCollections = useMemo(() => loadLocalMovieCollections(), []);
 
   async function handleLoadLocalCollection(collection: LocalMovieCollection) {
-    if (!tmdbApiKey) {
-      setError(ui.collectionNeedsApiKey);
-      return;
-    }
-
+    setIsLocalCollectionsExpanded(false);
     setIsLoading(true);
     setError(null);
     setActiveCollectionId(collection.id);
@@ -142,33 +137,71 @@ export default function SearchPage() {
 
       const shuffledTitles = shuffle(titles);
       const foundMovies: Movie[] = [];
-      const foundIds = new Set<string>();
+      const foundIds = new Set<string>(movieList.map((movie) => movie.imdbID));
+      const addedFromCollection = new Set<string>();
       const notFound: string[] = [];
+      let nextTitleIndex = 0;
+      const getNextTitle = () => {
+        if (nextTitleIndex >= shuffledTitles.length) {
+          return null;
+        }
 
-      for (const title of shuffledTitles) {
-        if (foundMovies.length >= COLLECTION_SIZE) break;
+        const nextTitle = shuffledTitles[nextTitleIndex];
+        nextTitleIndex += 1;
+        return nextTitle;
+      };
 
-        try {
-          const response = await searchMovies(tmdbApiKey, title, 1, searchLanguage);
-          if (response.results && response.results.length > 0) {
-            const convertedMovie = convertTMDBToAppMovie(response.results[0]);
-            if (convertedMovie.Poster === "N/A") {
-              convertedMovie.Poster = getPlaceholder();
+      const worker = async () => {
+        while (true) {
+          if (foundMovies.length >= COLLECTION_SIZE) {
+            return;
+          }
+
+          const title = getNextTitle();
+          if (!title) {
+            return;
+          }
+
+          try {
+            const response = await searchMovies(title, 1, searchLanguage);
+            if (response.results && response.results.length > 0) {
+              const convertedMovie = convertTMDBToAppMovie(response.results[0]);
+              if (convertedMovie.Poster === "N/A") {
+                convertedMovie.Poster = getPlaceholder();
+              }
+
+              if (
+                foundMovies.length < COLLECTION_SIZE &&
+                !foundIds.has(convertedMovie.imdbID)
+              ) {
+                foundIds.add(convertedMovie.imdbID);
+                foundMovies.push(convertedMovie);
+                addedFromCollection.add(convertedMovie.imdbID);
+                setMovieList((prevMovies) => [...prevMovies, convertedMovie]);
+              }
+            } else {
+              notFound.push(title);
             }
-
-            if (!foundIds.has(convertedMovie.imdbID)) {
-              foundIds.add(convertedMovie.imdbID);
-              foundMovies.push(convertedMovie);
-            }
-          } else {
+          } catch {
             notFound.push(title);
           }
-        } catch {
-          notFound.push(title);
         }
-      }
+      };
+
+      const workerCount = Math.min(
+        COLLECTION_LOOKUP_CONCURRENCY,
+        shuffledTitles.length
+      );
+      await Promise.all(
+        Array.from({ length: workerCount }, () => worker())
+      );
 
       if (foundMovies.length < COLLECTION_SIZE) {
+        if (addedFromCollection.size > 0) {
+          setMovieList((prevMovies) =>
+            prevMovies.filter((movie) => !addedFromCollection.has(movie.imdbID))
+          );
+        }
         setError(ui.collectionNotEnoughMatches);
         if (notFound.length > 0) {
           setNotFoundMovies(notFound.slice(0, 20));
@@ -178,13 +211,11 @@ export default function SearchPage() {
         return;
       }
 
-      setMovieList(foundMovies);
       if (notFound.length > 0) {
         setNotFoundMovies(notFound.slice(0, 20));
         setIsCollectionNotFoundDialog(true);
         setIsNotFoundDialogOpen(true);
       }
-      navigate("/kombat");
     } catch {
       setError(ui.loadFromUrlError);
     } finally {
@@ -194,10 +225,27 @@ export default function SearchPage() {
   }
 
   useEffect(() => {
+    if (isLocalCollectionsExpanded) {
+      setIsLocalCollectionsVisible(true);
+      setIsLocalCollectionsClosing(false);
+      return;
+    }
+
+    if (!isLocalCollectionsVisible) return;
+
+    setIsLocalCollectionsClosing(true);
+    const timeout = window.setTimeout(() => {
+      setIsLocalCollectionsVisible(false);
+      setIsLocalCollectionsClosing(false);
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [isLocalCollectionsExpanded, isLocalCollectionsVisible]);
+
+  useEffect(() => {
     if (hasRestoredFromUrl.current) return;
 
     const idsParam = searchParams.get("ids");
-    if (!tmdbApiKey) return;
     if (!idsParam || movieList.length > 0) {
       hasRestoredFromUrl.current = true;
       return;
@@ -222,7 +270,7 @@ export default function SearchPage() {
       try {
         const loadedMovies = await Promise.all(
           ids.map(async (id) => {
-            const details = await getMovieDetails(tmdbApiKey, id, searchLanguage);
+            const details = await getMovieDetails(id, searchLanguage);
             return {
               imdbID: `tmdb_${details.id}`,
               Title: details.title,
@@ -243,7 +291,7 @@ export default function SearchPage() {
     };
 
     loadMoviesFromUrl();
-  }, [tmdbApiKey, searchLanguage, searchParams, movieList.length, setMovieList, ui.loadFromUrlError]);
+  }, [searchLanguage, searchParams, movieList.length, setMovieList, ui.loadFromUrlError]);
 
   useEffect(() => {
     const tmdbIds = movieList
@@ -273,7 +321,7 @@ export default function SearchPage() {
     if (previousLanguage.current === searchLanguage) return;
     previousLanguage.current = searchLanguage;
 
-    if (!tmdbApiKey || movieList.length === 0) return;
+    if (movieList.length === 0) return;
 
     const updateTitlesForLanguage = async () => {
       setIsLoading(true);
@@ -287,7 +335,7 @@ export default function SearchPage() {
             if (!Number.isFinite(tmdbId)) return movie;
 
             try {
-              const details = await getMovieDetails(tmdbApiKey, tmdbId, searchLanguage);
+              const details = await getMovieDetails(tmdbId, searchLanguage);
               return {
                 ...movie,
                 Title: details.title || movie.Title,
@@ -311,7 +359,7 @@ export default function SearchPage() {
     };
 
     updateTitlesForLanguage();
-  }, [searchLanguage, tmdbApiKey, movieList, setMovieList, ui.refreshTitlesError]);
+  }, [searchLanguage, movieList, setMovieList, ui.refreshTitlesError]);
   // This logic is for the search results preview (top 4 results)
   useEffect(() => {
     if (useTextarea) return;
@@ -321,15 +369,11 @@ export default function SearchPage() {
       return;
     }
     const fetchMovie = async () => {
-      if (!tmdbApiKey) {
-        setError(ui.tmdbApiRequired);
-        return;
-      }
       setIsLoading(true);
       setError(null);
       setSearchedMovies([]);
       try {
-        const response = await searchMovies(tmdbApiKey, searchTerm, 1, searchLanguage);
+        const response = await searchMovies(searchTerm, 1, searchLanguage);
         if (response.results && response.results.length > 0) {
           // Get top 4 results
           const topResults = response.results.slice(0, 4);
@@ -352,7 +396,7 @@ export default function SearchPage() {
     };
     const timerId = setTimeout(fetchMovie, 500);
     return () => clearTimeout(timerId);
-  }, [searchTerm, tmdbApiKey, useTextarea, searchLanguage, ui.movieNotFound, ui.tmdbApiRequired, ui.unexpectedError]);
+  }, [searchTerm, useTextarea, searchLanguage, ui.movieNotFound, ui.unexpectedError]);
 
   function handleAddMovie(movie: Movie) {
     // Add the selected movie to the list
@@ -363,10 +407,6 @@ export default function SearchPage() {
   }
 
   async function handleTextareaSearch() {
-    if (!tmdbApiKey) {
-      setError(ui.tmdbApiRequired);
-      return;
-    }
     const titles = searchTerm
       .split("\n")
       .map((t) => t.trim())
@@ -379,7 +419,7 @@ export default function SearchPage() {
 
     for (const title of titles) {
       try {
-        const response = await searchMovies(tmdbApiKey, title, 1, searchLanguage);
+        const response = await searchMovies(title, 1, searchLanguage);
         if (response.results && response.results.length > 0) {
           const tmdbMovie = response.results[0];
           const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
@@ -423,10 +463,6 @@ export default function SearchPage() {
     }
 
     // Handle string titles (from old selector)
-    if (!tmdbApiKey) {
-      setError(ui.tmdbApiRequired);
-      return;
-    }
     const movieTitles = movieData as string[];
     
     setIsLoading(true);
@@ -435,7 +471,7 @@ export default function SearchPage() {
 
     for (const title of movieTitles) {
       try {
-        const response = await searchMovies(tmdbApiKey, title, 1, searchLanguage);
+        const response = await searchMovies(title, 1, searchLanguage);
         if (response.results && response.results.length > 0) {
           const tmdbMovie = response.results[0];
           const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
@@ -518,8 +554,14 @@ export default function SearchPage() {
             </div>
           </button>
 
-          {isLocalCollectionsExpanded && (
-            <div className="px-6 pb-6">
+          {isLocalCollectionsVisible && (
+            <div
+              className={`px-6 pb-6 transition-all duration-250 ease-in-out ${
+                isLocalCollectionsClosing
+                  ? 'max-h-0 opacity-0 overflow-hidden'
+                  : 'max-h-[2000px] opacity-100'
+              }`}
+            >
               {localCollections.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">{ui.noCollectionsFound}</p>
               ) : (
@@ -537,11 +579,14 @@ export default function SearchPage() {
                         }}
                       >
                         {/* Background Image */}
-                        {collection.image ? (
+                        {collection.image || collection.localImage ? (
                           <img
-                            src={collection.image}
+                            src={collection.localImage || collection.image}
                             alt={collection.title}
                             className="absolute inset-0 w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 22vw, 18vw"
                           />
                         ) : (
                           <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-purple-900" />
@@ -595,47 +640,13 @@ export default function SearchPage() {
  
 
       {/* Movie discovery options */}
-      {tmdbApiKey ? (
-        // TMDB-powered discovery (preferred when API key is available)
-        <TMDBCategorySelector 
-          onSelectMovies={handleSelectMovies} 
-          tmdbBearerToken={tmdbApiKey}
-          isExpanded={isDiscoveryExpanded}
-          onToggleExpanded={setIsDiscoveryExpanded}
-        />
-      ) : (
-        // Fallback to static category selector
-        <CategorySelector 
-          onSelectMovies={handleSelectMovies}
-          tmdbBearerToken={tmdbApiKey} 
-        />
-      )}
+      <TMDBCategorySelector 
+        onSelectMovies={handleSelectMovies}
+        isExpanded={isDiscoveryExpanded}
+        onToggleExpanded={setIsDiscoveryExpanded}
+      />
 
       <div className="max-w-xl mx-auto px-4">
-        {/* Language Selector */}
-        <div className="flex justify-center gap-2 mt-6 mb-4">
-          <button
-            onClick={() => setSearchLanguage('en-US')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              searchLanguage === 'en-US'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            English
-          </button>
-          <button
-            onClick={() => setSearchLanguage('es-ES')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              searchLanguage === 'es-ES'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            Español
-          </button>
-        </div>
-
         <div className="mt-4">
           {!useTextarea ? (
             <div className="relative">
@@ -683,6 +694,9 @@ export default function SearchPage() {
             </div>
           )}
         </div>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          {ui.searchLanguageHint}
+        </p>
         {useTextarea && (
           <div className="flex justify-center mt-2">
             <Button
