@@ -199,7 +199,7 @@ function App() {
   };
 
   const handleConfirmRandomSelection = () => {
-    setMovieList(selectRandomMovies(movieList, MAX_KOMBAT_MOVIES));
+    setMovieList((currentMovies) => selectRandomMovies(currentMovies, MAX_KOMBAT_MOVIES));
     setIsTooManyMoviesDialogOpen(false);
     setShouldAutoStartKombat(true);
   };
