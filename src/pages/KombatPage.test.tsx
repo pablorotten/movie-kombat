@@ -187,6 +187,14 @@ describe('KombatPage fight animation flow', () => {
     expect(screen.getByText('FATALITY!')).toBeInTheDocument()
   })
 
+  it('scrolls to the top when the Kombat page mounts', () => {
+    const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
+
+    renderKombatPage()
+
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'auto' })
+  })
+
   it('cleans timers on unmount without throwing', () => {
     const { unmount } = renderKombatPage()
 

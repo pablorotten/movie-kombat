@@ -211,6 +211,8 @@ export default function SearchPage() {
         setIsCollectionNotFoundDialog(true);
         setIsNotFoundDialogOpen(true);
       }
+
+      setIsLocalCollectionsExpanded(false);
     } catch {
       setError(ui.loadFromUrlError);
     } finally {
