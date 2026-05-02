@@ -14,6 +14,7 @@ interface InitialPreferencesUi {
   onboardingPlatformHint: string;
   onboardingPlatformError: string;
   onboardingCountryError: string;
+  appLanguage: string;
 }
 
 interface InitialPreferencesScreenProps {
@@ -24,6 +25,8 @@ interface InitialPreferencesScreenProps {
   selectedProviderIds: number[];
   setSelectedRegion: (region: string) => void;
   toggleSelectedProvider: (providerId: number) => void;
+  searchLanguage: string;
+  setSearchLanguage: (language: string) => void;
   onCompletePreferences: () => void;
 }
 
@@ -35,6 +38,8 @@ export default function InitialPreferencesScreen({
   selectedProviderIds,
   setSelectedRegion,
   toggleSelectedProvider,
+  searchLanguage,
+  setSearchLanguage,
   onCompletePreferences,
 }: InitialPreferencesScreenProps) {
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
@@ -134,6 +139,36 @@ export default function InitialPreferencesScreen({
               </p>
 
               <div className="mt-8 space-y-6">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-200">
+                    {ui.appLanguage}
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSearchLanguage('en-US')}
+                      className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                        searchLanguage === 'en-US'
+                          ? 'bg-cyan-400 text-slate-950'
+                          : 'border border-white/10 bg-black/20 text-white hover:border-cyan-400/60'
+                      }`}
+                    >
+                      English
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSearchLanguage('es-ES')}
+                      className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                        searchLanguage === 'es-ES'
+                          ? 'bg-cyan-400 text-slate-950'
+                          : 'border border-white/10 bg-black/20 text-white hover:border-cyan-400/60'
+                      }`}
+                    >
+                      Español
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-200">
                     {ui.country}

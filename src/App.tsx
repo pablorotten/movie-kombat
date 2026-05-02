@@ -226,6 +226,8 @@ function App() {
         selectedProviderIds={selectedProviderIds}
         setSelectedRegion={setSelectedRegion}
         toggleSelectedProvider={toggleSelectedProvider}
+        searchLanguage={searchLanguage}
+        setSearchLanguage={setSearchLanguage}
         onCompletePreferences={handleCompletePreferences}
       />
     );

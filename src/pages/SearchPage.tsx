@@ -66,6 +66,7 @@ export default function SearchPage() {
         myAddedMovies: "Mis peliculas agregadas",
         deleteMovies: "Eliminar peliculas",
         refreshTitlesError: "No se pudieron actualizar los titulos al cambiar el idioma.",
+        searchLanguageHint: "Busca títulos de películas en español.",
         localCollections: "Colecciones de Películas",
         loadCollection: "Cargar coleccion",
         loadingCollection: "Cargando coleccion...",
@@ -93,6 +94,7 @@ export default function SearchPage() {
         myAddedMovies: "My Added Movies",
         deleteMovies: "Delete Movies",
         refreshTitlesError: "Failed to refresh movie titles after language change.",
+        searchLanguageHint: "Search movie titles in English.",
         localCollections: "Movie Collections",
         loadCollection: "Load collection",
         loadingCollection: "Loading collection...",
@@ -692,6 +694,9 @@ export default function SearchPage() {
             </div>
           )}
         </div>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          {ui.searchLanguageHint}
+        </p>
         {useTextarea && (
           <div className="flex justify-center mt-2">
             <Button
