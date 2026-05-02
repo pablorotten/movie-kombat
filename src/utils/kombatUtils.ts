@@ -149,8 +149,6 @@ export const createInitialStages = (movies: Movie[]): BracketMatch[][] => {
 // Helper to get stage names
 export const getStageName = (stageIndex: number, totalStages: number): string => {
     const stagesFromFinal = totalStages - 1 - stageIndex;
-    if (stagesFromFinal === 0) return 'Final';
-    if (stagesFromFinal === 1) return 'Semi-Finals';
-    if (stagesFromFinal === 2) return 'Quarter-Finals';
-    return `Round ${stageIndex + 1}`;
+    if (stagesFromFinal === 0) return '👑';
+    return `1/${2 ** stagesFromFinal}`;
 }

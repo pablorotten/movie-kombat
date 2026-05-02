@@ -132,24 +132,28 @@ describe('selectRandomMovies', () => {
 })
 
 describe('getStageName', () => {
-  it('last stage → Final', () => {
-    expect(getStageName(0, 1)).toBe('Final')
-    expect(getStageName(1, 2)).toBe('Final')
-    expect(getStageName(2, 3)).toBe('Final')
+  it('last stage → crown', () => {
+    expect(getStageName(0, 1)).toBe('👑')
+    expect(getStageName(1, 2)).toBe('👑')
+    expect(getStageName(2, 3)).toBe('👑')
   })
 
-  it('second-to-last stage → Semi-Finals', () => {
-    expect(getStageName(0, 2)).toBe('Semi-Finals')
-    expect(getStageName(1, 3)).toBe('Semi-Finals')
+  it('semi-final stage → 1/2', () => {
+    expect(getStageName(0, 2)).toBe('1/2')
+    expect(getStageName(1, 3)).toBe('1/2')
   })
 
-  it('third-to-last stage → Quarter-Finals', () => {
-    expect(getStageName(0, 3)).toBe('Quarter-Finals')
-    expect(getStageName(1, 4)).toBe('Quarter-Finals')
+  it('quarter-final stage → 1/4', () => {
+    expect(getStageName(0, 3)).toBe('1/4')
+    expect(getStageName(1, 4)).toBe('1/4')
   })
 
-  it('earlier stages → Round N (1-indexed)', () => {
-    expect(getStageName(0, 4)).toBe('Round 1')
-    expect(getStageName(1, 5)).toBe('Round 2')
+  it('eighth-final stage → 1/8', () => {
+    expect(getStageName(0, 4)).toBe('1/8')
+  })
+
+  it('earlier stages use powers of two', () => {
+    expect(getStageName(0, 5)).toBe('1/16')
+    expect(getStageName(1, 6)).toBe('1/32')
   })
 })
