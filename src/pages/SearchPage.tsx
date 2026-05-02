@@ -114,11 +114,14 @@ export default function SearchPage() {
     useState(false);
   const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState(false);
   const [isLocalCollectionsExpanded, setIsLocalCollectionsExpanded] = useState(false);
+  const [isLocalCollectionsVisible, setIsLocalCollectionsVisible] = useState(false);
+  const [isLocalCollectionsClosing, setIsLocalCollectionsClosing] = useState(false);
   const [activeCollectionId, setActiveCollectionId] = useState<string | null>(null);
   const addedMoviesRef = useRef<HTMLDivElement>(null);
   const localCollections = useMemo(() => loadLocalMovieCollections(), []);
 
   async function handleLoadLocalCollection(collection: LocalMovieCollection) {
+    setIsLocalCollectionsExpanded(false);
     setIsLoading(true);
     setError(null);
     setActiveCollectionId(collection.id);
@@ -218,6 +221,24 @@ export default function SearchPage() {
       setActiveCollectionId(null);
     }
   }
+
+  useEffect(() => {
+    if (isLocalCollectionsExpanded) {
+      setIsLocalCollectionsVisible(true);
+      setIsLocalCollectionsClosing(false);
+      return;
+    }
+
+    if (!isLocalCollectionsVisible) return;
+
+    setIsLocalCollectionsClosing(true);
+    const timeout = window.setTimeout(() => {
+      setIsLocalCollectionsVisible(false);
+      setIsLocalCollectionsClosing(false);
+    }, 250);
+
+    return () => window.clearTimeout(timeout);
+  }, [isLocalCollectionsExpanded, isLocalCollectionsVisible]);
 
   useEffect(() => {
     if (hasRestoredFromUrl.current) return;
@@ -531,8 +552,14 @@ export default function SearchPage() {
             </div>
           </button>
 
-          {isLocalCollectionsExpanded && (
-            <div className="px-6 pb-6">
+          {isLocalCollectionsVisible && (
+            <div
+              className={`px-6 pb-6 transition-all duration-250 ease-in-out ${
+                isLocalCollectionsClosing
+                  ? 'max-h-0 opacity-0 overflow-hidden'
+                  : 'max-h-[2000px] opacity-100'
+              }`}
+            >
               {localCollections.length === 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">{ui.noCollectionsFound}</p>
               ) : (
