@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Movie } from "../types";
-import { useMovies } from "../context/MovieContext";
+import { MAX_MOVIES_IN_LIST, useMovies } from "../context/MovieContext";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import Dialog from "../components/Dialog";
@@ -54,6 +54,7 @@ export default function SearchPage() {
         movieNotFound: "Pelicula no encontrada",
         unexpectedError: "Ocurrio un error inesperado: ",
         moviesNotFoundTitle: "Peliculas no encontradas",
+        movieLimitTitle: "Limite alcanzado",
         moviesNotFoundDescription: "No se pudieron encontrar las siguientes peliculas:",
         close: "Cerrar",
         spellingHint: "Revisa la ortografia e intentalo de nuevo.",
@@ -76,12 +77,17 @@ export default function SearchPage() {
         collectionLoadedNotFound: "Algunos titulos no se encontraron:",
         noCollectionsFound:
           "No se encontraron archivos .md en movies.",
+        listFullWarning:
+          "Ya hay demasiadas peliculas (32). Borra algunas antes de agregar mas.",
+        listCappedWarning: (count: number) =>
+          `Solo se agregaron ${count} peliculas porque ya se alcanzaron 32 en la lista.`,
       }
     : {
         loadFromUrlError: "Failed to load movie list from URL.",
         movieNotFound: "Movie not found",
         unexpectedError: "An unexpected error occurred: ",
         moviesNotFoundTitle: "Movies Not Found",
+        movieLimitTitle: "Limit reached",
         moviesNotFoundDescription: "The following movies could not be found:",
         close: "Close",
         spellingHint: "Please check the spelling and try again.",
@@ -104,14 +110,21 @@ export default function SearchPage() {
         collectionLoadedNotFound: "Some titles were not found:",
         noCollectionsFound:
           "No .md files were found in movies.",
+        listFullWarning:
+          "There are already too many movies (32). Delete some before adding more.",
+        listCappedWarning: (count: number) =>
+          `Only ${count} movies were added because the list is already capped at 32.`,
       };
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovies, setSearchedMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+  const [movieLimitDialogMessage, setMovieLimitDialogMessage] = useState<string | null>(null);
   const [useTextarea, setUseTextarea] = useState(false);
   const [notFoundMovies, setNotFoundMovies] = useState<string[]>([]);
   const [isNotFoundDialogOpen, setIsNotFoundDialogOpen] = useState(false);
+  const [isMovieLimitDialogOpen, setIsMovieLimitDialogOpen] = useState(false);
   const [isCollectionNotFoundDialog, setIsCollectionNotFoundDialog] =
     useState(false);
   const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState(false);
@@ -122,15 +135,111 @@ export default function SearchPage() {
   const addedMoviesRef = useRef<HTMLDivElement>(null);
   const localCollections = useMemo(() => loadLocalMovieCollections(), []);
 
+  const showMovieLimitDialog = (message: string) => {
+    setMovieLimitDialogMessage(message);
+    setIsMovieLimitDialogOpen(true);
+  };
+
+  const getRemainingSlots = () => Math.max(0, MAX_MOVIES_IN_LIST - movieList.length);
+
+  const appendMoviesWithCap = (moviesToAppend: Movie[]) => {
+    if (moviesToAppend.length === 0) {
+      return 0;
+    }
+
+    let addedCount = 0;
+    setMovieList((prevMovies) => {
+      const remainingSlots = Math.max(0, MAX_MOVIES_IN_LIST - prevMovies.length);
+      if (remainingSlots === 0) {
+        return prevMovies;
+      }
+
+      const existingIds = new Set(prevMovies.map((movie) => movie.imdbID));
+      const uniqueMovies: Movie[] = [];
+      for (const movie of moviesToAppend) {
+        if (existingIds.has(movie.imdbID)) {
+          continue;
+        }
+
+        existingIds.add(movie.imdbID);
+        uniqueMovies.push(movie);
+
+        if (uniqueMovies.length >= remainingSlots) {
+          break;
+        }
+      }
+
+      addedCount = uniqueMovies.length;
+      if (uniqueMovies.length === 0) {
+        return prevMovies;
+      }
+
+      return [...prevMovies, ...uniqueMovies];
+    });
+
+    return addedCount;
+  };
+
+  async function addTitlesWithinCap(titles: string[]) {
+    let remainingSlots = getRemainingSlots();
+    const foundMovies: Movie[] = [];
+    const notFound: string[] = [];
+    const existingIds = new Set(movieList.map((movie) => movie.imdbID));
+    let processedTitles = 0;
+
+    for (const title of titles) {
+      if (remainingSlots <= 0) {
+        break;
+      }
+
+      processedTitles += 1;
+
+      try {
+        const response = await searchMovies(title, 1, searchLanguage);
+        if (response.results && response.results.length > 0) {
+          const tmdbMovie = response.results[0];
+          const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
+          if (convertedMovie.Poster === "N/A") {
+            convertedMovie.Poster = getPlaceholder();
+          }
+
+          if (!existingIds.has(convertedMovie.imdbID)) {
+            existingIds.add(convertedMovie.imdbID);
+            foundMovies.push(convertedMovie);
+            remainingSlots -= 1;
+          }
+        } else {
+          notFound.push(title);
+        }
+      } catch {
+        notFound.push(title);
+      }
+    }
+
+    const addedCount = appendMoviesWithCap(foundMovies);
+    const hitCap = remainingSlots === 0 && processedTitles < titles.length;
+    return { addedCount, notFound, hitCap };
+  }
+
   async function handleLoadLocalCollection(collection: LocalMovieCollection) {
     setIsLocalCollectionsExpanded(false);
-    setIsLoading(true);
     setError(null);
+    setWarning(null);
     setActiveCollectionId(collection.id);
 
+    const availableSlots = getRemainingSlots();
+    if (availableSlots === 0) {
+      showMovieLimitDialog(ui.listFullWarning);
+      setActiveCollectionId(null);
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
+      const targetCollectionSize = Math.min(COLLECTION_SIZE, availableSlots);
       const titles = collection.movieTitles;
-      if (titles.length < COLLECTION_SIZE) {
+      if (titles.length < targetCollectionSize) {
         setError(ui.collectionEmpty);
         return;
       }
@@ -138,7 +247,6 @@ export default function SearchPage() {
       const shuffledTitles = shuffle(titles);
       const foundMovies: Movie[] = [];
       const foundIds = new Set<string>(movieList.map((movie) => movie.imdbID));
-      const addedFromCollection = new Set<string>();
       const notFound: string[] = [];
       let nextTitleIndex = 0;
       const getNextTitle = () => {
@@ -153,7 +261,7 @@ export default function SearchPage() {
 
       const worker = async () => {
         while (true) {
-          if (foundMovies.length >= COLLECTION_SIZE) {
+          if (foundMovies.length >= targetCollectionSize) {
             return;
           }
 
@@ -171,12 +279,11 @@ export default function SearchPage() {
               }
 
               if (
-                foundMovies.length < COLLECTION_SIZE &&
+                foundMovies.length < targetCollectionSize &&
                 !foundIds.has(convertedMovie.imdbID)
               ) {
                 foundIds.add(convertedMovie.imdbID);
                 foundMovies.push(convertedMovie);
-                addedFromCollection.add(convertedMovie.imdbID);
                 setMovieList((prevMovies) => [...prevMovies, convertedMovie]);
               }
             } else {
@@ -190,18 +297,14 @@ export default function SearchPage() {
 
       const workerCount = Math.min(
         COLLECTION_LOOKUP_CONCURRENCY,
-        shuffledTitles.length
+        shuffledTitles.length,
+        targetCollectionSize
       );
       await Promise.all(
         Array.from({ length: workerCount }, () => worker())
       );
 
-      if (foundMovies.length < COLLECTION_SIZE) {
-        if (addedFromCollection.size > 0) {
-          setMovieList((prevMovies) =>
-            prevMovies.filter((movie) => !addedFromCollection.has(movie.imdbID))
-          );
-        }
+      if (foundMovies.length < targetCollectionSize) {
         setError(ui.collectionNotEnoughMatches);
         if (notFound.length > 0) {
           setNotFoundMovies(notFound.slice(0, 20));
@@ -215,6 +318,10 @@ export default function SearchPage() {
         setNotFoundMovies(notFound.slice(0, 20));
         setIsCollectionNotFoundDialog(true);
         setIsNotFoundDialogOpen(true);
+      }
+
+      if (targetCollectionSize < COLLECTION_SIZE && foundMovies.length > 0) {
+        setWarning(ui.listCappedWarning(foundMovies.length));
       }
     } catch {
       setError(ui.loadFromUrlError);
@@ -399,6 +506,13 @@ export default function SearchPage() {
   }, [searchTerm, useTextarea, searchLanguage, ui.movieNotFound, ui.unexpectedError]);
 
   function handleAddMovie(movie: Movie) {
+    setWarning(null);
+
+    if (getRemainingSlots() === 0) {
+      showMovieLimitDialog(ui.listFullWarning);
+      return;
+    }
+
     // Add the selected movie to the list
     addMovie(movie);
     // Clear search results and search term
@@ -413,30 +527,24 @@ export default function SearchPage() {
       .filter(Boolean);
     if (titles.length === 0) return;
 
+    setWarning(null);
+    if (getRemainingSlots() === 0) {
+      showMovieLimitDialog(ui.listFullWarning);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
-    const notFound: string[] = [];
+    const { addedCount, notFound, hitCap } = await addTitlesWithinCap(titles);
 
-    for (const title of titles) {
-      try {
-        const response = await searchMovies(title, 1, searchLanguage);
-        if (response.results && response.results.length > 0) {
-          const tmdbMovie = response.results[0];
-          const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
-          if (convertedMovie.Poster === 'N/A') {
-            convertedMovie.Poster = getPlaceholder();
-          }
-          addMovie(convertedMovie);
-        } else {
-          notFound.push(title);
-        }
-      } catch {
-        notFound.push(title);
-      }
-    }
     setIsLoading(false);
     setSearchTerm("");
     setUseTextarea(false);
+
+    if (hitCap && addedCount > 0) {
+      setWarning(ui.listCappedWarning(addedCount));
+    }
+
     if (notFound.length > 0) {
       setNotFoundMovies(notFound);
       setIsCollectionNotFoundDialog(false);
@@ -447,12 +555,23 @@ export default function SearchPage() {
   // Load movies from selected movie titles or movie objects (used by CategorySelector and TMDBCategorySelector)
   async function handleSelectMovies(movieData: string[] | Movie[]) {
     if (movieData.length === 0) return;
+    setWarning(null);
+
+    const availableSlots = getRemainingSlots();
+    if (availableSlots === 0) {
+      showMovieLimitDialog(ui.listFullWarning);
+      return;
+    }
 
     // Check if we received Movie objects (from TMDB) or strings (from old selector)
     if (typeof movieData[0] === 'object') {
       // Direct movie objects from TMDB selector
       const movies = movieData as Movie[];
-      movies.forEach(movie => addMovie(movie));
+      const addedCount = appendMoviesWithCap(movies);
+
+      if (availableSlots < COLLECTION_SIZE && addedCount > 0) {
+        setWarning(ui.listCappedWarning(addedCount));
+      }
       
       // Collapse the discovery card and scroll to added movies
       setIsDiscoveryExpanded(false);
@@ -467,27 +586,13 @@ export default function SearchPage() {
     
     setIsLoading(true);
     setError(null);
-    const notFound: string[] = [];
-
-    for (const title of movieTitles) {
-      try {
-        const response = await searchMovies(title, 1, searchLanguage);
-        if (response.results && response.results.length > 0) {
-          const tmdbMovie = response.results[0];
-          const convertedMovie = convertTMDBToAppMovie(tmdbMovie);
-          if (convertedMovie.Poster === 'N/A') {
-            convertedMovie.Poster = getPlaceholder();
-          }
-          addMovie(convertedMovie);
-        } else {
-          notFound.push(title);
-        }
-      } catch {
-        notFound.push(title);
-      }
-    }
+    const { addedCount, notFound, hitCap } = await addTitlesWithinCap(movieTitles);
 
     setIsLoading(false);
+    if (hitCap && addedCount > 0) {
+      setWarning(ui.listCappedWarning(addedCount));
+    }
+
     if (notFound.length > 0) {
       setNotFoundMovies(notFound);
       setIsCollectionNotFoundDialog(false);
@@ -529,6 +634,22 @@ export default function SearchPage() {
           ))}
         </ul>
         <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{ui.spellingHint}</p>
+      </Dialog>
+
+      <Dialog
+        open={isMovieLimitDialogOpen}
+        onClose={() => {
+          setIsMovieLimitDialogOpen(false);
+          setMovieLimitDialogMessage(null);
+        }}
+        title={ui.movieLimitTitle}
+        onCancel={() => {
+          setIsMovieLimitDialogOpen(false);
+          setMovieLimitDialogMessage(null);
+        }}
+        cancelText={ui.close}
+      >
+        <p className="mb-1">{movieLimitDialogMessage}</p>
       </Dialog>
 
       <section className="max-w-5xl mx-auto px-4 mt-6">
@@ -644,6 +765,7 @@ export default function SearchPage() {
         onSelectMovies={handleSelectMovies}
         isExpanded={isDiscoveryExpanded}
         onToggleExpanded={setIsDiscoveryExpanded}
+        maxMoviesToSelect={getRemainingSlots()}
       />
 
       <div className="max-w-xl mx-auto px-4">
@@ -717,6 +839,7 @@ export default function SearchPage() {
               <LoadingSpinner />
             </div>
           )}
+          {warning && <p className="text-amber-600 text-center">{warning}</p>}
           {error && <p className="text-red-500 text-center">{error}</p>}
           {searchedMovies.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">

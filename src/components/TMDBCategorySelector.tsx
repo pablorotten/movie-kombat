@@ -20,9 +20,15 @@ interface TMDBCategorySelectorProps {
   onSelectMovies: (movies: Movie[]) => void;
   isExpanded?: boolean;
   onToggleExpanded?: (expanded: boolean) => void;
+  maxMoviesToSelect?: number;
 }
 
-export default function TMDBCategorySelector({ onSelectMovies, isExpanded: controlledExpanded, onToggleExpanded }: TMDBCategorySelectorProps) {
+export default function TMDBCategorySelector({
+  onSelectMovies,
+  isExpanded: controlledExpanded,
+  onToggleExpanded,
+  maxMoviesToSelect,
+}: TMDBCategorySelectorProps) {
   const {
     searchLanguage,
     selectedRegion,
@@ -45,11 +51,12 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
         platform: 'Plataformas de streaming',
         loading: 'Cargando...',
         discoverButton: 'Descubrir peliculas',
-        willSelectUpTo: 'Se seleccionaran aleatoriamente hasta 16 peliculas de',
+        willSelectUpTo: 'Se seleccionaran aleatoriamente hasta',
         from: 'de',
         in: 'en',
         poweredByTmdb: 'Impulsado por TMDB',
         tmdbAttribution: 'Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.',
+        listFullWarning: 'Ya hay demasiadas peliculas (32). Borra algunas antes de agregar mas.',
       }
     : {
       selectGenreAndApi: 'Please select a genre to continue',
@@ -65,11 +72,12 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
         platform: 'Streaming Platforms',
         loading: 'Loading...',
         discoverButton: 'Discover Movies',
-        willSelectUpTo: 'Will randomly select up to 16',
+        willSelectUpTo: 'Will randomly select up to',
         from: 'from',
         in: 'in',
         poweredByTmdb: 'Powered by TMDB',
         tmdbAttribution: 'This product uses the TMDB API but is not endorsed or certified by TMDB.',
+        listFullWarning: 'There are already too many movies (32). Delete some before adding more.',
       };
   const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -109,8 +117,14 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
   const [genres] = useState<Genre[]>(getGenres());
   const [providers] = useState<Provider[]>(getPopularProviders());
   const [regions] = useState<Region[]>(getRegions());
+  const targetSelectionCount = Math.min(16, Math.max(0, maxMoviesToSelect ?? 16));
 
   const handleLoadMovies = async () => {
+    if (targetSelectionCount <= 0) {
+      setError(ui.listFullWarning);
+      return;
+    }
+
     if (selectedGenreIds.length === 0) {
       setError(ui.selectGenreAndApi);
       return;
@@ -137,8 +151,9 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
     console.log(`Loading ${genreNames.join(', ')} movies from ${providerNames.join(', ')} in ${countryName} (${selectedRegion})`);
 
     try {
-      // Fetch multiple pages to get more variety
-      const requests = [1, 2, 3].map(page => 
+      // Only request extra pages when we can actually add a full discover batch.
+      const pagesToLoad = targetSelectionCount >= 16 ? [1, 2, 3] : [1];
+      const requests = pagesToLoad.map(page => 
         discoverMovies({
           genreIds: selectedGenreIds,
           providerIds: selectedProviderIds,
@@ -159,7 +174,7 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
 
       // Randomly select up to 16 movies
       const shuffledMovies = [...uniqueMovies].sort(() => Math.random() - 0.5);
-      const selectedMovies = shuffledMovies.slice(0, 16);
+      const selectedMovies = shuffledMovies.slice(0, targetSelectionCount);
 
       // Convert TMDB movies to app format
       const appMovies = selectedMovies.map(movie => {
@@ -218,7 +233,7 @@ export default function TMDBCategorySelector({ onSelectMovies, isExpanded: contr
     const providerNames = getSelectedProviderNames();
     const countryName = getSelectedCountryName();
 
-    let text = `${ui.willSelectUpTo} ${genreNames.join(', ')} ${isSpanish ? 'peliculas' : 'movies'}`;
+    let text = `${ui.willSelectUpTo} ${targetSelectionCount} ${genreNames.join(', ')} ${isSpanish ? 'peliculas' : 'movies'}`;
 
     text += ` ${ui.from} ${providerNames.join(', ')}`;
     
