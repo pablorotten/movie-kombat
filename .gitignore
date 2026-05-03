@@ -36,3 +36,4 @@ Business/
 
 # Vercel
 .vercel
+.env*.local
