@@ -22,13 +22,16 @@ export default function MovieCard({
 }: MovieCardProps) {
   const { selectedRegion, searchLanguage } = useMovies();
   const [providers, setProviders] = useState<WatchProvider[]>([]);
-  const [isLoadingProviders, setIsLoadingProviders] = useState(false);
+  const isTmdbMovie = imdbID.startsWith('tmdb_');
+  const [isLoadingProviders, setIsLoadingProviders] = useState(() => imdbID.startsWith('tmdb_'));
+  const [hasCheckedProviders, setHasCheckedProviders] = useState(false);
 
   useEffect(() => {
     const tmdbId = imdbID.startsWith('tmdb_') ? Number(imdbID.slice(5)) : Number.NaN;
     if (!Number.isFinite(tmdbId)) {
       setProviders([]);
       setIsLoadingProviders(false);
+      setHasCheckedProviders(false);
       return;
     }
 
@@ -57,6 +60,7 @@ export default function MovieCard({
       } finally {
         if (isActive) {
           setIsLoadingProviders(false);
+          setHasCheckedProviders(true);
         }
       }
     };
@@ -96,6 +100,14 @@ export default function MovieCard({
         </div>
       )}
 
+      {isTmdbMovie && hasCheckedProviders && !isLoadingProviders && providers.length === 0 && (
+        <div className="mt-3 w-full text-center">
+          <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+            {searchLanguage === 'es-ES' ? 'No disponible' : 'Not available'}
+          </p>
+        </div>
+      )}
+
       {!isLoadingProviders && providers.length > 0 && (
         <div className="mt-3 w-full">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-300 mb-2">
@@ -131,7 +143,7 @@ export default function MovieCard({
           variant="danger"
           onClick={() => onDelete(imdbID)}
         >
-          Remove
+          {searchLanguage === 'es-ES' ? 'Eliminar' : 'Remove'}
         </Button>
       </div>
     </figure>
