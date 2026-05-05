@@ -114,8 +114,10 @@ function App() {
   const [shouldAutoStartKombat, setShouldAutoStartKombat] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const platformDropdownRef = useRef<HTMLDivElement>(null);
+  const lastScrollYRef = useRef(0);
   const regions = useMemo(() => getRegions(), []);
   const providers = useMemo(() => getPopularProviders(), []);
   const filteredRegions = useMemo(
@@ -167,6 +169,34 @@ function App() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    lastScrollYRef.current = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const delta = currentScrollY - lastScrollYRef.current;
+
+      if (Math.abs(delta) < 6) {
+        return;
+      }
+
+      if (currentScrollY <= 0) {
+        setIsHeaderVisible(true);
+      } else if (delta > 0 && currentScrollY > 80) {
+        setIsHeaderVisible(false);
+      } else if (delta < 0) {
+        setIsHeaderVisible(true);
+      }
+
+      lastScrollYRef.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
@@ -273,7 +303,11 @@ function App() {
       </Dialog>
 
       <div className="min-h-screen flex flex-col pb-24">
-        <header className="flex items-center justify-between gap-2 p-3 sm:p-4 bg-gray-800 text-white">
+        <header
+          className={`sticky top-0 z-40 flex items-center justify-between gap-2 p-3 sm:p-4 bg-gray-800 text-white transition-transform duration-300 will-change-transform ${
+            isHeaderVisible ? "translate-y-0" : "-translate-y-full"
+          }`}
+        >
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <Link to="/" className="flex items-center gap-2 min-w-0">
               <img
