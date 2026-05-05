@@ -38,7 +38,9 @@ export function MovieProvider({ children }: { children: ReactNode }) {
   const [searchLanguage, setSearchLanguage] = useState<string>('en-US');
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [selectedProviderIds, setSelectedProviderIds] = useState<number[]>(DEFAULT_PROVIDER_IDS);
-  const [hasCompletedPreferences, setHasCompletedPreferences] = useState(false);
+  const [hasCompletedPreferences, setHasCompletedPreferences] = useState(
+    () => localStorage.getItem(HAS_COMPLETED_PREFERENCES_STORAGE_KEY) === 'true'
+  );
 
   useEffect(() => {
     const storedLanguage = localStorage.getItem(SEARCH_LANGUAGE_STORAGE_KEY);
@@ -61,10 +63,6 @@ export function MovieProvider({ children }: { children: ReactNode }) {
       } catch {
         setSelectedProviderIds(DEFAULT_PROVIDER_IDS);
       }
-    }
-
-    if (localStorage.getItem(HAS_COMPLETED_PREFERENCES_STORAGE_KEY) === 'true') {
-      setHasCompletedPreferences(true);
     }
   }, []);
 
