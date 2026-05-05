@@ -27,7 +27,7 @@ The Fox and the Hound
 The Black Cauldron
 The Great Mouse Detective
 Oliver & Company
-The Little Mermaid
+The Little Mermaid 1
 The Rescuers Down Under
 Beauty and the Beast
 Aladdin
