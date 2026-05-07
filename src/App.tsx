@@ -6,7 +6,7 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
-import movieKombatLogo from "./assets/movie-kombat-logo.svg";
+import movieKombatLogo from "./assets/dragon-original.svg";
 import SearchPage from "./pages/SearchPage";
 import KombatPage from "./pages/KombatPage";
 import Dialog from "./components/Dialog";
@@ -313,7 +313,7 @@ function App() {
               <img
                 src={movieKombatLogo}
                 alt="Movie Kombat Logo"
-                className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0"
+                className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0"
               />
               <h1 className="hidden sm:block text-xl sm:text-2xl font-bold truncate max-w-[140px] sm:max-w-none">Movie Kombat</h1>
             </Link>
@@ -495,44 +495,45 @@ function App() {
         </main>
 
         <footer className="border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-          <div className="max-w-6xl mx-auto px-4 py-2 sm:py-3 flex items-center justify-between gap-2 text-xs text-gray-600 dark:text-gray-300">
-            <div className="flex items-center gap-2">
-              <span>{ui.tmdbDataSource}</span>
-              <a
-                href="https://www.themoviedb.org/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="TMDB"
-                className="inline-flex items-center hover:opacity-90 transition-opacity"
-              >
-                <img src={tmdbLogo} alt="TMDB" className="h-4 w-auto" />
-              </a>
+          <div className="max-w-6xl mx-auto px-4 py-2 sm:py-3 flex flex-col items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+            <div className="w-full flex justify-center">
+              <div className="flex items-center gap-1">
+                <span className="mr-1">{ui.appLanguage}</span>
+                <button
+                  onClick={() => setSearchLanguage('en-US')}
+                  className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
+                    searchLanguage === 'en-US'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  English
+                </button>
+                <button
+                  onClick={() => setSearchLanguage('es-ES')}
+                  className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
+                    searchLanguage === 'es-ES'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Español
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <span className="mr-1">{ui.appLanguage}</span>
-              <button
-                onClick={() => setSearchLanguage('en-US')}
-                className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
-                  searchLanguage === 'en-US'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                English
-              </button>
-              <button
-                onClick={() => setSearchLanguage('es-ES')}
-                className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
-                  searchLanguage === 'es-ES'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                Español
-              </button>
-            </div>
-            <div className="flex items-center gap-3">
-              <p className="hidden md:block text-right">{ui.tmdbAttribution}</p>
+            <div className="w-full flex flex-col items-center gap-3 sm:flex-row sm:justify-between sm:items-center">
+              <div className="flex items-center gap-2">
+                <span>{ui.tmdbDataSource}</span>
+                <a
+                  href="https://www.themoviedb.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="TMDB"
+                  className="inline-flex items-center hover:opacity-90 transition-opacity"
+                >
+                  <img src={tmdbLogo} alt="TMDB" className="h-4 w-auto" />
+                </a>
+              </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 <a
                   href="https://github.com/pablorotten/movie-kombat"
