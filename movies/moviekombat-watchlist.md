@@ -1,4 +1,4 @@
-# MovieKombat watchlist
+# Movie Kombat watchlist
 
 Desaparecidos
 Memoirs of an Invisible Man

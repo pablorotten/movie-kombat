@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+:root {
+  --movie-kombat-orange: 255, 56, 0;
+  --movie-kombat-yellow: 251, 255, 0;
+}
+
+.movie-kombat-gradient-text {
+  background-image: linear-gradient(90deg, rgb(var(--movie-kombat-orange)), rgb(var(--movie-kombat-yellow)));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
 #root {
 
 }

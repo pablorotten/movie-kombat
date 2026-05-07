@@ -315,7 +315,7 @@ function App() {
                 alt="Movie Kombat Logo"
                 className="h-9 w-9 sm:h-10 sm:w-10 flex-shrink-0"
               />
-              <h1 className="hidden sm:block text-xl sm:text-2xl font-bold truncate max-w-[140px] sm:max-w-none">Movie Kombat</h1>
+              <h1 className="hidden sm:block text-xl sm:text-2xl font-bold truncate max-w-[140px] sm:max-w-none movie-kombat-gradient-text">Movie Kombat</h1>
             </Link>
 
           </div>
