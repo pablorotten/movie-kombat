@@ -182,7 +182,7 @@ export default function KombatPage() {
         noPlatforms: "No hay plataformas disponibles para este pais.",
         round: "Ronda",
         of: "de",
-        bracket: "Bracket del Kombat",
+        bracket: "Kombat Bracket",
       }
     : {
         choose: "Choose",
