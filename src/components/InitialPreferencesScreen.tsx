@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import movieKombatLogo from "../assets/movie-kombat-logo.svg";
+import movieKombatLogo from "../assets/dragon-original.svg";
 import { getFlagComponent } from "../constants/countries";
 import { ProviderLogo } from "./ProviderLogo";
 import type { Provider, Region } from "../services/tmdbService";
