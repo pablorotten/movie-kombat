@@ -189,7 +189,7 @@ describe('discoverMovies', () => {
 
     const [url] = vi.mocked(fetch).mock.calls[0]
     expect(String(url)).toContain('watch_region=ES')
-    expect(String(url)).toContain('with_watch_providers=8%7C119')
+    expect(String(url)).toContain('with_watch_providers=8%7C9%7C119%7C613%7C2100')
   })
 
   it('sends multiple genres in a single discover request', async () => {

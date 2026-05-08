@@ -110,15 +110,54 @@ export const getPopularProviders = (): Provider[] => {
     .filter((provider): provider is Provider => provider !== undefined);
 };
 
+const AMAZON_PRIME_PROVIDER_IDS = [9, 119, 613, 2100];
+
+const CANONICAL_PROVIDER_ALIASES: Record<number, number[]> = {
+  119: AMAZON_PRIME_PROVIDER_IDS,
+};
+
+const getCanonicalProviderId = (providerId: number): number => {
+  for (const [canonicalId, aliases] of Object.entries(CANONICAL_PROVIDER_ALIASES)) {
+    if (aliases.includes(providerId)) {
+      return Number(canonicalId);
+    }
+  }
+  return providerId;
+};
+
+const expandProviderIdsForDiscover = (providerIds: number[]): number[] => {
+  const expandedProviderIds = new Set<number>();
+
+  for (const providerId of providerIds) {
+    const canonicalProviderId = getCanonicalProviderId(providerId);
+    const aliases = CANONICAL_PROVIDER_ALIASES[canonicalProviderId] || [canonicalProviderId];
+    for (const aliasProviderId of aliases) {
+      expandedProviderIds.add(aliasProviderId);
+    }
+  }
+
+  return Array.from(expandedProviderIds);
+};
+
 const DISCOVER_PROVIDER_IDS = new Set<number>([8, 63, 119, 337, 350, 283]);
 
 const pickAllowedProviders = (providers: WatchProvider[] = []): WatchProvider[] => {
   const unique = new Map<number, WatchProvider>();
   for (const provider of providers) {
-    if (DISCOVER_PROVIDER_IDS.has(provider.provider_id) && !unique.has(provider.provider_id)) {
-      unique.set(provider.provider_id, provider);
+    const canonicalProviderId = getCanonicalProviderId(provider.provider_id);
+    if (!DISCOVER_PROVIDER_IDS.has(canonicalProviderId) || unique.has(canonicalProviderId)) {
+      continue;
     }
-  }
+
+    const canonicalProvider = getProviderById(canonicalProviderId);
+    unique.set(canonicalProviderId, {
+      ...provider,
+      provider_id: canonicalProviderId,
+      provider_name: canonicalProvider?.provider_name || provider.provider_name,
+      logo_path: canonicalProvider?.logo_path || provider.logo_path,
+    });
+    }
+
   return Array.from(unique.values());
 };
 
@@ -210,8 +249,9 @@ export const discoverMovies = async (
       : [];
 
   if (normalizedProviderIds.length > 0 && region) {
+    const discoverProviderIds = expandProviderIdsForDiscover(normalizedProviderIds);
     params.append('watch_region', region);
-    params.append('with_watch_providers', normalizedProviderIds.join('|'));
+    params.append('with_watch_providers', discoverProviderIds.join('|'));
   }
 
   const url = `${TMDB_PROXY_BASE_URL}/discover/movie?${params.toString()}`;
