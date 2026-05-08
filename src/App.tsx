@@ -670,34 +670,43 @@ function App() {
         </footer>
 
         {location.pathname !== "/kombat" && (
-          <button
-            onClick={handleStartButtonClick}
-            aria-label={ui.startKombat}
-            title={ui.startKombat}
-            className={`fixed bottom-6 right-6 z-50 inline-flex h-20 w-20 flex-col items-center justify-center rounded-full text-white transition ${
-              canStartKombat
-                ? "bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_15px_5px_rgba(236,72,153,0.6),0_0_30px_10px_rgba(168,85,247,0.4),0_0_60px_15px_rgba(168,85,247,0.2)]"
-                : "bg-slate-500/55 hover:bg-slate-500/65 shadow backdrop-blur-sm"
-            }`}
-          >
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-black/20">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className="h-5 w-5 fill-current"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-            <span className="mt-1 text-[10px] font-black tracking-[0.12em]">
-              START
-            </span>
-            {movieList.length > 0 && (
-              <span className="absolute -top-1 -right-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-pink-500 px-1 text-xs font-bold text-white">
-                {movieList.length}
+          <>
+            <button
+              onClick={handleStartButtonClick}
+              aria-label={ui.startKombat}
+              title={ui.startKombat}
+              className={`fixed bottom-6 right-6 z-50 inline-flex h-20 w-20 flex-col items-center justify-center rounded-full text-white transition ${
+                canStartKombat
+                  ? "bg-emerald-500 hover:bg-emerald-400"
+                  : "bg-slate-500/55 hover:bg-slate-500/65 shadow backdrop-blur-sm"
+              }`}
+            >
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-black/20">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5 fill-current"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+              <span className="mt-1 text-[10px] font-black tracking-[0.12em]">
+                START
               </span>
+              {movieList.length > 0 && (
+                <span className="absolute -top-1 -right-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-pink-500 px-1 text-xs font-bold text-white">
+                  {movieList.length}
+                </span>
+              )}
+            </button>
+            {/* Dummy shadow layer behind the real button; visual-only, never interactive */}
+            {canStartKombat && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none fixed bottom-6 right-6 z-40 h-20 w-20 rounded-full animate-pulse bg-emerald-500 shadow-[0_0_28px_10px_rgba(236,72,153,0.75),0_0_56px_20px_rgba(168,85,247,0.55),0_0_92px_30px_rgba(168,85,247,0.32)]"
+              />
             )}
-          </button>
+          </>
         )}
       </div>
     </>
