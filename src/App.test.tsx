@@ -87,7 +87,7 @@ describe('App kombat start flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
     expect(screen.getByText('Select 4 Movies')).toBeInTheDocument()
-    expect(screen.getByText('4 movies will be randomly selected from your current pool.')).toBeInTheDocument()
+    expect(screen.getByText('4 movies will be randomly selected.')).toBeInTheDocument()
   })
 
   it('starts kombat directly with exactly 8 movies', () => {
@@ -104,7 +104,7 @@ describe('App kombat start flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
     expect(screen.getByText('Select 8 Movies')).toBeInTheDocument()
-    expect(screen.getByText('8 movies will be randomly selected from your current pool.')).toBeInTheDocument()
+    expect(screen.getByText('8 movies will be randomly selected.')).toBeInTheDocument()
   })
 
   it('starts kombat directly with exactly 16 movies', () => {
@@ -121,7 +121,7 @@ describe('App kombat start flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
     expect(screen.getByText('Select 16 Movies')).toBeInTheDocument()
-    expect(screen.getByText('16 movies will be randomly selected from your current pool.')).toBeInTheDocument()
+    expect(screen.getByText('16 movies will be randomly selected.')).toBeInTheDocument()
   })
 
   it('starts kombat directly with exactly 32 movies', () => {
