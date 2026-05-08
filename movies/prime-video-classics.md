@@ -26,7 +26,6 @@ The Vast of Night
 Samaritan
 Deep Water
 Good Omens
-G.E.O. Más allá del límite
 Woman of the Hour
 Coming 2 America
 Red One

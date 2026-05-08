@@ -72,40 +72,45 @@ describe('createInitialStages', () => {
 })
 
 describe('getKombatStartRequirement', () => {
-  it('reports how many movies are needed to reach the minimum bracket size', () => {
-    expect(getKombatStartRequirement(5)).toEqual({
-      status: 'below-minimum',
-      missingMovies: 3,
-      targetMovieCount: MIN_KOMBAT_MOVIES,
+  it('requires adding movies when count is less than 4', () => {
+    expect(getKombatStartRequirement(3)).toEqual({
+      status: 'add-movies',
+      missingMovies: 1,
     })
   })
 
-  it('allows starting immediately when minimum count is reached', () => {
-    expect(getKombatStartRequirement(8)).toEqual({ status: 'ready' })
+  it('allows starting immediately when exactly 4 movies are selected', () => {
+    expect(getKombatStartRequirement(4)).toEqual({ status: 'ready', targetMovieCount: 4 })
   })
 
-  it('requires more movies when count is between 9 and 15', () => {
-    expect(getKombatStartRequirement(12)).toEqual({
-      status: 'below-recommended',
-      missingMovies: 4,
-      targetMovieCount: MAX_KOMBAT_MOVIES,
-    })
+  it('shows pick-4 dialog when count is 5-7', () => {
+    expect(getKombatStartRequirement(5)).toEqual({ status: 'pick-4' })
+    expect(getKombatStartRequirement(6)).toEqual({ status: 'pick-4' })
+    expect(getKombatStartRequirement(7)).toEqual({ status: 'pick-4' })
   })
 
-  it('allows starting immediately with 16 movies', () => {
-    expect(getKombatStartRequirement(16)).toEqual({ status: 'ready' })
+  it('allows starting immediately when exactly 8 movies are selected', () => {
+    expect(getKombatStartRequirement(8)).toEqual({ status: 'ready', targetMovieCount: 8 })
   })
 
-  it('allows starting immediately with exactly 16 movies', () => {
-    expect(getKombatStartRequirement(16)).toEqual({ status: 'ready' })
+  it('shows pick-8 dialog when count is 9-15', () => {
+    expect(getKombatStartRequirement(9)).toEqual({ status: 'pick-8' })
+    expect(getKombatStartRequirement(12)).toEqual({ status: 'pick-8' })
+    expect(getKombatStartRequirement(15)).toEqual({ status: 'pick-8' })
   })
 
-  it('requires trimming when more than 16 movies are selected', () => {
-    expect(getKombatStartRequirement(21)).toEqual({
-      status: 'above-maximum',
-      extraMovies: 5,
-      targetMovieCount: MAX_KOMBAT_MOVIES,
-    })
+  it('allows starting immediately when exactly 16 movies are selected', () => {
+    expect(getKombatStartRequirement(16)).toEqual({ status: 'ready', targetMovieCount: 16 })
+  })
+
+  it('shows pick-16 dialog when count is 17-31', () => {
+    expect(getKombatStartRequirement(17)).toEqual({ status: 'pick-16' })
+    expect(getKombatStartRequirement(20)).toEqual({ status: 'pick-16' })
+    expect(getKombatStartRequirement(31)).toEqual({ status: 'pick-16' })
+  })
+
+  it('allows starting immediately when exactly 32 movies are selected', () => {
+    expect(getKombatStartRequirement(32)).toEqual({ status: 'ready', targetMovieCount: 32 })
   })
 })
 

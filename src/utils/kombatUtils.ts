@@ -1,27 +1,26 @@
 import { BracketMatch, KombatOption } from "../components/Kombat/KombatModels";
 import { Movie } from "../types";
 
-export const MIN_KOMBAT_MOVIES = 8;
-export const MAX_KOMBAT_MOVIES = 16;
+export const MIN_KOMBAT_MOVIES = 4;
+export const MAX_KOMBAT_MOVIES = 32;
 
 export type KombatStartRequirement =
   | {
-      status: "below-minimum";
-      missingMovies: number;
-      targetMovieCount: typeof MIN_KOMBAT_MOVIES;
-    }
-  | {
-      status: "below-recommended";
-      missingMovies: number;
-      targetMovieCount: typeof MAX_KOMBAT_MOVIES;
-    }
-  | {
       status: "ready";
+      targetMovieCount: 4 | 8 | 16 | 32;
     }
   | {
-      status: "above-maximum";
-      extraMovies: number;
-      targetMovieCount: typeof MAX_KOMBAT_MOVIES;
+      status: "add-movies";
+      missingMovies: number;
+    }
+  | {
+      status: "pick-4";
+    }
+  | {
+      status: "pick-8";
+    }
+  | {
+      status: "pick-16";
     };
 
 // A placeholder for empty slots or "BYE" rounds
@@ -32,31 +31,46 @@ const TBD_OPTION: KombatOption = {
 };
 
 export const getKombatStartRequirement = (movieCount: number): KombatStartRequirement => {
-  if (movieCount < MIN_KOMBAT_MOVIES) {
+  // Less than 4: Need to add movies
+  if (movieCount < 4) {
     return {
-      status: "below-minimum",
-      missingMovies: MIN_KOMBAT_MOVIES - movieCount,
-      targetMovieCount: MIN_KOMBAT_MOVIES,
+      status: "add-movies",
+      missingMovies: 4 - movieCount,
     };
   }
 
-  if (movieCount > MIN_KOMBAT_MOVIES && movieCount < MAX_KOMBAT_MOVIES) {
-    return {
-      status: "below-recommended",
-      missingMovies: MAX_KOMBAT_MOVIES - movieCount,
-      targetMovieCount: MAX_KOMBAT_MOVIES,
-    };
+  // Exactly 4: Ready
+  if (movieCount === 4) {
+    return { status: "ready", targetMovieCount: 4 };
   }
 
-  if (movieCount > MAX_KOMBAT_MOVIES) {
-    return {
-      status: "above-maximum",
-      extraMovies: movieCount - MAX_KOMBAT_MOVIES,
-      targetMovieCount: MAX_KOMBAT_MOVIES,
-    };
+  // 5-7: Show dialog to pick 4
+  if (movieCount >= 5 && movieCount <= 7) {
+    return { status: "pick-4" };
   }
 
-  return { status: "ready" };
+  // Exactly 8: Ready
+  if (movieCount === 8) {
+    return { status: "ready", targetMovieCount: 8 };
+  }
+
+  // 9-15: Show dialog to pick 8
+  if (movieCount >= 9 && movieCount <= 15) {
+    return { status: "pick-8" };
+  }
+
+  // Exactly 16: Ready
+  if (movieCount === 16) {
+    return { status: "ready", targetMovieCount: 16 };
+  }
+
+  // 17-31: Show dialog to pick 16
+  if (movieCount >= 17 && movieCount <= 31) {
+    return { status: "pick-16" };
+  }
+
+  // Exactly 32 or more: Ready with 32 (more than 32 is prevented elsewhere)
+  return { status: "ready", targetMovieCount: 32 };
 };
 
 export const selectRandomMovies = <T,>(

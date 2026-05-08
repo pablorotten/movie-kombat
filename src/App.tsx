@@ -55,10 +55,15 @@ function App() {
         startKombat: "Empezar Kombat",
         needMoreMoviesTitle: (missingMovies: number) =>
           `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
-        tooManyMoviesTitle: "Hay demasiadas peliculas seleccionadas",
-        tooManyMoviesMessage:
-          "Se seleccionaran 16 peliculas al azar del pool actual y el resto se descartara.",
-        tooManyMoviesConfirm: "OK, elegir 16",
+        pick4Title: "Seleccionar 4 peliculas",
+        pick4Message: "Se seleccionaran 4 peliculas al azar.",
+        pick4Confirm: "OK, elegir 4",
+        pick8Title: "Seleccionar 8 peliculas",
+        pick8Message: "Se seleccionaran 8 peliculas al azar.",
+        pick8Confirm: "OK, elegir 8",
+        pick16Title: "Seleccionar 16 peliculas",
+        pick16Message: "Se seleccionaran 16 peliculas al azar.",
+        pick16Confirm: "OK, elegir 16",
         understood: "Entendido",
         country: "Pais",
         countryPlaceholder: "Selecciona un pais",
@@ -87,10 +92,15 @@ function App() {
         startKombat: "Start Kombat",
         needMoreMoviesTitle: (missingMovies: number) =>
           `Add ${missingMovies} movie${missingMovies === 1 ? "" : "s"} to start!`,
-        tooManyMoviesTitle: "Too many movies selected",
-        tooManyMoviesMessage:
-          "16 movies will be randomly selected from your current pool and the rest will be discarded.",
-        tooManyMoviesConfirm: "OK, pick 16",
+        pick4Title: "Select 4 Movies",
+        pick4Message: "4 movies will be randomly selected.",
+        pick4Confirm: "OK, pick 4",
+        pick8Title: "Select 8 Movies",
+        pick8Message: "8 movies will be randomly selected.",
+        pick8Confirm: "OK, pick 8",
+        pick16Title: "Select 16 Movies",
+        pick16Message: "16 movies will be randomly selected.",
+        pick16Confirm: "OK, pick 16",
         understood: "Understood",
         country: "Country",
         countryPlaceholder: "Select a country",
@@ -111,7 +121,7 @@ function App() {
       };
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isNotEnoughMoviesDialogOpen, setIsNotEnoughMoviesDialogOpen] = useState(false);
-  const [isTooManyMoviesDialogOpen, setIsTooManyMoviesDialogOpen] = useState(false);
+  const [isPickMoviesDialogOpen, setIsPickMoviesDialogOpen] = useState<null | "4" | "8" | "16">(null);
   const [shouldAutoStartKombat, setShouldAutoStartKombat] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
@@ -135,9 +145,7 @@ function App() {
     [movieList.length]
   );
   const canStartKombat = kombatStartRequirement.status === "ready";
-  const canProceedToKombat =
-    kombatStartRequirement.status === "ready" ||
-    kombatStartRequirement.status === "above-maximum";
+  const canProceedToKombat = kombatStartRequirement.status === "ready";
 
   // Add this function to handle kombat start with shuffle
   const handleStartKombat = () => {
@@ -202,36 +210,46 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!shouldAutoStartKombat || movieList.length !== MAX_KOMBAT_MOVIES) {
+    if (!shouldAutoStartKombat) {
+      return;
+    }
+
+    // Auto-start only when we reach a valid bracket size (ready status)
+    if (kombatStartRequirement.status !== "ready") {
       return;
     }
 
     setShouldAutoStartKombat(false);
     handleStartKombat();
-  }, [handleStartKombat, movieList.length, shouldAutoStartKombat]);
+  }, [handleStartKombat, kombatStartRequirement, shouldAutoStartKombat]);
 
   const handleStartButtonClick = () => {
-    if (kombatStartRequirement.status === "below-minimum") {
+    if (kombatStartRequirement.status === "add-movies") {
       setIsNotEnoughMoviesDialogOpen(true);
       return;
     }
 
-    if (kombatStartRequirement.status === "below-recommended") {
-      setIsNotEnoughMoviesDialogOpen(true);
+    if (kombatStartRequirement.status === "pick-4") {
+      setIsPickMoviesDialogOpen("4");
       return;
     }
 
-    if (kombatStartRequirement.status === "above-maximum") {
-      setIsTooManyMoviesDialogOpen(true);
+    if (kombatStartRequirement.status === "pick-8") {
+      setIsPickMoviesDialogOpen("8");
+      return;
+    }
+
+    if (kombatStartRequirement.status === "pick-16") {
+      setIsPickMoviesDialogOpen("16");
       return;
     }
 
     handleStartKombat();
   };
 
-  const handleConfirmRandomSelection = () => {
-    setMovieList((currentMovies) => selectRandomMovies(currentMovies, MAX_KOMBAT_MOVIES));
-    setIsTooManyMoviesDialogOpen(false);
+  const handleConfirmRandomSelection = (targetCount: 4 | 8 | 16 | 32) => {
+    setMovieList((currentMovies) => selectRandomMovies(currentMovies, targetCount));
+    setIsPickMoviesDialogOpen(null);
     setShouldAutoStartKombat(true);
   };
 
@@ -283,24 +301,48 @@ function App() {
         open={isNotEnoughMoviesDialogOpen}
         onClose={() => setIsNotEnoughMoviesDialogOpen(false)}
         title={ui.needMoreMoviesTitle(
-          kombatStartRequirement.status === "below-minimum"
-            ? Math.max(0, MIN_KOMBAT_MOVIES - movieList.length)
-            : Math.max(0, MAX_KOMBAT_MOVIES - movieList.length)
+          kombatStartRequirement.status === "add-movies"
+            ? kombatStartRequirement.missingMovies
+            : 0
         )}
         onCancel={() => setIsNotEnoughMoviesDialogOpen(false)}
         cancelText={ui.understood}
       />
 
       <Dialog
-        open={isTooManyMoviesDialogOpen}
-        onClose={() => setIsTooManyMoviesDialogOpen(false)}
-        title={ui.tooManyMoviesTitle}
-        onConfirm={handleConfirmRandomSelection}
-        onCancel={() => setIsTooManyMoviesDialogOpen(false)}
-        confirmText={ui.tooManyMoviesConfirm}
+        open={isPickMoviesDialogOpen === "4"}
+        onClose={() => setIsPickMoviesDialogOpen(null)}
+        title={ui.pick4Title}
+        onConfirm={() => handleConfirmRandomSelection(4)}
+        onCancel={() => setIsPickMoviesDialogOpen(null)}
+        confirmText={ui.pick4Confirm}
         cancelText={ui.cancel}
       >
-        <p>{ui.tooManyMoviesMessage}</p>
+        <p>{ui.pick4Message}</p>
+      </Dialog>
+
+      <Dialog
+        open={isPickMoviesDialogOpen === "8"}
+        onClose={() => setIsPickMoviesDialogOpen(null)}
+        title={ui.pick8Title}
+        onConfirm={() => handleConfirmRandomSelection(8)}
+        onCancel={() => setIsPickMoviesDialogOpen(null)}
+        confirmText={ui.pick8Confirm}
+        cancelText={ui.cancel}
+      >
+        <p>{ui.pick8Message}</p>
+      </Dialog>
+
+      <Dialog
+        open={isPickMoviesDialogOpen === "16"}
+        onClose={() => setIsPickMoviesDialogOpen(null)}
+        title={ui.pick16Title}
+        onConfirm={() => handleConfirmRandomSelection(16)}
+        onCancel={() => setIsPickMoviesDialogOpen(null)}
+        confirmText={ui.pick16Confirm}
+        cancelText={ui.cancel}
+      >
+        <p>{ui.pick16Message}</p>
       </Dialog>
 
       <div className="min-h-screen flex flex-col pb-24">

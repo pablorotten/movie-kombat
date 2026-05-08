@@ -65,20 +65,29 @@ describe('App kombat start flow', () => {
     vi.restoreAllMocks()
   })
 
-  it('shows a dynamic missing-movies message when there are fewer than 8 movies', () => {
-    renderApp([1, 2, 3, 4, 5].map(makeMovie))
+  it('shows a dynamic missing-movies message when there are fewer than 4 movies', () => {
+    renderApp([1, 2, 3].map(makeMovie))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
-    expect(screen.getByText('Add 3 movies to start!')).toBeInTheDocument()
+    expect(screen.getByText('Add 1 movie to start!')).toBeInTheDocument()
   })
 
-  it('shows a dynamic missing-movies message when there are between 9 and 15 movies', () => {
-    renderApp(Array.from({ length: 12 }, (_, index) => makeMovie(index + 1)))
+  it('starts kombat directly with exactly 4 movies', () => {
+    renderApp(Array.from({ length: 4 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
-    expect(screen.getByText('Add 4 movies to start!')).toBeInTheDocument()
+    expect(screen.getByText('Kombat Page 4')).toBeInTheDocument()
+  })
+
+  it('shows pick-4 dialog when there are 5-7 movies', () => {
+    renderApp(Array.from({ length: 6 }, (_, index) => makeMovie(index + 1)))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
+
+    expect(screen.getByText('Select 4 Movies')).toBeInTheDocument()
+    expect(screen.getByText('4 movies will be randomly selected from your current pool.')).toBeInTheDocument()
   })
 
   it('starts kombat directly with exactly 8 movies', () => {
@@ -89,6 +98,15 @@ describe('App kombat start flow', () => {
     expect(screen.getByText('Kombat Page 8')).toBeInTheDocument()
   })
 
+  it('shows pick-8 dialog when there are 9-15 movies', () => {
+    renderApp(Array.from({ length: 12 }, (_, index) => makeMovie(index + 1)))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
+
+    expect(screen.getByText('Select 8 Movies')).toBeInTheDocument()
+    expect(screen.getByText('8 movies will be randomly selected from your current pool.')).toBeInTheDocument()
+  })
+
   it('starts kombat directly with exactly 16 movies', () => {
     renderApp(Array.from({ length: 16 }, (_, index) => makeMovie(index + 1)))
 
@@ -97,21 +115,58 @@ describe('App kombat start flow', () => {
     expect(screen.getByText('Kombat Page 16')).toBeInTheDocument()
   })
 
-  it('stays on the selection screen when the user cancels the over-limit dialog', () => {
-    renderApp(Array.from({ length: 18 }, (_, index) => makeMovie(index + 1)))
+  it('shows pick-16 dialog when there are 17-31 movies', () => {
+    renderApp(Array.from({ length: 20 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
-    expect(screen.getByText('Too many movies selected')).toBeInTheDocument()
+
+    expect(screen.getByText('Select 16 Movies')).toBeInTheDocument()
+    expect(screen.getByText('16 movies will be randomly selected from your current pool.')).toBeInTheDocument()
+  })
+
+  it('starts kombat directly with exactly 32 movies', () => {
+    renderApp(Array.from({ length: 32 }, (_, index) => makeMovie(index + 1)))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
+
+    expect(screen.getByText('Kombat Page 32')).toBeInTheDocument()
+  })
+
+  it('stays on the selection screen when the user cancels the pick-4 dialog', () => {
+    renderApp(Array.from({ length: 5 }, (_, index) => makeMovie(index + 1)))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
+    expect(screen.getByText('Select 4 Movies')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
-    expect(screen.queryByText('Too many movies selected')).not.toBeInTheDocument()
+    expect(screen.queryByText('Select 4 Movies')).not.toBeInTheDocument()
     expect(screen.getByText('Search Page')).toBeInTheDocument()
   })
 
-  it('randomly trims to 16 movies and starts kombat when the user confirms', async () => {
+  it('randomly trims to 4 movies and starts kombat when the user confirms pick-4', async () => {
     vi.spyOn(Math, 'random').mockReturnValue(0.5)
-    renderApp(Array.from({ length: 18 }, (_, index) => makeMovie(index + 1)))
+    renderApp(Array.from({ length: 6 }, (_, index) => makeMovie(index + 1)))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
+    fireEvent.click(screen.getByRole('button', { name: 'OK, pick 4' }))
+
+    expect(await screen.findByText('Kombat Page 4')).toBeInTheDocument()
+  })
+
+  it('randomly trims to 8 movies and starts kombat when the user confirms pick-8', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    renderApp(Array.from({ length: 12 }, (_, index) => makeMovie(index + 1)))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
+    fireEvent.click(screen.getByRole('button', { name: 'OK, pick 8' }))
+
+    expect(await screen.findByText('Kombat Page 8')).toBeInTheDocument()
+  })
+
+  it('randomly trims to 16 movies and starts kombat when the user confirms pick-16', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    renderApp(Array.from({ length: 20 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
     fireEvent.click(screen.getByRole('button', { name: 'OK, pick 16' }))
