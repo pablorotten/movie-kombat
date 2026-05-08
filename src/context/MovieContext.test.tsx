@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import React from 'react'
 import { MAX_MOVIES_IN_LIST, MovieProvider, useMovies } from './MovieContext'
+import { LANGUAGE_ES_ES } from '../constants/languages'
 import { Movie } from '../types'
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -127,9 +128,9 @@ describe('setSearchLanguage', () => {
   it('updates the search language', () => {
     const { result } = renderHook(() => useMovies(), { wrapper })
     act(() => {
-      result.current.setSearchLanguage('es-ES')
+      result.current.setSearchLanguage(LANGUAGE_ES_ES)
     })
-    expect(result.current.searchLanguage).toBe('es-ES')
+    expect(result.current.searchLanguage).toBe(LANGUAGE_ES_ES)
   })
 })
 

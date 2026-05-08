@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMovies } from "../context/MovieContext";
+import { LANGUAGE_ES_ES } from "../constants/languages";
 import {
   BracketMatch,
   KombatOption,
@@ -167,7 +168,7 @@ const KombatMatchup = ({
 export default function KombatPage() {
   const { movieList, setMovieList, searchLanguage, selectedRegion } = useMovies();
   const navigate = useNavigate();
-  const isSpanish = searchLanguage === "es-ES";
+  const isSpanish = searchLanguage === LANGUAGE_ES_ES;
   const ui = isSpanish
     ? {
         choose: "Elegir",

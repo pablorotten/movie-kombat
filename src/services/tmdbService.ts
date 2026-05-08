@@ -1,6 +1,7 @@
 import genresData from '../assets/TMDB/genres.json';
 import providersData from '../assets/TMDB/providers.json';
 import regionsData from '../assets/TMDB/regions.json';
+import { LANGUAGE_EN_US } from '../constants/languages';
 
 export interface TMDBMovie {
   id: number;
@@ -169,7 +170,7 @@ export const discoverMovies = async (
     page?: number;
     sortBy?: 'popularity.desc' | 'vote_average.desc' | 'release_date.desc';
     includeAdult?: boolean;
-    language?: string; // Language for localized titles (e.g., 'en-US', 'es-ES')
+    language?: string; // Language for localized titles (e.g., LANGUAGE_EN_US, LANGUAGE_ES_ES)
   }
 ): Promise<TMDBDiscoverResponse> => {
   const {
@@ -181,7 +182,7 @@ export const discoverMovies = async (
     page = 1,
     sortBy = 'popularity.desc',
     includeAdult = false,
-    language = 'en-US' // Default to English
+    language = LANGUAGE_EN_US // Default to English
   } = options;
 
   const params = new URLSearchParams({
@@ -273,7 +274,7 @@ export interface TMDBMovieDetails {
 // Get movie details by TMDB ID
 export const getMovieDetails = async (
   movieId: number,
-  language: string = 'en-US'
+  language: string = LANGUAGE_EN_US
 ): Promise<TMDBMovieDetails> => {
   const params = new URLSearchParams({ language });
   const url = `${TMDB_PROXY_BASE_URL}/movie/${movieId}?${params.toString()}`;
@@ -296,7 +297,7 @@ export const getMovieDetails = async (
 export const searchMovies = async (
   query: string,
   page: number = 1,
-  language: string = 'en-US'
+  language: string = LANGUAGE_EN_US
 ): Promise<TMDBDiscoverResponse> => {
   const params = new URLSearchParams({
     language: language,

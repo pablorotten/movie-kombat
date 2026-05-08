@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { useEffect } from 'react'
 import KombatPage from './KombatPage'
+import { LANGUAGE_ES_ES } from '../constants/languages'
 import { MovieProvider, useMovies } from '../context/MovieContext'
 import { Movie } from '../types'
 
@@ -172,7 +173,7 @@ describe('KombatPage fight animation flow', () => {
   })
 
   it('shows English fatality texts even when language is es-ES', () => {
-    renderKombatPage({ language: 'es-ES' })
+    renderKombatPage({ language: LANGUAGE_ES_ES })
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Elegir' })[0])
 

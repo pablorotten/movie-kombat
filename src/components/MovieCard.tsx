@@ -3,6 +3,7 @@ import Button from "../components/Button";
 import PosterImage from "../components/PosterImage";
 import { ProviderLogo } from "./ProviderLogo";
 import { useMovies } from "../context/MovieContext";
+import { LANGUAGE_ES_ES } from "../constants/languages";
 import { getMovieProvidersForRegion, WatchProvider } from "../services/tmdbService";
 
 const providerCache = new Map<string, WatchProvider[]>();
@@ -72,7 +73,7 @@ export default function MovieCard({
     };
   }, [imdbID, selectedRegion]);
 
-  const providersTitle = searchLanguage === 'es-ES' ? 'Plataformas' : 'Platforms';
+  const providersTitle = searchLanguage === LANGUAGE_ES_ES ? 'Plataformas' : 'Platforms';
 
   return (
     <figure className="relative flex flex-col items-center justify-start p-8 pb-20 text-center bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
@@ -103,7 +104,7 @@ export default function MovieCard({
       {isTmdbMovie && hasCheckedProviders && !isLoadingProviders && providers.length === 0 && (
         <div className="mt-3 w-full text-center">
           <p className="text-xs text-gray-400 dark:text-gray-500 italic">
-            {searchLanguage === 'es-ES' ? 'No disponible' : 'Not available'}
+            {searchLanguage === LANGUAGE_ES_ES ? 'No disponible' : 'Not available'}
           </p>
         </div>
       )}
@@ -143,7 +144,7 @@ export default function MovieCard({
           variant="danger"
           onClick={() => onDelete(imdbID)}
         >
-          {searchLanguage === 'es-ES' ? 'Eliminar' : 'Remove'}
+          {searchLanguage === LANGUAGE_ES_ES ? 'Eliminar' : 'Remove'}
         </Button>
       </div>
     </figure>

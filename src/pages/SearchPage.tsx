@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Movie } from "../types";
 import { MAX_MOVIES_IN_LIST, useMovies } from "../context/MovieContext";
+import { LANGUAGE_EN_US, LANGUAGE_ES_ES } from "../constants/languages";
 import MovieCard from "../components/MovieCard";
 import Button from "../components/Button";
 import Dialog from "../components/Dialog";
@@ -47,7 +48,7 @@ export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const hasRestoredFromUrl = useRef(false);
   const previousLanguage = useRef(searchLanguage);
-  const isSpanish = searchLanguage === "es-ES";
+  const isSpanish = searchLanguage === LANGUAGE_ES_ES;
   const ui = isSpanish
     ? {
         loadFromUrlError: "No se pudo cargar la lista de peliculas desde la URL.",
@@ -271,7 +272,7 @@ export default function SearchPage() {
           }
 
           try {
-            const response = await searchMovies(title, 1, searchLanguage);
+            const response = await searchMovies(title, 1, LANGUAGE_EN_US);
             if (response.results && response.results.length > 0) {
               const convertedMovie = convertTMDBToAppMovie(response.results[0]);
               if (convertedMovie.Poster === "N/A") {

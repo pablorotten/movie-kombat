@@ -1,6 +1,7 @@
 import { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import { Movie } from '../types';
 import { getPopularProviders } from '../services/tmdbService';
+import { DEFAULT_SEARCH_LANGUAGE } from '../constants/languages';
 
 export const MAX_MOVIES_IN_LIST = 32;
 
@@ -35,7 +36,7 @@ const MovieContext = createContext<MovieContextType | undefined>(undefined);
 export function MovieProvider({ children }: { children: ReactNode }) {
   const [movieList, setMovieListState] = useState<Movie[]>([]);
   const [arePostersVisible, setArePostersVisible] = useState(true);
-  const [searchLanguage, setSearchLanguage] = useState<string>('en-US');
+  const [searchLanguage, setSearchLanguage] = useState<string>(DEFAULT_SEARCH_LANGUAGE);
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [selectedProviderIds, setSelectedProviderIds] = useState<number[]>(DEFAULT_PROVIDER_IDS);
   const [hasCompletedPreferences, setHasCompletedPreferences] = useState(

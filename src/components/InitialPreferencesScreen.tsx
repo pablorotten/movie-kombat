@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import movieKombatLogo from "../assets/dragon-original.svg";
 import { getFlagComponent } from "../constants/countries";
+import { LANGUAGE_EN_US, LANGUAGE_ES_ES } from "../constants/languages";
 import { ProviderLogo } from "./ProviderLogo";
 import type { Provider, Region } from "../services/tmdbService";
 
@@ -146,9 +147,9 @@ export default function InitialPreferencesScreen({
                   <div className="flex flex-wrap gap-3">
                     <button
                       type="button"
-                      onClick={() => setSearchLanguage('en-US')}
+                      onClick={() => setSearchLanguage(LANGUAGE_EN_US)}
                       className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                        searchLanguage === 'en-US'
+                        searchLanguage === LANGUAGE_EN_US
                           ? 'bg-cyan-400 text-slate-950'
                           : 'border border-white/10 bg-black/20 text-white hover:border-cyan-400/60'
                       }`}
@@ -157,9 +158,9 @@ export default function InitialPreferencesScreen({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setSearchLanguage('es-ES')}
+                      onClick={() => setSearchLanguage(LANGUAGE_ES_ES)}
                       className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                        searchLanguage === 'es-ES'
+                        searchLanguage === LANGUAGE_ES_ES
                           ? 'bg-cyan-400 text-slate-950'
                           : 'border border-white/10 bg-black/20 text-white hover:border-cyan-400/60'
                       }`}

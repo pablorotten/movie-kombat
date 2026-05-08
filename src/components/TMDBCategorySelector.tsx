@@ -11,6 +11,7 @@ import {
 } from '../services/tmdbService';
 import { getPlaceholder } from '../utils/placeholderUtils';
 import { Movie } from '../types';
+import { LANGUAGE_ES_ES } from '../constants/languages';
 import { ProviderLogo } from './ProviderLogo';
 import { getGenreWithEmoji } from '../utils/genreUtils';
 import { useMovies } from '../context/MovieContext';
@@ -35,7 +36,7 @@ export default function TMDBCategorySelector({
     selectedProviderIds,
     toggleSelectedProvider,
   } = useMovies();
-  const isSpanish = searchLanguage === 'es-ES';
+  const isSpanish = searchLanguage === LANGUAGE_ES_ES;
   const ui = isSpanish
     ? {
       selectGenreAndApi: 'Selecciona un genero para continuar',

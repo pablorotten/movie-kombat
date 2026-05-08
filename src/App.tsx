@@ -13,6 +13,7 @@ import Dialog from "./components/Dialog";
 import InitialPreferencesScreen from "./components/InitialPreferencesScreen";
 import { ProviderLogo } from "./components/ProviderLogo";
 import { useMovies } from "./context/MovieContext";
+import { LANGUAGE_EN_US, LANGUAGE_ES_ES } from "./constants/languages";
 import "./App.css";
 import tmdbLogo from "./assets/TMDB.svg";
 // // import ApiKeyIcon from "./assets/api-key.svg";
@@ -42,7 +43,7 @@ function App() {
     hasCompletedPreferences,
     completePreferences,
   } = useMovies();
-  const isSpanish = searchLanguage === "es-ES";
+  const isSpanish = searchLanguage === LANGUAGE_ES_ES;
   const ui = isSpanish
     ? {
         startNewKombatTitle: "Empezar nuevo Kombat?",
@@ -500,9 +501,9 @@ function App() {
               <div className="flex items-center gap-1">
                 <span className="mr-1">{ui.appLanguage}</span>
                 <button
-                  onClick={() => setSearchLanguage('en-US')}
+                  onClick={() => setSearchLanguage(LANGUAGE_EN_US)}
                   className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
-                    searchLanguage === 'en-US'
+                    searchLanguage === LANGUAGE_EN_US
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                   }`}
@@ -510,9 +511,9 @@ function App() {
                   English
                 </button>
                 <button
-                  onClick={() => setSearchLanguage('es-ES')}
+                  onClick={() => setSearchLanguage(LANGUAGE_ES_ES)}
                   className={`px-2 py-1 rounded font-medium transition-colors text-xs ${
-                    searchLanguage === 'es-ES'
+                    searchLanguage === LANGUAGE_ES_ES
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                   }`}
