@@ -150,7 +150,6 @@ function App() {
     [movieList.length],
   );
   const canStartKombat = kombatStartRequirement.status === "ready";
-  const canProceedToKombat = kombatStartRequirement.status === "ready";
 
   // Add this function to handle kombat start with shuffle
   const handleStartKombat = useCallback(() => {
@@ -677,8 +676,8 @@ function App() {
             title={ui.startKombat}
             className={`fixed bottom-6 right-6 z-50 inline-flex h-20 w-20 flex-col items-center justify-center rounded-full text-white transition ${
               canStartKombat
-                ? "animate-pulse bg-emerald-500 hover:bg-emerald-400 shadow-xl"
-                : "bg-slate-500/55 hover:bg-slate-500/65 shadow-lg backdrop-blur-sm"
+                ? "bg-emerald-500 hover:bg-emerald-400 shadow-[0_0_15px_5px_rgba(236,72,153,0.6),0_0_30px_10px_rgba(168,85,247,0.4),0_0_60px_15px_rgba(168,85,247,0.2)]"
+                : "bg-slate-500/55 hover:bg-slate-500/65 shadow backdrop-blur-sm"
             }`}
           >
             <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-black/20">
