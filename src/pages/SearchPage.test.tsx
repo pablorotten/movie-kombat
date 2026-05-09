@@ -130,7 +130,7 @@ describe('SearchPage movie-cap behavior', () => {
 
     expect(screen.getByText('Limit reached')).toBeInTheDocument()
     expect(screen.getByText('There are already too many movies (32). Delete some before adding more.')).toBeInTheDocument()
-    expect(screen.getByText('My Added Movies (32)')).toBeInTheDocument()
+    expect(screen.getByText(/(?:Movies|Peliculas) \(32\)/)).toBeInTheDocument()
   })
 
   it('stops expanded search requests at remaining capacity and warns with added count', async () => {
@@ -148,7 +148,7 @@ describe('SearchPage movie-cap behavior', () => {
     })
 
     expect(screen.getByText('Only 2 movies were added because the list is already capped at 32.')).toBeInTheDocument()
-    expect(screen.getByText('My Added Movies (32)')).toBeInTheDocument()
+    expect(screen.getByText(/(?:Movies|Peliculas) \(32\)/)).toBeInTheDocument()
   })
 
   it('stops collection requests at remaining capacity and warns with added count', async () => {
@@ -162,7 +162,7 @@ describe('SearchPage movie-cap behavior', () => {
     })
 
     expect(screen.getByText('Only 2 movies were added because the list is already capped at 32.')).toBeInTheDocument()
-    expect(screen.getByText('My Added Movies (32)')).toBeInTheDocument()
+    expect(screen.getByText(/(?:Movies|Peliculas) \(32\)/)).toBeInTheDocument()
   })
 
   it('caps discover adds at 32 and shows partial warning when near limit', async () => {
@@ -174,6 +174,6 @@ describe('SearchPage movie-cap behavior', () => {
       expect(screen.getByText('Only 2 movies were added because the list is already capped at 32.')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('My Added Movies (32)')).toBeInTheDocument()
+    expect(screen.getByText(/(?:Movies|Peliculas) \(32\)/)).toBeInTheDocument()
   })
 })
