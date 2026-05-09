@@ -3,8 +3,6 @@ import {
   createInitialStages,
   getKombatStartRequirement,
   getStageName,
-  MAX_KOMBAT_MOVIES,
-  MIN_KOMBAT_MOVIES,
   selectRandomMovies,
 } from './kombatUtils'
 import { Movie } from '../types'
