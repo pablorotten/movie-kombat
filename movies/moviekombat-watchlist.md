@@ -133,7 +133,6 @@ Ghostland
 Ghosts of Mars
 Gin gwai (Jian gui) (The Eye)
 Glory Road
-Glory Road
 Gods and Monsters
 Godsend
 Gothika
@@ -171,7 +170,6 @@ Inside Man
 Insidious
 Insidious: Chapter 2
 Jack
-Jack
 Jack London’s White Fang
 Jacob’s Ladder
 Joy Ride
@@ -185,7 +183,6 @@ Kairo
 Kika
 Killers of the Flower Moon
 Kimitachi wa dô ikiru ka
-Kingdom of Heaven
 Kingdom of Heaven
 Knight and Day
 Knight of Cups
@@ -211,7 +208,6 @@ Lolita
 Longlegs
 Los Borgia
 Lost & Found
-Lost Highway
 Lost Highway
 Lost in Space
 Lost in Translation
@@ -289,13 +285,11 @@ Saben aquell
 Scream
 Session 9
 Severance
-Severance
 Shutter
 Sicario
 Sisters
 Slumdog Millionaire
 Snakes on a Plane
-Soundtrack to a Coup d’Etat
 Soundtrack to a Coup d’Etat
 Southern Comfort
 Soy Nevenka
@@ -361,7 +355,6 @@ The Mexican
 The Mothman Prophecies
 The Omen
 The People vs. Larry Flynt
-The Perks of Being a Wallflower
 The Perks of Being a Wallflower
 The Postman
 The Power of the Dog
