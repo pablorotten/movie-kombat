@@ -2,12 +2,12 @@ import { BracketMatch, KombatOption } from "../components/Kombat/KombatModels";
 import { Movie } from "../types";
 
 export const MIN_KOMBAT_MOVIES = 4;
-export const MAX_KOMBAT_MOVIES = 32;
+export const MAX_KOMBAT_MOVIES = 16;
 
 export type KombatStartRequirement =
   | {
       status: "ready";
-      targetMovieCount: 4 | 8 | 16 | 32;
+      targetMovieCount: 4 | 8 | 16;
     }
   | {
       status: "add-movies";
@@ -64,13 +64,13 @@ export const getKombatStartRequirement = (movieCount: number): KombatStartRequir
     return { status: "ready", targetMovieCount: 16 };
   }
 
-  // 17-31: Show dialog to pick 16
-  if (movieCount >= 17 && movieCount <= 31) {
+  // 17 or more: Show dialog to pick 16
+  if (movieCount >= 17) {
     return { status: "pick-16" };
   }
 
-  // Exactly 32 or more: Ready with 32 (more than 32 is prevented elsewhere)
-  return { status: "ready", targetMovieCount: 32 };
+  // Fallback, should not happen because all cases are covered
+  return { status: "ready", targetMovieCount: 16 };
 };
 
 export const selectRandomMovies = <T,>(

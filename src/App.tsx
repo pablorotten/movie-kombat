@@ -52,7 +52,9 @@ function App() {
         showPosters: "Mostrar posters",
         startKombat: "Empezar Kombat",
         needMoreMoviesTitle: (missingMovies: number) =>
-          `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
+          missingMovies === 4
+            ? "Agrega peliculas para empezar el Kombat"
+            : `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
         pick4Title: "Seleccionar 4 peliculas",
         pick4Message: "Se seleccionaran 4 peliculas al azar.",
         pick4Confirm: "OK, elegir 4",
@@ -89,7 +91,9 @@ function App() {
         showPosters: "Show Posters",
         startKombat: "Start Kombat",
         needMoreMoviesTitle: (missingMovies: number) =>
-          `Add ${missingMovies} movie${missingMovies === 1 ? "" : "s"} to start!`,
+          missingMovies === 4
+            ? "Add movies to start the Kombat"
+            : `Add ${missingMovies} movie${missingMovies === 1 ? "" : "s"} to start!`,
         pick4Title: "Select 4 Movies",
         pick4Message: "4 movies will be randomly selected.",
         pick4Confirm: "OK, pick 4",
@@ -257,7 +261,7 @@ function App() {
     handleStartKombat();
   };
 
-  const handleConfirmRandomSelection = (targetCount: 4 | 8 | 16 | 32) => {
+  const handleConfirmRandomSelection = (targetCount: 4 | 8 | 16) => {
     setMovieList((currentMovies) =>
       selectRandomMovies(currentMovies, targetCount),
     );

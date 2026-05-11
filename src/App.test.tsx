@@ -115,7 +115,7 @@ describe('App kombat start flow', () => {
     expect(screen.getByText('Kombat Page 16')).toBeInTheDocument()
   })
 
-  it('shows pick-16 dialog when there are 17-31 movies', () => {
+  it('shows pick-16 dialog when there are 17-100 movies', () => {
     renderApp(Array.from({ length: 20 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
@@ -124,12 +124,21 @@ describe('App kombat start flow', () => {
     expect(screen.getByText('16 movies will be randomly selected.')).toBeInTheDocument()
   })
 
-  it('starts kombat directly with exactly 32 movies', () => {
+  it('shows pick-16 dialog when there are exactly 32 movies', () => {
     renderApp(Array.from({ length: 32 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
-    expect(screen.getByText('Kombat Page 32')).toBeInTheDocument()
+    expect(screen.getByText('Select 16 Movies')).toBeInTheDocument()
+    expect(screen.getByText('16 movies will be randomly selected.')).toBeInTheDocument()
+  })
+
+  it('shows the empty-list prompt when there are no movies', () => {
+    renderApp([])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
+
+    expect(screen.getByText('Add movies to start the Kombat')).toBeInTheDocument()
   })
 
   it('stays on the selection screen when the user cancels the pick-4 dialog', () => {
