@@ -4,6 +4,7 @@ export interface LocalMovieCollection {
   movieTitles: string[];
   filePath: string;
   image?: string;
+  localImage?: string;
 }
 
 const markdownModules = import.meta.glob<string>(
@@ -14,6 +15,37 @@ const markdownModules = import.meta.glob<string>(
     import: "default",
   }
 );
+
+const movieFolderCoverModules = import.meta.glob<string>(
+  "../../movies/*.{webp,avif,jpg,jpeg,png}",
+  {
+    eager: true,
+    import: "default",
+  }
+);
+
+const localCoverModules = import.meta.glob<string>(
+  "../assets/collection-covers/*.{webp,avif,jpg,jpeg,png}",
+  {
+    eager: true,
+    import: "default",
+  }
+);
+
+const mapCoversByBasename = (coverEntries: [string, string][]): Map<string, string> =>
+  new Map(
+    coverEntries.map(([assetPath, assetUrl]) => {
+      const fileName = assetPath.split("/").pop() ?? assetPath;
+      const id = fileName.replace(/\.[^.]+$/i, "").toLowerCase();
+      return [id, assetUrl];
+    })
+  );
+
+const movieFolderCoverById = mapCoversByBasename(
+  Object.entries(movieFolderCoverModules)
+);
+
+const localCoverById = mapCoversByBasename(Object.entries(localCoverModules));
 
 export const shuffle = <T,>(items: T[], randomFn: () => number = Math.random): T[] => {
   const shuffled = [...items];
@@ -89,6 +121,10 @@ export const loadLocalMovieCollections = (): LocalMovieCollection[] => {
     const title = parseCollectionTitle(markdown, fallbackTitle);
     const movieTitles = parseCollectionMovieTitles(markdown);
     const image = parseCollectionImage(markdown);
+    const normalizedFileName = fileName.toLowerCase();
+    const localImage =
+      movieFolderCoverById.get(normalizedFileName) ??
+      localCoverById.get(normalizedFileName);
 
     collections.push({
       id: fileName,
@@ -96,6 +132,7 @@ export const loadLocalMovieCollections = (): LocalMovieCollection[] => {
       movieTitles,
       filePath,
       image,
+      localImage,
     });
   }
 

@@ -1,11 +1,94 @@
 import { BracketMatch, KombatOption } from "../components/Kombat/KombatModels";
 import { Movie } from "../types";
 
+export const MIN_KOMBAT_MOVIES = 4;
+export const MAX_KOMBAT_MOVIES = 32;
+
+export type KombatStartRequirement =
+  | {
+      status: "ready";
+      targetMovieCount: 4 | 8 | 16 | 32;
+    }
+  | {
+      status: "add-movies";
+      missingMovies: number;
+    }
+  | {
+      status: "pick-4";
+    }
+  | {
+      status: "pick-8";
+    }
+  | {
+      status: "pick-16";
+    };
+
 // A placeholder for empty slots or "BYE" rounds
 const TBD_OPTION: KombatOption = {
   id: 'tbd',
   title: 'TBD',
   poster: 'https://placehold.co/400x600/242424/646cff?text=TBD',
+};
+
+export const getKombatStartRequirement = (movieCount: number): KombatStartRequirement => {
+  // Less than 4: Need to add movies
+  if (movieCount < 4) {
+    return {
+      status: "add-movies",
+      missingMovies: 4 - movieCount,
+    };
+  }
+
+  // Exactly 4: Ready
+  if (movieCount === 4) {
+    return { status: "ready", targetMovieCount: 4 };
+  }
+
+  // 5-7: Show dialog to pick 4
+  if (movieCount >= 5 && movieCount <= 7) {
+    return { status: "pick-4" };
+  }
+
+  // Exactly 8: Ready
+  if (movieCount === 8) {
+    return { status: "ready", targetMovieCount: 8 };
+  }
+
+  // 9-15: Show dialog to pick 8
+  if (movieCount >= 9 && movieCount <= 15) {
+    return { status: "pick-8" };
+  }
+
+  // Exactly 16: Ready
+  if (movieCount === 16) {
+    return { status: "ready", targetMovieCount: 16 };
+  }
+
+  // 17-31: Show dialog to pick 16
+  if (movieCount >= 17 && movieCount <= 31) {
+    return { status: "pick-16" };
+  }
+
+  // Exactly 32 or more: Ready with 32 (more than 32 is prevented elsewhere)
+  return { status: "ready", targetMovieCount: 32 };
+};
+
+export const selectRandomMovies = <T,>(
+  movies: T[],
+  maxMovies: number,
+  random: () => number = Math.random
+): T[] => {
+  if (movies.length <= maxMovies) {
+    return [...movies];
+  }
+
+  const shuffled = [...movies];
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+  }
+
+  return shuffled.slice(0, maxMovies);
 };
 
 // This is the core function that sets up the kombat
@@ -80,8 +163,6 @@ export const createInitialStages = (movies: Movie[]): BracketMatch[][] => {
 // Helper to get stage names
 export const getStageName = (stageIndex: number, totalStages: number): string => {
     const stagesFromFinal = totalStages - 1 - stageIndex;
-    if (stagesFromFinal === 0) return 'Final';
-    if (stagesFromFinal === 1) return 'Semi-Finals';
-    if (stagesFromFinal === 2) return 'Quarter-Finals';
-    return `Round ${stageIndex + 1}`;
+    if (stagesFromFinal === 0) return '👑';
+    return `1/${2 ** stagesFromFinal}`;
 }

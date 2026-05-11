@@ -3,6 +3,7 @@ import Button from "../components/Button";
 import PosterImage from "../components/PosterImage";
 import { ProviderLogo } from "./ProviderLogo";
 import { useMovies } from "../context/MovieContext";
+import { LANGUAGE_ES_ES } from "../constants/languages";
 import { getMovieProvidersForRegion, WatchProvider } from "../services/tmdbService";
 
 const providerCache = new Map<string, WatchProvider[]>();
@@ -20,13 +21,18 @@ export default function MovieCard({
   imdbID,
   onDelete,
 }: MovieCardProps) {
-  const { tmdbApiKey, selectedRegion, searchLanguage } = useMovies();
+  const { selectedRegion, searchLanguage } = useMovies();
   const [providers, setProviders] = useState<WatchProvider[]>([]);
+  const isTmdbMovie = imdbID.startsWith('tmdb_');
+  const [isLoadingProviders, setIsLoadingProviders] = useState(() => imdbID.startsWith('tmdb_'));
+  const [hasCheckedProviders, setHasCheckedProviders] = useState(false);
 
   useEffect(() => {
     const tmdbId = imdbID.startsWith('tmdb_') ? Number(imdbID.slice(5)) : Number.NaN;
-    if (!tmdbApiKey || !Number.isFinite(tmdbId)) {
+    if (!Number.isFinite(tmdbId)) {
       setProviders([]);
+      setIsLoadingProviders(false);
+      setHasCheckedProviders(false);
       return;
     }
 
@@ -35,12 +41,15 @@ export default function MovieCard({
     const cachedProviders = providerCache.get(cacheKey);
     if (cachedProviders) {
       setProviders(cachedProviders);
+      setIsLoadingProviders(false);
       return;
     }
 
+    setIsLoadingProviders(true);
+
     const loadProviders = async () => {
       try {
-        const providerResults = await getMovieProvidersForRegion(tmdbApiKey, tmdbId, selectedRegion);
+        const providerResults = await getMovieProvidersForRegion(tmdbId, selectedRegion);
         providerCache.set(cacheKey, providerResults);
         if (isActive) {
           setProviders(providerResults);
@@ -48,6 +57,11 @@ export default function MovieCard({
       } catch {
         if (isActive) {
           setProviders([]);
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingProviders(false);
+          setHasCheckedProviders(true);
         }
       }
     };
@@ -57,14 +71,14 @@ export default function MovieCard({
     return () => {
       isActive = false;
     };
-  }, [imdbID, selectedRegion, tmdbApiKey]);
+  }, [imdbID, selectedRegion]);
 
-  const providersTitle = searchLanguage === 'es-ES' ? 'Plataformas' : 'Platforms';
+  const providersTitle = searchLanguage === LANGUAGE_ES_ES ? 'Plataformas' : 'Platforms';
 
   return (
     <figure className="relative flex flex-col items-center justify-start p-8 pb-20 text-center bg-white border rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-      <blockquote className="max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+      <blockquote className="w-full max-w-2xl mx-auto mb-4 text-gray-500 lg:mb-8 dark:text-gray-400">
+        <h3 className="w-full text-lg font-semibold text-gray-900 dark:text-white truncate">
           {title}
         </h3>
       </blockquote>
@@ -81,7 +95,21 @@ export default function MovieCard({
         </div>
       </figcaption>
 
-      {providers.length > 0 && (
+      {isLoadingProviders && (
+        <div className="mt-3 w-full flex justify-center" role="status" aria-live="polite" aria-label="Loading platforms">
+          <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin dark:border-gray-600 dark:border-t-gray-200" />
+        </div>
+      )}
+
+      {isTmdbMovie && hasCheckedProviders && !isLoadingProviders && providers.length === 0 && (
+        <div className="mt-3 w-full text-center">
+          <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+            {searchLanguage === LANGUAGE_ES_ES ? 'No disponible' : 'Not available'}
+          </p>
+        </div>
+      )}
+
+      {!isLoadingProviders && providers.length > 0 && (
         <div className="mt-3 w-full">
           <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-300 mb-2">
             {providersTitle}
@@ -116,7 +144,7 @@ export default function MovieCard({
           variant="danger"
           onClick={() => onDelete(imdbID)}
         >
-          Remove
+          {searchLanguage === LANGUAGE_ES_ES ? 'Eliminar' : 'Remove'}
         </Button>
       </div>
     </figure>

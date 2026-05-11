@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { useEffect } from 'react'
 import KombatPage from './KombatPage'
+import { LANGUAGE_ES_ES } from '../constants/languages'
 import { MovieProvider, useMovies } from '../context/MovieContext'
 import { Movie } from '../types'
 
@@ -172,7 +173,7 @@ describe('KombatPage fight animation flow', () => {
   })
 
   it('shows English fatality texts even when language is es-ES', () => {
-    renderKombatPage({ language: 'es-ES' })
+    renderKombatPage({ language: LANGUAGE_ES_ES })
 
     fireEvent.click(screen.getAllByRole('button', { name: 'Elegir' })[0])
 
@@ -185,6 +186,14 @@ describe('KombatPage fight animation flow', () => {
       vi.advanceTimersByTime(1500)
     })
     expect(screen.getByText('FATALITY!')).toBeInTheDocument()
+  })
+
+  it('scrolls to the top when the Kombat page mounts', () => {
+    const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
+
+    renderKombatPage()
+
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'auto' })
   })
 
   it('cleans timers on unmount without throwing', () => {

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { createInitialStages, getStageName } from './kombatUtils'
+import {
+  createInitialStages,
+  getKombatStartRequirement,
+  getStageName,
+  selectRandomMovies,
+} from './kombatUtils'
 import { Movie } from '../types'
 
 const makeMovie = (n: number): Movie => ({
@@ -64,25 +69,94 @@ describe('createInitialStages', () => {
   })
 })
 
+describe('getKombatStartRequirement', () => {
+  it('requires adding movies when count is less than 4', () => {
+    expect(getKombatStartRequirement(3)).toEqual({
+      status: 'add-movies',
+      missingMovies: 1,
+    })
+  })
+
+  it('allows starting immediately when exactly 4 movies are selected', () => {
+    expect(getKombatStartRequirement(4)).toEqual({ status: 'ready', targetMovieCount: 4 })
+  })
+
+  it('shows pick-4 dialog when count is 5-7', () => {
+    expect(getKombatStartRequirement(5)).toEqual({ status: 'pick-4' })
+    expect(getKombatStartRequirement(6)).toEqual({ status: 'pick-4' })
+    expect(getKombatStartRequirement(7)).toEqual({ status: 'pick-4' })
+  })
+
+  it('allows starting immediately when exactly 8 movies are selected', () => {
+    expect(getKombatStartRequirement(8)).toEqual({ status: 'ready', targetMovieCount: 8 })
+  })
+
+  it('shows pick-8 dialog when count is 9-15', () => {
+    expect(getKombatStartRequirement(9)).toEqual({ status: 'pick-8' })
+    expect(getKombatStartRequirement(12)).toEqual({ status: 'pick-8' })
+    expect(getKombatStartRequirement(15)).toEqual({ status: 'pick-8' })
+  })
+
+  it('allows starting immediately when exactly 16 movies are selected', () => {
+    expect(getKombatStartRequirement(16)).toEqual({ status: 'ready', targetMovieCount: 16 })
+  })
+
+  it('shows pick-16 dialog when count is 17-31', () => {
+    expect(getKombatStartRequirement(17)).toEqual({ status: 'pick-16' })
+    expect(getKombatStartRequirement(20)).toEqual({ status: 'pick-16' })
+    expect(getKombatStartRequirement(31)).toEqual({ status: 'pick-16' })
+  })
+
+  it('allows starting immediately when exactly 32 movies are selected', () => {
+    expect(getKombatStartRequirement(32)).toEqual({ status: 'ready', targetMovieCount: 32 })
+  })
+})
+
+describe('selectRandomMovies', () => {
+  it('returns all movies unchanged when the pool is already within the limit', () => {
+    const movies = [1, 2, 3]
+    expect(selectRandomMovies(movies, 16, () => 0.5)).toEqual(movies)
+  })
+
+  it('shuffles and trims the pool to the requested size', () => {
+    const pool = [1, 2, 3, 4, 5]
+    const randomValues = [0.1, 0.8, 0.2, 0.6]
+    let randomIndex = 0
+
+    const selected = selectRandomMovies(pool, 3, () => {
+      const value = randomValues[randomIndex]
+      randomIndex += 1
+      return value
+    })
+
+    expect(selected).toHaveLength(3)
+    expect(selected).toEqual([3, 2, 5])
+  })
+})
+
 describe('getStageName', () => {
-  it('last stage → Final', () => {
-    expect(getStageName(0, 1)).toBe('Final')
-    expect(getStageName(1, 2)).toBe('Final')
-    expect(getStageName(2, 3)).toBe('Final')
+  it('last stage → crown', () => {
+    expect(getStageName(0, 1)).toBe('👑')
+    expect(getStageName(1, 2)).toBe('👑')
+    expect(getStageName(2, 3)).toBe('👑')
   })
 
-  it('second-to-last stage → Semi-Finals', () => {
-    expect(getStageName(0, 2)).toBe('Semi-Finals')
-    expect(getStageName(1, 3)).toBe('Semi-Finals')
+  it('semi-final stage → 1/2', () => {
+    expect(getStageName(0, 2)).toBe('1/2')
+    expect(getStageName(1, 3)).toBe('1/2')
   })
 
-  it('third-to-last stage → Quarter-Finals', () => {
-    expect(getStageName(0, 3)).toBe('Quarter-Finals')
-    expect(getStageName(1, 4)).toBe('Quarter-Finals')
+  it('quarter-final stage → 1/4', () => {
+    expect(getStageName(0, 3)).toBe('1/4')
+    expect(getStageName(1, 4)).toBe('1/4')
   })
 
-  it('earlier stages → Round N (1-indexed)', () => {
-    expect(getStageName(0, 4)).toBe('Round 1')
-    expect(getStageName(1, 5)).toBe('Round 2')
+  it('eighth-final stage → 1/8', () => {
+    expect(getStageName(0, 4)).toBe('1/8')
+  })
+
+  it('earlier stages use powers of two', () => {
+    expect(getStageName(0, 5)).toBe('1/16')
+    expect(getStageName(1, 6)).toBe('1/16')
   })
 })

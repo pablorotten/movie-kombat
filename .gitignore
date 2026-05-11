@@ -28,8 +28,14 @@ dist-ssr
 *.sln
 *.sw?
 x
-
 backup
+
+# Affinity files
+*.af~lock~
 
 # Business files
 Business/
+
+# Vercel
+.vercel
+.env*.local

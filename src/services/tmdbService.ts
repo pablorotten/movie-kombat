@@ -1,6 +1,7 @@
 import genresData from '../assets/TMDB/genres.json';
 import providersData from '../assets/TMDB/providers.json';
 import regionsData from '../assets/TMDB/regions.json';
+import { LANGUAGE_EN_US } from '../constants/languages';
 
 export interface TMDBMovie {
   id: number;
@@ -60,7 +61,7 @@ interface WatchProvidersResponse {
 }
 
 // TMDB API configuration
-const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+const TMDB_PROXY_BASE_URL = '/api';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 // Utility functions to work with static data
@@ -103,37 +104,73 @@ export const getProviderByName = (name: string): Provider | undefined => {
 
 // Popular streaming providers for quick selection
 export const getPopularProviders = (): Provider[] => {
-  const popularProviderIds = [8, 119, 337, 350, 63]; // Netflix, Amazon Prime, Disney+, Apple TV+, Filmin
+  const popularProviderIds = [8, 119, 337, 350, 63, 283]; // Netflix, Amazon Prime, Disney+, Apple TV+, Filmin, Crunchyroll
   return popularProviderIds
     .map(id => getProviderById(id))
     .filter((provider): provider is Provider => provider !== undefined);
 };
 
-const DISCOVER_PROVIDER_IDS = new Set<number>([8, 63, 119, 337, 350]);
+const AMAZON_PRIME_PROVIDER_IDS = [9, 119, 613, 2100];
+
+const CANONICAL_PROVIDER_ALIASES: Record<number, number[]> = {
+  119: AMAZON_PRIME_PROVIDER_IDS,
+};
+
+const getCanonicalProviderId = (providerId: number): number => {
+  for (const [canonicalId, aliases] of Object.entries(CANONICAL_PROVIDER_ALIASES)) {
+    if (aliases.includes(providerId)) {
+      return Number(canonicalId);
+    }
+  }
+  return providerId;
+};
+
+const expandProviderIdsForDiscover = (providerIds: number[]): number[] => {
+  const expandedProviderIds = new Set<number>();
+
+  for (const providerId of providerIds) {
+    const canonicalProviderId = getCanonicalProviderId(providerId);
+    const aliases = CANONICAL_PROVIDER_ALIASES[canonicalProviderId] || [canonicalProviderId];
+    for (const aliasProviderId of aliases) {
+      expandedProviderIds.add(aliasProviderId);
+    }
+  }
+
+  return Array.from(expandedProviderIds);
+};
+
+const DISCOVER_PROVIDER_IDS = new Set<number>([8, 63, 119, 337, 350, 283]);
 
 const pickAllowedProviders = (providers: WatchProvider[] = []): WatchProvider[] => {
   const unique = new Map<number, WatchProvider>();
   for (const provider of providers) {
-    if (DISCOVER_PROVIDER_IDS.has(provider.provider_id) && !unique.has(provider.provider_id)) {
-      unique.set(provider.provider_id, provider);
+    const canonicalProviderId = getCanonicalProviderId(provider.provider_id);
+    if (!DISCOVER_PROVIDER_IDS.has(canonicalProviderId) || unique.has(canonicalProviderId)) {
+      continue;
     }
-  }
+
+    const canonicalProvider = getProviderById(canonicalProviderId);
+    unique.set(canonicalProviderId, {
+      ...provider,
+      provider_id: canonicalProviderId,
+      provider_name: canonicalProvider?.provider_name || provider.provider_name,
+      logo_path: canonicalProvider?.logo_path || provider.logo_path,
+    });
+    }
+
   return Array.from(unique.values());
 };
 
 export const getMovieProvidersForRegion = async (
-  bearerToken: string,
   movieId: number,
   region: string
 ): Promise<WatchProvider[]> => {
-  const url = `${TMDB_BASE_URL}/movie/${movieId}/watch/providers`;
-
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Bearer ${bearerToken}`,
-      'accept': 'application/json'
-    }
+  const params = new URLSearchParams({
+    region: region.toUpperCase()
   });
+  const url = `${TMDB_PROXY_BASE_URL}/movie/${movieId}/watch/providers?${params.toString()}`;
+
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
@@ -163,25 +200,28 @@ export const getTMDBImageUrl = (posterPath: string | null): string | null => {
 
 // Discover movies by genre, provider, and country/region
 export const discoverMovies = async (
-  bearerToken: string,
   options: {
+    genreIds?: number[];
     genreId?: number;
+    providerIds?: number[];
     providerId?: number;
     region?: string; // ISO 3166-1 country code (e.g., 'ES' for Spain, 'US' for United States)
     page?: number;
     sortBy?: 'popularity.desc' | 'vote_average.desc' | 'release_date.desc';
     includeAdult?: boolean;
-    language?: string; // Language for localized titles (e.g., 'en-US', 'es-ES')
+    language?: string; // Language for localized titles (e.g., LANGUAGE_EN_US, LANGUAGE_ES_ES)
   }
 ): Promise<TMDBDiscoverResponse> => {
   const {
+    genreIds,
     genreId,
+    providerIds,
     providerId,
     region = 'ES', // Default to Spain
     page = 1,
     sortBy = 'popularity.desc',
     includeAdult = false,
-    language = 'en-US' // Default to English
+    language = LANGUAGE_EN_US // Default to English
   } = options;
 
   const params = new URLSearchParams({
@@ -192,24 +232,32 @@ export const discoverMovies = async (
     include_video: 'false'
   });
 
-  if (genreId) {
-    params.append('with_genres', genreId.toString());
+  const normalizedGenreIds = genreIds && genreIds.length > 0
+    ? genreIds
+    : genreId
+      ? [genreId]
+      : [];
+
+  if (normalizedGenreIds.length > 0) {
+    params.append('with_genres', normalizedGenreIds.join('|'));
   }
 
-  if (providerId && region) {
+  const normalizedProviderIds = providerIds && providerIds.length > 0
+    ? providerIds
+    : providerId
+      ? [providerId]
+      : [];
+
+  if (normalizedProviderIds.length > 0 && region) {
+    const discoverProviderIds = expandProviderIdsForDiscover(normalizedProviderIds);
     params.append('watch_region', region);
-    params.append('with_watch_providers', providerId.toString());
+    params.append('with_watch_providers', discoverProviderIds.join('|'));
   }
 
-  const url = `${TMDB_BASE_URL}/discover/movie?${params.toString()}`;
+  const url = `${TMDB_PROXY_BASE_URL}/discover/movie?${params.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
@@ -265,19 +313,14 @@ export interface TMDBMovieDetails {
 
 // Get movie details by TMDB ID
 export const getMovieDetails = async (
-  bearerToken: string,
   movieId: number,
-  language: string = 'en-US'
+  language: string = LANGUAGE_EN_US
 ): Promise<TMDBMovieDetails> => {
-  const url = `${TMDB_BASE_URL}/movie/${movieId}?language=${language}`;
+  const params = new URLSearchParams({ language });
+  const url = `${TMDB_PROXY_BASE_URL}/movie/${movieId}?${params.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);
@@ -292,27 +335,21 @@ export const getMovieDetails = async (
 
 // Search for movies by title
 export const searchMovies = async (
-  bearerToken: string,
   query: string,
   page: number = 1,
-  language: string = 'en-US'
+  language: string = LANGUAGE_EN_US
 ): Promise<TMDBDiscoverResponse> => {
   const params = new URLSearchParams({
     language: language,
-    query: encodeURIComponent(query),
+    query,
     page: page.toString(),
     include_adult: 'false'
   });
 
-  const url = `${TMDB_BASE_URL}/search/movie?${params.toString()}`;
+  const url = `${TMDB_PROXY_BASE_URL}/search/movie?${params.toString()}`;
   
   try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${bearerToken}`,
-        'accept': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`TMDB API error: ${response.status} ${response.statusText}`);

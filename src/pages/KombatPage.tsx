@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMovies } from "../context/MovieContext";
+import { LANGUAGE_ES_ES } from "../constants/languages";
 import {
   BracketMatch,
   KombatOption,
@@ -133,7 +134,9 @@ const KombatMatchup = ({
 
       {/* First Movie */}
       <div className="flex flex-col items-center gap-4">
-        <h3 className="text-xl font-bold text-center h-8">{match.first.title}</h3>
+        <h3 className="text-xl font-bold text-center h-8 w-full overflow-hidden whitespace-nowrap text-ellipsis">
+          {match.first.title}
+        </h3>
         {renderPoster(match.first, "first")}
         {!animating && (
           <div className="mt-4">
@@ -146,7 +149,9 @@ const KombatMatchup = ({
 
       {/* Second Movie */}
       <div className="flex flex-col items-center gap-4">
-        <h3 className="text-xl font-bold text-center h-8">{match.second.title}</h3>
+        <h3 className="text-xl font-bold text-center h-8 w-full overflow-hidden whitespace-nowrap text-ellipsis">
+          {match.second.title}
+        </h3>
         {renderPoster(match.second, "second")}
         {!animating && (
           <div className="mt-4">
@@ -161,9 +166,9 @@ const KombatMatchup = ({
 };
 
 export default function KombatPage() {
-  const { movieList, setMovieList, searchLanguage, tmdbApiKey, selectedRegion } = useMovies();
+  const { movieList, setMovieList, searchLanguage, selectedRegion } = useMovies();
   const navigate = useNavigate();
-  const isSpanish = searchLanguage === "es-ES";
+  const isSpanish = searchLanguage === LANGUAGE_ES_ES;
   const ui = isSpanish
     ? {
         choose: "Elegir",
@@ -178,7 +183,7 @@ export default function KombatPage() {
         noPlatforms: "No hay plataformas disponibles para este pais.",
         round: "Ronda",
         of: "de",
-        bracket: "Bracket del Kombat",
+        bracket: "Kombat Bracket",
       }
     : {
         choose: "Choose",
@@ -201,6 +206,7 @@ export default function KombatPage() {
   const [currentRound, setCurrentRound] = useState(0);
   const [winner, setWinner] = useState<KombatOption | null>(null);
   const [winnerProviders, setWinnerProviders] = useState<WatchProvider[]>([]);
+  const [isBracketOpen, setIsBracketOpen] = useState(false);
 
   const getTMDBMovieUrl = (option: KombatOption): string => {
     if (option.id.startsWith("tmdb_")) {
@@ -240,7 +246,11 @@ export default function KombatPage() {
   }, [movieList]);
 
   useEffect(() => {
-    if (!winner || !winner.id.startsWith("tmdb_") || !tmdbApiKey) {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, []);
+
+  useEffect(() => {
+    if (!winner || !winner.id.startsWith("tmdb_")) {
       setWinnerProviders([]);
       return;
     }
@@ -254,7 +264,7 @@ export default function KombatPage() {
     let isActive = true;
     const loadProviders = async () => {
       try {
-        const providers = await getMovieProvidersForRegion(tmdbApiKey, tmdbId, selectedRegion);
+        const providers = await getMovieProvidersForRegion(tmdbId, selectedRegion);
         if (isActive) {
           setWinnerProviders(providers);
         }
@@ -269,7 +279,7 @@ export default function KombatPage() {
     return () => {
       isActive = false;
     };
-  }, [winner, tmdbApiKey, selectedRegion]);
+  }, [winner, selectedRegion]);
 
   const handleChooseWinner = (roundWinner: KombatOption) => {
     const updatedStages = [...stages];
@@ -439,20 +449,40 @@ export default function KombatPage() {
             </div>
 
             {/* Kombat Bracket Visualization */}
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold text-center mb-4">
-                {ui.bracket}
-              </h2>
-              <div className="overflow-x-auto max-w-full">
-                <div className="flex justify-center">
-                  <BracketVisualization
-                    stages={stages}
-                    currentStage={currentStage}
-                    currentRound={currentRound}
-                    onMovieClick={handleOpenMovieInTMDB}
-                  />
+            <div className="mt-12 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 shadow-lg dark:border-gray-600 dark:from-gray-800 dark:to-gray-700">
+              <button
+                type="button"
+                onClick={() => setIsBracketOpen((current) => !current)}
+                className="w-full rounded-xl p-6 text-left transition-colors hover:bg-blue-100 dark:hover:bg-gray-600"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+                    {ui.bracket}
+                  </h2>
+                  <svg
+                    className={`h-6 w-6 text-gray-600 transition-transform dark:text-gray-300 ${isBracketOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
-              </div>
+              </button>
+              {isBracketOpen && (
+                <div className="px-6 pb-6">
+                  <div className="overflow-x-auto max-w-full">
+                    <div className="flex justify-center">
+                      <BracketVisualization
+                        stages={stages}
+                        currentStage={currentStage}
+                        currentRound={currentRound}
+                        onMovieClick={handleOpenMovieInTMDB}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )

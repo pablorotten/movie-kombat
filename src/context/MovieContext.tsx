@@ -1,12 +1,22 @@
-import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import { Movie } from '../types';
+import { getPopularProviders } from '../services/tmdbService';
+import { DEFAULT_SEARCH_LANGUAGE } from '../constants/languages';
+
+export const MAX_MOVIES_IN_LIST = 32;
+
+const SELECTED_REGION_STORAGE_KEY = 'selectedRegion';
+const SEARCH_LANGUAGE_STORAGE_KEY = 'searchLanguage';
+const SELECTED_PROVIDER_IDS_STORAGE_KEY = 'selectedProviderIds';
+const HAS_COMPLETED_PREFERENCES_STORAGE_KEY = 'hasCompletedPreferences';
+const DEFAULT_PROVIDER_IDS = getPopularProviders()
+  .filter((provider) => [8, 119, 337].includes(provider.provider_id))
+  .map((provider) => provider.provider_id);
 
 interface MovieContextType {
   movieList: Movie[];
   addMovie: (movie: Movie) => void;
   removeMovie: (imdbID: string) => void;
-  tmdbApiKey: string;
-  setTmdbApiKey: (key: string) => void;
   setMovieList: React.Dispatch<React.SetStateAction<Movie[]>>;
   arePostersVisible: boolean;
   togglePostersVisibility: () => void;
@@ -14,83 +24,147 @@ interface MovieContextType {
   setSearchLanguage: (language: string) => void;
   selectedRegion: string;
   setSelectedRegion: (region: string) => void;
+  selectedProviderIds: number[];
+  setSelectedProviderIds: React.Dispatch<React.SetStateAction<number[]>>;
+  toggleSelectedProvider: (providerId: number) => void;
+  hasCompletedPreferences: boolean;
+  completePreferences: () => void;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
 
 export function MovieProvider({ children }: { children: ReactNode }) {
-  const [movieList, setMovieList] = useState<Movie[]>([]);
-  const DEFAULT_TMDB_API_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI1NzIwY2QwYTM5MDA5OTkxZThjM2U4ZDNlMjgyYWY4OSIsIm5iZiI6MTc2Mjg2ODQwMy43MjEsInN1YiI6IjY5MTMzY2IzNGYwNGJiY2Y0ZWRkMjlmMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BgroNoyRerw6ggrjFjUaHrPiz4--NM3_NZfLCbHMVX8";
-  const [tmdbApiKey, setTmdbApiKey] = useState<string>(DEFAULT_TMDB_API_KEY);
+  const [movieList, setMovieListState] = useState<Movie[]>([]);
   const [arePostersVisible, setArePostersVisible] = useState(true);
-  const [searchLanguage, setSearchLanguage] = useState<string>('en-US');
-  const [selectedRegion, setSelectedRegion] = useState<string>('ES');
+  const [searchLanguage, setSearchLanguage] = useState<string>(DEFAULT_SEARCH_LANGUAGE);
+  const [selectedRegion, setSelectedRegion] = useState<string>('');
+  const [selectedProviderIds, setSelectedProviderIds] = useState<number[]>(DEFAULT_PROVIDER_IDS);
+  const [hasCompletedPreferences, setHasCompletedPreferences] = useState(
+    () => localStorage.getItem(HAS_COMPLETED_PREFERENCES_STORAGE_KEY) === 'true'
+  );
 
   useEffect(() => {
-    const storedTmdbKey = localStorage.getItem("tmdbApiKey");
-    if (storedTmdbKey) {
-      setTmdbApiKey(storedTmdbKey);
-    }
-
-    const storedLanguage = localStorage.getItem("searchLanguage");
+    const storedLanguage = localStorage.getItem(SEARCH_LANGUAGE_STORAGE_KEY);
     if (storedLanguage) {
       setSearchLanguage(storedLanguage);
     }
 
-    const storedRegion = localStorage.getItem("selectedRegion");
+    const storedRegion = localStorage.getItem(SELECTED_REGION_STORAGE_KEY);
     if (storedRegion) {
       setSelectedRegion(storedRegion.toUpperCase());
-      return;
     }
 
-    const localeRegion = navigator.language?.split('-')?.[1]?.toUpperCase();
-    if (localeRegion) {
-      setSelectedRegion(localeRegion);
+    const storedProviderIds = localStorage.getItem(SELECTED_PROVIDER_IDS_STORAGE_KEY);
+    if (storedProviderIds) {
+      try {
+        const parsedProviderIds = JSON.parse(storedProviderIds);
+        if (Array.isArray(parsedProviderIds) && parsedProviderIds.every((providerId) => typeof providerId === 'number')) {
+          setSelectedProviderIds(parsedProviderIds);
+        }
+      } catch {
+        setSelectedProviderIds(DEFAULT_PROVIDER_IDS);
+      }
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("tmdbApiKey", tmdbApiKey);
-  }, [tmdbApiKey]);
-
-  useEffect(() => {
-    localStorage.setItem("searchLanguage", searchLanguage);
+    localStorage.setItem(SEARCH_LANGUAGE_STORAGE_KEY, searchLanguage);
   }, [searchLanguage]);
 
   useEffect(() => {
-    localStorage.setItem("selectedRegion", selectedRegion);
+    if (selectedRegion) {
+      localStorage.setItem(SELECTED_REGION_STORAGE_KEY, selectedRegion);
+    }
   }, [selectedRegion]);
 
+  useEffect(() => {
+    localStorage.setItem(SELECTED_PROVIDER_IDS_STORAGE_KEY, JSON.stringify(selectedProviderIds));
+  }, [selectedProviderIds]);
+
   const addMovie = (movie: Movie) => {
-    if (!movieList.find((m) => m.imdbID === movie.imdbID)) {
-      setMovieList((prevList) => [...prevList, movie]);
-    }
+    setMovieListState((prevList) => {
+      if (prevList.length >= MAX_MOVIES_IN_LIST) {
+        return prevList;
+      }
+
+      if (prevList.some((existingMovie) => existingMovie.imdbID === movie.imdbID)) {
+        return prevList;
+      }
+
+      return [...prevList, movie];
+    });
   };
 
   const removeMovie = (imdbID: string) => {
-    setMovieList((currentMovies) =>
+    setMovieListState((currentMovies) =>
       currentMovies.filter((movie) => movie.imdbID !== imdbID)
     );
   };
+
+  const setMovieList: React.Dispatch<React.SetStateAction<Movie[]>> = useCallback((updater) => {
+    setMovieListState((prevMovies) => {
+      const nextMovies = typeof updater === 'function'
+        ? updater(prevMovies)
+        : updater;
+
+      if (nextMovies.length <= MAX_MOVIES_IN_LIST) {
+        return nextMovies;
+      }
+
+      return nextMovies.slice(0, MAX_MOVIES_IN_LIST);
+    });
+  }, []);
 
   const togglePostersVisibility = () => {
     setArePostersVisible(prevState => !prevState);
   };
 
-  const value = { 
-    movieList, 
-    addMovie, 
-    removeMovie, 
-    setMovieList, 
-    tmdbApiKey,
-    setTmdbApiKey,
-    arePostersVisible, 
+  const toggleSelectedProvider = (providerId: number) => {
+    setSelectedProviderIds((currentProviderIds) =>
+      currentProviderIds.includes(providerId)
+        ? currentProviderIds.filter((currentProviderId) => currentProviderId !== providerId)
+        : [...currentProviderIds, providerId]
+    );
+  };
+
+  const completePreferences = () => {
+    setHasCompletedPreferences(true);
+    localStorage.setItem(HAS_COMPLETED_PREFERENCES_STORAGE_KEY, 'true');
+  };
+
+  const value = useMemo(() => ({
+    movieList,
+    addMovie,
+    removeMovie,
+    setMovieList,
+    arePostersVisible,
     togglePostersVisibility,
     searchLanguage,
     setSearchLanguage,
     selectedRegion,
-    setSelectedRegion
-  };
+    setSelectedRegion,
+    selectedProviderIds,
+    setSelectedProviderIds,
+    toggleSelectedProvider,
+    hasCompletedPreferences,
+    completePreferences,
+  }), [
+    movieList,
+    addMovie,
+    removeMovie,
+    setMovieList,
+    arePostersVisible,
+    togglePostersVisibility,
+    searchLanguage,
+    setSearchLanguage,
+    selectedRegion,
+    setSelectedRegion,
+    selectedProviderIds,
+    setSelectedProviderIds,
+    toggleSelectedProvider,
+    hasCompletedPreferences,
+    completePreferences,
+  ]);
 
   return (
     <MovieContext.Provider value={value}>

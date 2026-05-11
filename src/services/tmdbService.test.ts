@@ -166,21 +166,39 @@ describe('discoverMovies', () => {
   beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
   afterEach(() => vi.unstubAllGlobals())
 
-  it('calls the correct endpoint with authorization header and returns parsed data', async () => {
+  it('calls the proxy discover endpoint and returns parsed data', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse(emptyDiscoverResponse))
 
-    const result = await discoverMovies('my-token', { page: 1 })
+    const result = await discoverMovies({ page: 1 })
 
     expect(fetch).toHaveBeenCalledOnce()
-    const [url, options] = vi.mocked(fetch).mock.calls[0]
+    const [url] = vi.mocked(fetch).mock.calls[0]
     expect(String(url)).toContain('/discover/movie')
-    expect((options?.headers as Record<string, string>)?.Authorization).toBe('Bearer my-token')
     expect(result).toEqual(emptyDiscoverResponse)
   })
 
   it('throws on a non-OK response', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response('', { status: 401, statusText: 'Unauthorized' }))
-    await expect(discoverMovies('bad-token', {})).rejects.toThrow('TMDB API error: 401')
+    await expect(discoverMovies({})).rejects.toThrow('TMDB API error: 401')
+  })
+
+  it('sends multiple providers in a single discover request', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse(emptyDiscoverResponse))
+
+    await discoverMovies({ providerIds: [8, 119], region: 'ES' })
+
+    const [url] = vi.mocked(fetch).mock.calls[0]
+    expect(String(url)).toContain('watch_region=ES')
+    expect(String(url)).toContain('with_watch_providers=8%7C9%7C119%7C613%7C2100')
+  })
+
+  it('sends multiple genres in a single discover request', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse(emptyDiscoverResponse))
+
+    await discoverMovies({ genreIds: [28, 12] })
+
+    const [url] = vi.mocked(fetch).mock.calls[0]
+    expect(String(url)).toContain('with_genres=28%7C12')
   })
 })
 
@@ -191,7 +209,7 @@ describe('searchMovies', () => {
   it('calls the search endpoint', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse(emptyDiscoverResponse))
 
-    await searchMovies('my-token', 'Inception')
+    await searchMovies('Inception')
 
     const [url] = vi.mocked(fetch).mock.calls[0]
     expect(String(url)).toContain('/search/movie')
@@ -199,7 +217,7 @@ describe('searchMovies', () => {
 
   it('throws on a non-OK response', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response('', { status: 403, statusText: 'Forbidden' }))
-    await expect(searchMovies('my-token', 'Inception')).rejects.toThrow('TMDB API error: 403')
+    await expect(searchMovies('Inception')).rejects.toThrow('TMDB API error: 403')
   })
 })
 
@@ -210,7 +228,7 @@ describe('getMovieDetails', () => {
   it('calls the movie details endpoint with the correct id', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({ id: 123, title: 'Test' }))
 
-    await getMovieDetails('my-token', 123)
+    await getMovieDetails(123)
 
     const [url] = vi.mocked(fetch).mock.calls[0]
     expect(String(url)).toContain('/movie/123')
@@ -218,6 +236,6 @@ describe('getMovieDetails', () => {
 
   it('throws on a non-OK response', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response('', { status: 404, statusText: 'Not Found' }))
-    await expect(getMovieDetails('my-token', 999)).rejects.toThrow('TMDB API error: 404')
+    await expect(getMovieDetails(999)).rejects.toThrow('TMDB API error: 404')
   })
 })

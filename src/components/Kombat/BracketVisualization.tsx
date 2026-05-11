@@ -24,14 +24,13 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
     const isClickable = !isPlaceholder && Boolean(onMovieClick);
     
     return (
-      <div className={`flex items-center justify-between py-1 border-b border-slate-600/50 last:border-b-0 ${
+      <div className={`flex items-center justify-center sm:justify-between py-1 border-b border-slate-600/50 last:border-b-0 ${
         isWinner ? 'bg-green-600/20 font-semibold text-green-400' : ''
       } ${isLoser ? 'opacity-60 text-slate-400' : ''} ${
         isPlaceholder ? 'opacity-40 italic text-slate-500' : 'text-slate-200'
       }`}>
         <div
-          className={`flex items-center min-w-0 ${isClickable ? 'cursor-pointer hover:text-blue-300 transition-colors' : ''}`}
-          style={{ width: '140px' }}
+          className={`flex w-fit min-w-0 items-center justify-center sm:w-[140px] sm:justify-start ${isClickable ? 'cursor-pointer hover:text-blue-300 transition-colors' : ''}`}
           onClick={isClickable ? () => onMovieClick?.(option) : undefined}
           title={isClickable ? option.title : undefined}
         >
@@ -39,10 +38,10 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
             <img 
               src={option.poster} 
               alt={option.title}
-              className="w-6 h-8 object-cover rounded mr-2 flex-shrink-0"
+              className="h-14 w-10 flex-shrink-0 rounded object-cover sm:h-8 sm:w-6 sm:mr-2"
             />
           )}
-          <span className="text-sm font-medium truncate">
+          <span className="text-sm font-medium truncate sm:inline hidden">
             {isPlaceholder ? 'TBD' : option.title}
           </span>
         </div>
@@ -62,13 +61,13 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
         className="flex items-center justify-center h-full"
       >
         <div 
-          className={`bg-slate-800 border rounded-md transition-all w-full mx-0.5 ${
+          className={`bg-slate-800 border rounded-md transition-all w-full ${
             isCurrentMatch && !isFinished ? 'border-blue-500 bg-blue-900/30 ring-2 ring-blue-500/50' : 
             isFinished ? 'border-green-600 bg-slate-800' :
             'border-slate-600 hover:border-blue-500'
           }`}
         >
-          <div className="p-2 cursor-pointer">
+          <div className="p-1 sm:p-2 cursor-pointer">
             {renderTeam(match.first, isWinnerFirst, isWinnerSecond)}
             {renderTeam(match.second, isWinnerSecond, isWinnerFirst)}
           </div>
@@ -83,7 +82,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
     return (
       <div 
         key={stageIndex}
-        className={`flex flex-col justify-evenly h-full ${isFinalRound ? 'pr-0' : 'px-2'}`}
+        className={`flex flex-col justify-evenly h-full ${isFinalRound ? 'pr-0' : 'px-0 sm:px-1'}`}
       >
         {round.map((match, matchIndex) => 
           renderMatch(match, stageIndex, matchIndex)
@@ -93,7 +92,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
   };
 
   return (
-    <div className="min-w-max transform origin-top-left overflow-x-auto p-4 bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-600">
+    <div className="min-w-0 sm:min-w-max transform origin-top-left overflow-x-auto p-4 bg-slate-900/50 backdrop-blur-sm rounded-xl border border-slate-600">
       {/* Headers */}
       <div 
         className="grid gap-0 mb-4"
@@ -103,7 +102,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
           <button 
             key={stageIndex} 
             type="button" 
-            className={`bg-slate-800 border border-slate-600 text-slate-300 p-3 rounded-t-lg font-medium transition-all w-48 ${
+            className={`w-full rounded-t-lg border border-slate-600 bg-slate-800 p-2 text-center text-xs font-medium text-slate-300 transition-all sm:w-48 sm:p-3 sm:text-base ${
               stageIndex === currentStage ? 'bg-blue-600 text-white' : 'hover:bg-slate-700'
             }`}
           >
@@ -115,7 +114,7 @@ const BracketVisualization: React.FC<BracketVisualizationProps> = ({
       {/* Kombat Rounds */}
       <div 
         className="grid gap-0"
-        style={{ gridTemplateColumns: `repeat(${stages.length}, minmax(0, 2fr))` }}
+        style={{ gridTemplateColumns: `repeat(${stages.length}, minmax(0, 1fr))` }}
       >
         {stages.map((round, stageIndex) => renderRound(round, stageIndex))}
       </div>
