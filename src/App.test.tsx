@@ -86,7 +86,7 @@ describe('App kombat start flow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
-    expect(screen.getByText('Select 4 Movies')).toBeInTheDocument()
+    expect(screen.getByText('Start Kombat?')).toBeInTheDocument()
     expect(screen.getByText('4 movies will be randomly selected.')).toBeInTheDocument()
   })
 
@@ -103,7 +103,7 @@ describe('App kombat start flow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
-    expect(screen.getByText('Select 8 Movies')).toBeInTheDocument()
+    expect(screen.getByText('Start Kombat?')).toBeInTheDocument()
     expect(screen.getByText('8 movies will be randomly selected.')).toBeInTheDocument()
   })
 
@@ -115,32 +115,41 @@ describe('App kombat start flow', () => {
     expect(screen.getByText('Kombat Page 16')).toBeInTheDocument()
   })
 
-  it('shows pick-16 dialog when there are 17-31 movies', () => {
+  it('shows pick-16 dialog when there are 17-100 movies', () => {
     renderApp(Array.from({ length: 20 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
-    expect(screen.getByText('Select 16 Movies')).toBeInTheDocument()
+    expect(screen.getByText('Start Kombat?')).toBeInTheDocument()
     expect(screen.getByText('16 movies will be randomly selected.')).toBeInTheDocument()
   })
 
-  it('starts kombat directly with exactly 32 movies', () => {
+  it('shows pick-16 dialog when there are exactly 32 movies', () => {
     renderApp(Array.from({ length: 32 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
-    expect(screen.getByText('Kombat Page 32')).toBeInTheDocument()
+    expect(screen.getByText('Start Kombat?')).toBeInTheDocument()
+    expect(screen.getByText('16 movies will be randomly selected.')).toBeInTheDocument()
+  })
+
+  it('shows the empty-list prompt when there are no movies', () => {
+    renderApp([])
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
+
+    expect(screen.getByText('Add movies to start the Kombat')).toBeInTheDocument()
   })
 
   it('stays on the selection screen when the user cancels the pick-4 dialog', () => {
     renderApp(Array.from({ length: 5 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
-    expect(screen.getByText('Select 4 Movies')).toBeInTheDocument()
+    expect(screen.getByText('Start Kombat?')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
-    expect(screen.queryByText('Select 4 Movies')).not.toBeInTheDocument()
+    expect(screen.queryByText('Start Kombat?')).not.toBeInTheDocument()
     expect(screen.getByText('Search Page')).toBeInTheDocument()
   })
 
@@ -149,7 +158,7 @@ describe('App kombat start flow', () => {
     renderApp(Array.from({ length: 6 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
-    fireEvent.click(screen.getByRole('button', { name: 'OK, pick 4' }))
+    fireEvent.click(screen.getByRole('button', { name: 'OK' }))
 
     expect(await screen.findByText('Kombat Page 4')).toBeInTheDocument()
   })
@@ -159,7 +168,7 @@ describe('App kombat start flow', () => {
     renderApp(Array.from({ length: 12 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
-    fireEvent.click(screen.getByRole('button', { name: 'OK, pick 8' }))
+    fireEvent.click(screen.getByRole('button', { name: 'OK' }))
 
     expect(await screen.findByText('Kombat Page 8')).toBeInTheDocument()
   })
@@ -169,7 +178,7 @@ describe('App kombat start flow', () => {
     renderApp(Array.from({ length: 20 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
-    fireEvent.click(screen.getByRole('button', { name: 'OK, pick 16' }))
+    fireEvent.click(screen.getByRole('button', { name: 'OK' }))
 
     expect(await screen.findByText('Kombat Page 16')).toBeInTheDocument()
   })

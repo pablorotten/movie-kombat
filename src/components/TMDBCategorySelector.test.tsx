@@ -103,7 +103,7 @@ describe('TMDBCategorySelector movie-cap behavior', () => {
     fireEvent.click(discoverButton)
 
     await waitFor(() => {
-      expect(screen.getByText('There are already too many movies (32). Delete some before adding more.')).toBeInTheDocument()
+      expect(screen.getByText('There are already too many movies (100). Delete some before adding more.')).toBeInTheDocument()
     })
 
     expect(discoverMoviesMock).not.toHaveBeenCalled()

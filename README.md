@@ -96,6 +96,7 @@ npm run dev:vercel
 ```
 
 This runs Vercel's local runtime so `/api/*` serverless endpoints are available.
+Local dev uses `vercel.dev.json`, while production deploys use `vercel.json`.
 Use `npm run dev` only for frontend-only work.
 
 Request routing summary:

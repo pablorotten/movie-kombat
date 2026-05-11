@@ -129,12 +129,12 @@ describe('SearchPage movie-cap behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Mock discover add' }))
 
     expect(screen.getByText('Limit reached')).toBeInTheDocument()
-    expect(screen.getByText('There are already too many movies (32). Delete some before adding more.')).toBeInTheDocument()
-    expect(screen.getByText(/(?:Movies|Peliculas) \(32\)/)).toBeInTheDocument()
+    expect(screen.getByText('There are already too many movies (100). Delete some before adding more.')).toBeInTheDocument()
+    expect(screen.getByText(/(?:Movies|Peliculas) \(100\)/)).toBeInTheDocument()
   })
 
   it('stops expanded search requests at remaining capacity and warns with added count', async () => {
-    renderSearchPage(Array.from({ length: 30 }, (_, index) => makeMovie(index + 1)))
+    renderSearchPage(Array.from({ length: MAX_MOVIES_IN_LIST - 2 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByTitle('Search multiple movies'))
     fireEvent.change(screen.getByPlaceholderText('Enter one movie per line...'), {
@@ -147,12 +147,12 @@ describe('SearchPage movie-cap behavior', () => {
       expect(searchMoviesMock).toHaveBeenCalledTimes(2)
     })
 
-    expect(screen.getByText('Only 2 movies were added because the list is already capped at 32.')).toBeInTheDocument()
-    expect(screen.getByText(/(?:Movies|Peliculas) \(32\)/)).toBeInTheDocument()
+    expect(screen.getByText('Only 2 movies were added because the list is already capped at 100.')).toBeInTheDocument()
+    expect(screen.getByText(/(?:Movies|Peliculas) \(100\)/)).toBeInTheDocument()
   })
 
   it('stops collection requests at remaining capacity and warns with added count', async () => {
-    renderSearchPage(Array.from({ length: 30 }, (_, index) => makeMovie(index + 1)))
+    renderSearchPage(Array.from({ length: MAX_MOVIES_IN_LIST - 2 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: /Movie Collections/i }))
     fireEvent.click(screen.getByText('Top Picks'))
@@ -161,19 +161,19 @@ describe('SearchPage movie-cap behavior', () => {
       expect(searchMoviesMock).toHaveBeenCalledTimes(2)
     })
 
-    expect(screen.getByText('Only 2 movies were added because the list is already capped at 32.')).toBeInTheDocument()
-    expect(screen.getByText(/(?:Movies|Peliculas) \(32\)/)).toBeInTheDocument()
+    expect(screen.getByText('Only 2 movies were added because the list is already capped at 100.')).toBeInTheDocument()
+    expect(screen.getByText(/(?:Movies|Peliculas) \(100\)/)).toBeInTheDocument()
   })
 
-  it('caps discover adds at 32 and shows partial warning when near limit', async () => {
-    renderSearchPage(Array.from({ length: 30 }, (_, index) => makeMovie(index + 1)))
+  it('caps discover adds at 100 and shows partial warning when near limit', async () => {
+    renderSearchPage(Array.from({ length: MAX_MOVIES_IN_LIST - 2 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Mock discover add' }))
 
     await waitFor(() => {
-      expect(screen.getByText('Only 2 movies were added because the list is already capped at 32.')).toBeInTheDocument()
+      expect(screen.getByText('Only 2 movies were added because the list is already capped at 100.')).toBeInTheDocument()
     })
 
-    expect(screen.getByText(/(?:Movies|Peliculas) \(32\)/)).toBeInTheDocument()
+    expect(screen.getByText(/(?:Movies|Peliculas) \(100\)/)).toBeInTheDocument()
   })
 })
