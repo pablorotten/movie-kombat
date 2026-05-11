@@ -55,15 +55,15 @@ function App() {
           missingMovies === 4
             ? "Agrega peliculas para empezar el Kombat"
             : `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
-        pick4Title: "Seleccionar 4 peliculas",
+        pick4Title: "Empezar Kombat?",
         pick4Message: "Se seleccionaran 4 peliculas al azar.",
-        pick4Confirm: "OK, elegir 4",
-        pick8Title: "Seleccionar 8 peliculas",
+        pick4Confirm: "OK",
+        pick8Title: "Empezar Kombat?",
         pick8Message: "Se seleccionaran 8 peliculas al azar.",
-        pick8Confirm: "OK, elegir 8",
-        pick16Title: "Seleccionar 16 peliculas",
+        pick8Confirm: "OK",
+        pick16Title: "Empezar Kombat?",
         pick16Message: "Se seleccionaran 16 peliculas al azar.",
-        pick16Confirm: "OK, elegir 16",
+        pick16Confirm: "OK",
         understood: "Entendido",
         country: "Pais",
         countryPlaceholder: "Selecciona un pais",
@@ -94,15 +94,15 @@ function App() {
           missingMovies === 4
             ? "Add movies to start the Kombat"
             : `Add ${missingMovies} movie${missingMovies === 1 ? "" : "s"} to start!`,
-        pick4Title: "Select 4 Movies",
+        pick4Title: "Start Kombat?",
         pick4Message: "4 movies will be randomly selected.",
-        pick4Confirm: "OK, pick 4",
-        pick8Title: "Select 8 Movies",
+        pick4Confirm: "OK",
+        pick8Title: "Start Kombat?",
         pick8Message: "8 movies will be randomly selected.",
-        pick8Confirm: "OK, pick 8",
-        pick16Title: "Select 16 Movies",
+        pick8Confirm: "OK",
+        pick16Title: "Start Kombat?",
         pick16Message: "16 movies will be randomly selected.",
-        pick16Confirm: "OK, pick 16",
+        pick16Confirm: "OK",
         understood: "Understood",
         country: "Country",
         countryPlaceholder: "Select a country",
@@ -153,7 +153,7 @@ function App() {
     () => getKombatStartRequirement(movieList.length),
     [movieList.length],
   );
-  const canStartKombat = kombatStartRequirement.status === "ready";
+  const canStartKombat = movieList.length >= 4;
 
   // Add this function to handle kombat start with shuffle
   const handleStartKombat = useCallback(() => {
