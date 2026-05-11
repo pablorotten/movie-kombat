@@ -577,7 +577,10 @@ export default function SearchPage() {
       // Collapse the discovery card and scroll to added movies
       setIsDiscoveryExpanded(false);
       setTimeout(() => {
-        addedMoviesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const addedMoviesElement = addedMoviesRef.current;
+        if (addedMoviesElement && typeof addedMoviesElement.scrollIntoView === 'function') {
+          addedMoviesElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }, 100);
       return;
     }
@@ -603,7 +606,10 @@ export default function SearchPage() {
     // Collapse the discovery card and scroll to added movies
     setIsDiscoveryExpanded(false);
     setTimeout(() => {
-      addedMoviesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const addedMoviesElement = addedMoviesRef.current;
+      if (addedMoviesElement && typeof addedMoviesElement.scrollIntoView === 'function') {
+        addedMoviesElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }, 100);
   }
 
