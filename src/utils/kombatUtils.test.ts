@@ -101,14 +101,11 @@ describe('getKombatStartRequirement', () => {
     expect(getKombatStartRequirement(16)).toEqual({ status: 'ready', targetMovieCount: 16 })
   })
 
-  it('shows pick-16 dialog when count is 17-31', () => {
+  it('shows pick-16 dialog when count is 17 or more', () => {
     expect(getKombatStartRequirement(17)).toEqual({ status: 'pick-16' })
     expect(getKombatStartRequirement(20)).toEqual({ status: 'pick-16' })
-    expect(getKombatStartRequirement(31)).toEqual({ status: 'pick-16' })
-  })
-
-  it('allows starting immediately when exactly 32 movies are selected', () => {
-    expect(getKombatStartRequirement(32)).toEqual({ status: 'ready', targetMovieCount: 32 })
+    expect(getKombatStartRequirement(32)).toEqual({ status: 'pick-16' })
+    expect(getKombatStartRequirement(100)).toEqual({ status: 'pick-16' })
   })
 })
 

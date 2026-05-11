@@ -57,7 +57,7 @@ export default function TMDBCategorySelector({
         in: 'en',
         poweredByTmdb: 'Impulsado por TMDB',
         tmdbAttribution: 'Este producto utiliza la API de TMDB pero no esta avalado ni certificado por TMDB.',
-        listFullWarning: 'Ya hay demasiadas peliculas (32). Borra algunas antes de agregar mas.',
+        listFullWarning: 'Ya hay demasiadas peliculas (100). Borra algunas antes de agregar mas.',
       }
     : {
       selectGenreAndApi: 'Please select a genre to continue',
@@ -78,7 +78,7 @@ export default function TMDBCategorySelector({
         in: 'in',
         poweredByTmdb: 'Powered by TMDB',
         tmdbAttribution: 'This product uses the TMDB API but is not endorsed or certified by TMDB.',
-        listFullWarning: 'There are already too many movies (32). Delete some before adding more.',
+        listFullWarning: 'There are already too many movies (100). Delete some before adding more.',
       };
   const [selectedGenreIds, setSelectedGenreIds] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(false);

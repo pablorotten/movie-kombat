@@ -79,9 +79,9 @@ export default function SearchPage() {
         noCollectionsFound:
           "No se encontraron archivos .md en movies.",
         listFullWarning:
-          "Ya hay demasiadas peliculas (32). Borra algunas antes de agregar mas.",
+          "Ya hay demasiadas peliculas (100). Borra algunas antes de agregar mas.",
         listCappedWarning: (count: number) =>
-          `Solo se agregaron ${count} peliculas porque ya se alcanzaron 32 en la lista.`,
+          `Solo se agregaron ${count} peliculas porque ya se alcanzaron 100 en la lista.`,
       }
     : {
         loadFromUrlError: "Failed to load movie list from URL.",
@@ -112,9 +112,9 @@ export default function SearchPage() {
         noCollectionsFound:
           "No .md files were found in movies.",
         listFullWarning:
-          "There are already too many movies (32). Delete some before adding more.",
+          "There are already too many movies (100). Delete some before adding more.",
         listCappedWarning: (count: number) =>
-          `Only ${count} movies were added because the list is already capped at 32.`,
+          `Only ${count} movies were added because the list is already capped at 100.`,
       };
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchedMovies, setSearchedMovies] = useState<Movie[]>([]);
@@ -577,7 +577,10 @@ export default function SearchPage() {
       // Collapse the discovery card and scroll to added movies
       setIsDiscoveryExpanded(false);
       setTimeout(() => {
-        addedMoviesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const addedMoviesElement = addedMoviesRef.current;
+        if (addedMoviesElement && typeof addedMoviesElement.scrollIntoView === 'function') {
+          addedMoviesElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }, 100);
       return;
     }
@@ -603,7 +606,10 @@ export default function SearchPage() {
     // Collapse the discovery card and scroll to added movies
     setIsDiscoveryExpanded(false);
     setTimeout(() => {
-      addedMoviesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const addedMoviesElement = addedMoviesRef.current;
+      if (addedMoviesElement && typeof addedMoviesElement.scrollIntoView === 'function') {
+        addedMoviesElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }, 100);
   }
 

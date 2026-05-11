@@ -173,7 +173,7 @@ export default function KombatPage() {
     ? {
         choose: "Elegir",
         kombatMode: "Modo Kombat",
-        needAtLeastTwo: "Necesitas agregar al menos 2 peliculas para empezar un Kombat.",
+        needAtLeastTwo: "Necesitas agregar peliculas para empezar un Kombat.",
         backToSearch: "Volver a Buscar",
         loadingKombat: "Cargando Kombat...",
         winnerTitle: "🏆 El ganador es! 🏆",
@@ -188,7 +188,7 @@ export default function KombatPage() {
     : {
         choose: "Choose",
         kombatMode: "Kombat Mode",
-        needAtLeastTwo: "You need to add at least 2 movies to start a Kombat.",
+        needAtLeastTwo: "You need to add movies to start a Kombat.",
         backToSearch: "Back to Search",
         loadingKombat: "Loading Kombat...",
         winnerTitle: "🏆 The Winner Is! 🏆",

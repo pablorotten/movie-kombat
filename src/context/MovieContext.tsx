@@ -3,7 +3,7 @@ import { Movie } from '../types';
 import { getPopularProviders } from '../services/tmdbService';
 import { DEFAULT_SEARCH_LANGUAGE } from '../constants/languages';
 
-export const MAX_MOVIES_IN_LIST = 32;
+export const MAX_MOVIES_IN_LIST = 100;
 
 const SELECTED_REGION_STORAGE_KEY = 'selectedRegion';
 const SEARCH_LANGUAGE_STORAGE_KEY = 'searchLanguage';
