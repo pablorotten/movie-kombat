@@ -139,13 +139,11 @@ const expandProviderIdsForDiscover = (providerIds: number[]): number[] => {
   return Array.from(expandedProviderIds);
 };
 
-const DISCOVER_PROVIDER_IDS = new Set<number>([8, 63, 119, 337, 350, 283]);
-
-const pickAllowedProviders = (providers: WatchProvider[] = []): WatchProvider[] => {
+const normalizeWatchProviders = (providers: WatchProvider[] = []): WatchProvider[] => {
   const unique = new Map<number, WatchProvider>();
   for (const provider of providers) {
     const canonicalProviderId = getCanonicalProviderId(provider.provider_id);
-    if (!DISCOVER_PROVIDER_IDS.has(canonicalProviderId) || unique.has(canonicalProviderId)) {
+    if (unique.has(canonicalProviderId)) {
       continue;
     }
 
@@ -189,7 +187,7 @@ export const getMovieProvidersForRegion = async (
     ...(regionalProviders.buy || []),
   ];
 
-  return pickAllowedProviders(mergedProviders);
+  return normalizeWatchProviders(mergedProviders);
 };
 
 // Convert TMDB poster path to full URL

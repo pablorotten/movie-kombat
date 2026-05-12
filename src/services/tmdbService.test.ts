@@ -12,6 +12,7 @@ import {
   getTMDBImageUrl,
   convertTMDBToAppMovie,
   discoverMovies,
+  getMovieProvidersForRegion,
   searchMovies,
   getMovieDetails,
   TMDBMovie,
@@ -237,5 +238,45 @@ describe('getMovieDetails', () => {
   it('throws on a non-OK response', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response('', { status: 404, statusText: 'Not Found' }))
     await expect(getMovieDetails(999)).rejects.toThrow('TMDB API error: 404')
+  })
+})
+
+describe('getMovieProvidersForRegion', () => {
+  beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('returns providers for the requested region without filtering non-discover providers', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 11970,
+      results: {
+        BE: {
+          rent: [
+            { provider_id: 2, provider_name: 'Apple TV Store', logo_path: '/apple.png' },
+          ],
+          buy: [
+            { provider_id: 10, provider_name: 'Amazon Video', logo_path: '/amazon.png' },
+          ],
+        },
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(11970, 'BE')
+    const providerIds = providers.map((provider) => provider.provider_id)
+
+    expect(providerIds).toContain(2)
+    expect(providerIds).toContain(10)
+  })
+
+  it('returns empty array when region has no providers', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 11970,
+      results: {
+        BE: {},
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(11970, 'BE')
+
+    expect(providers).toEqual([])
   })
 })
