@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, ReactNode, useEffect, useCallback, useMemo } from 'react';
 import { Movie } from '../types';
-import { getPopularProviders } from '../services/tmdbService';
+import { getPopularProviders, PROVIDER_NETFLIX, PROVIDER_AMAZON_PRIME, PROVIDER_DISNEY_PLUS } from '../services/tmdbService';
 import { DEFAULT_SEARCH_LANGUAGE } from '../constants/languages';
 
 export const MAX_MOVIES_IN_LIST = 100;
@@ -10,7 +10,7 @@ const SEARCH_LANGUAGE_STORAGE_KEY = 'searchLanguage';
 const SELECTED_PROVIDER_IDS_STORAGE_KEY = 'selectedProviderIds';
 const HAS_COMPLETED_PREFERENCES_STORAGE_KEY = 'hasCompletedPreferences';
 const DEFAULT_PROVIDER_IDS = getPopularProviders()
-  .filter((provider) => [8, 119, 337].includes(provider.provider_id))
+  .filter((provider) => [PROVIDER_NETFLIX, PROVIDER_AMAZON_PRIME, PROVIDER_DISNEY_PLUS].includes(provider.provider_id))
   .map((provider) => provider.provider_id);
 
 interface MovieContextType {

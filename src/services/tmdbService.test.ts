@@ -12,6 +12,7 @@ import {
   getTMDBImageUrl,
   convertTMDBToAppMovie,
   discoverMovies,
+  getMovieProvidersForRegion,
   searchMovies,
   getMovieDetails,
   TMDBMovie,
@@ -101,10 +102,16 @@ describe('getProviderByName', () => {
 })
 
 describe('getPopularProviders', () => {
-  it('returns a non-empty array of providers', () => {
+  it('returns the curated platform list with a single Prime Video provider and HBO Max included', () => {
     const providers = getPopularProviders()
-    expect(providers.length).toBeGreaterThan(0)
-    expect(providers[0]).toHaveProperty('provider_id')
+    const providerIds = providers.map((provider) => provider.provider_id)
+
+    expect(providerIds).toEqual(expect.arrayContaining([8, 119, 122, 350, 63, 283, 1899]))
+    expect(providerIds).not.toContain(9)
+    expect(providerIds).not.toContain(613)
+    expect(providerIds).not.toContain(2100)
+    expect(providerIds).not.toContain(1796)
+    expect(providerIds).not.toContain(35) // Rakuten TV should not be in the popular provider list
   })
 })
 
@@ -189,7 +196,9 @@ describe('discoverMovies', () => {
 
     const [url] = vi.mocked(fetch).mock.calls[0]
     expect(String(url)).toContain('watch_region=ES')
-    expect(String(url)).toContain('with_watch_providers=8%7C9%7C119%7C613%7C2100')
+    expect(String(url)).toContain('with_watch_providers=8%7C9%7C119')
+    expect(String(url)).not.toContain('613')
+    expect(String(url)).not.toContain('2100')
   })
 
   it('sends multiple genres in a single discover request', async () => {
@@ -237,5 +246,69 @@ describe('getMovieDetails', () => {
   it('throws on a non-OK response', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response('', { status: 404, statusText: 'Not Found' }))
     await expect(getMovieDetails(999)).rejects.toThrow('TMDB API error: 404')
+  })
+})
+
+describe('getMovieProvidersForRegion', () => {
+  beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('returns all flatrate providers and excludes rent and buy', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 11970,
+      results: {
+        BE: {
+          flatrate: [
+            { provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.png' },
+            { provider_id: 35, provider_name: 'Rakuten TV', logo_path: '/rakuten.png' },
+          ],
+          rent: [
+            { provider_id: 2, provider_name: 'Apple TV Store', logo_path: '/apple.png' },
+          ],
+          buy: [
+            { provider_id: 10, provider_name: 'Amazon Video', logo_path: '/amazon.png' },
+          ],
+        },
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(11970, 'BE')
+    const providerIds = providers.map((provider) => provider.provider_id)
+
+    expect(providerIds).toContain(8)    // Netflix (flatrate)
+    expect(providerIds).toContain(35)   // Rakuten TV (flatrate, non-whitelisted — still shown)
+    expect(providerIds).not.toContain(2)  // Apple TV Store (rent only)
+    expect(providerIds).not.toContain(10) // Amazon Video (buy only)
+  })
+
+  it('returns Disney Plus as-is (provider_id 337) without normalization', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 330457,
+      results: {
+        BE: {
+          flatrate: [
+            { provider_id: 337, provider_name: 'Disney Plus', logo_path: '/disney-legacy.png' },
+          ],
+        },
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(330457, 'BE')
+    const providerIds = providers.map((provider) => provider.provider_id)
+
+    expect(providerIds).toContain(337)  // returned as-is from TMDB
+  })
+
+  it('returns empty array when region has no providers', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 11970,
+      results: {
+        BE: {},
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(11970, 'BE')
+
+    expect(providers).toEqual([])
   })
 })

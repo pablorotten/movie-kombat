@@ -6,6 +6,9 @@ import { MovieProvider } from '../context/MovieContext'
 const discoverMoviesMock = vi.fn()
 
 vi.mock('../services/tmdbService', () => ({
+  PROVIDER_NETFLIX: 8,
+  PROVIDER_AMAZON_PRIME: 119,
+  PROVIDER_DISNEY_PLUS: 122,
   getGenres: vi.fn(() => [{ id: 28, name: 'Action' }]),
   getPopularProviders: vi.fn(() => [{ provider_id: 8, provider_name: 'Netflix', logo_path: '/logo.png', display_priority: 1 }]),
   getRegions: vi.fn(() => [{ iso_3166_1: 'US', english_name: 'United States', native_name: 'United States' }]),

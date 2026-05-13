@@ -102,18 +102,42 @@ export const getProviderByName = (name: string): Provider | undefined => {
   );
 };
 
+// Named provider ID constants
+export const PROVIDER_NETFLIX = 8;
+export const PROVIDER_AMAZON_PRIME = 119;
+export const PROVIDER_DISNEY_PLUS = 122;
+const PROVIDER_DISNEY_PLUS_LEGACY = 337; // "Disney Plus" id used by TMDB in most regions
+export const PROVIDER_APPLE_TV = 350;
+export const PROVIDER_FILMIN = 63;
+export const PROVIDER_CRUNCHYROLL = 283;
+export const PROVIDER_HBO_MAX = 1899;
+export const PROVIDER_MOVISTAR_PLUS = 2241;
+
+// App-wide whitelist of allowed streaming providers
+export const ALLOWED_PROVIDER_IDS = [
+  PROVIDER_NETFLIX,
+  PROVIDER_AMAZON_PRIME,
+  PROVIDER_DISNEY_PLUS,
+  PROVIDER_APPLE_TV,
+  PROVIDER_FILMIN,
+  PROVIDER_CRUNCHYROLL,
+  PROVIDER_HBO_MAX,
+  PROVIDER_MOVISTAR_PLUS,
+];
+
 // Popular streaming providers for quick selection
 export const getPopularProviders = (): Provider[] => {
-  const popularProviderIds = [8, 119, 337, 350, 63, 283]; // Netflix, Amazon Prime, Disney+, Apple TV+, Filmin, Crunchyroll
-  return popularProviderIds
+  return ALLOWED_PROVIDER_IDS
     .map(id => getProviderById(id))
     .filter((provider): provider is Provider => provider !== undefined);
 };
 
-const AMAZON_PRIME_PROVIDER_IDS = [9, 119, 613, 2100];
+const AMAZON_PRIME_PROVIDER_IDS = [9, PROVIDER_AMAZON_PRIME];
+const DISNEY_PLUS_PROVIDER_IDS = [PROVIDER_DISNEY_PLUS, PROVIDER_DISNEY_PLUS_LEGACY];
 
 const CANONICAL_PROVIDER_ALIASES: Record<number, number[]> = {
   119: AMAZON_PRIME_PROVIDER_IDS,
+  122: DISNEY_PLUS_PROVIDER_IDS,
 };
 
 const getCanonicalProviderId = (providerId: number): number => {
@@ -139,28 +163,6 @@ const expandProviderIdsForDiscover = (providerIds: number[]): number[] => {
   return Array.from(expandedProviderIds);
 };
 
-const DISCOVER_PROVIDER_IDS = new Set<number>([8, 63, 119, 337, 350, 283]);
-
-const pickAllowedProviders = (providers: WatchProvider[] = []): WatchProvider[] => {
-  const unique = new Map<number, WatchProvider>();
-  for (const provider of providers) {
-    const canonicalProviderId = getCanonicalProviderId(provider.provider_id);
-    if (!DISCOVER_PROVIDER_IDS.has(canonicalProviderId) || unique.has(canonicalProviderId)) {
-      continue;
-    }
-
-    const canonicalProvider = getProviderById(canonicalProviderId);
-    unique.set(canonicalProviderId, {
-      ...provider,
-      provider_id: canonicalProviderId,
-      provider_name: canonicalProvider?.provider_name || provider.provider_name,
-      logo_path: canonicalProvider?.logo_path || provider.logo_path,
-    });
-    }
-
-  return Array.from(unique.values());
-};
-
 export const getMovieProvidersForRegion = async (
   movieId: number,
   region: string
@@ -183,13 +185,7 @@ export const getMovieProvidersForRegion = async (
     return [];
   }
 
-  const mergedProviders = [
-    ...(regionalProviders.flatrate || []),
-    ...(regionalProviders.rent || []),
-    ...(regionalProviders.buy || []),
-  ];
-
-  return pickAllowedProviders(mergedProviders);
+  return regionalProviders.flatrate || [];
 };
 
 // Convert TMDB poster path to full URL
