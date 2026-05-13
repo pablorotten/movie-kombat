@@ -102,10 +102,16 @@ describe('getProviderByName', () => {
 })
 
 describe('getPopularProviders', () => {
-  it('returns a non-empty array of providers', () => {
+  it('returns the curated platform list with a single Prime Video provider and HBO Max included', () => {
     const providers = getPopularProviders()
-    expect(providers.length).toBeGreaterThan(0)
-    expect(providers[0]).toHaveProperty('provider_id')
+    const providerIds = providers.map((provider) => provider.provider_id)
+
+    expect(providerIds).toEqual(expect.arrayContaining([8, 119, 122, 350, 63, 283, 1899]))
+    expect(providerIds).not.toContain(9)
+    expect(providerIds).not.toContain(613)
+    expect(providerIds).not.toContain(2100)
+    expect(providerIds).not.toContain(1796)
+    expect(providerIds).not.toContain(35) // Rakuten TV should not be in the popular provider list
   })
 })
 
@@ -190,7 +196,9 @@ describe('discoverMovies', () => {
 
     const [url] = vi.mocked(fetch).mock.calls[0]
     expect(String(url)).toContain('watch_region=ES')
-    expect(String(url)).toContain('with_watch_providers=8%7C9%7C119%7C613%7C2100')
+    expect(String(url)).toContain('with_watch_providers=8%7C9%7C119')
+    expect(String(url)).not.toContain('613')
+    expect(String(url)).not.toContain('2100')
   })
 
   it('sends multiple genres in a single discover request', async () => {
@@ -245,11 +253,14 @@ describe('getMovieProvidersForRegion', () => {
   beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
   afterEach(() => vi.unstubAllGlobals())
 
-  it('returns providers for the requested region without filtering non-discover providers', async () => {
+  it('returns only allowed providers for the requested region', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
       id: 11970,
       results: {
         BE: {
+          flatrate: [
+            { provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.png' },
+          ],
           rent: [
             { provider_id: 2, provider_name: 'Apple TV Store', logo_path: '/apple.png' },
           ],
@@ -263,8 +274,9 @@ describe('getMovieProvidersForRegion', () => {
     const providers = await getMovieProvidersForRegion(11970, 'BE')
     const providerIds = providers.map((provider) => provider.provider_id)
 
-    expect(providerIds).toContain(2)
-    expect(providerIds).toContain(10)
+    expect(providerIds).toContain(8)    // Netflix is allowed
+    expect(providerIds).not.toContain(2)  // Apple TV Store (id 2) is not in the whitelist
+    expect(providerIds).not.toContain(10) // Amazon Video (id 10) is not in the whitelist
   })
 
   it('returns empty array when region has no providers', async () => {

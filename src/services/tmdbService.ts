@@ -102,15 +102,36 @@ export const getProviderByName = (name: string): Provider | undefined => {
   );
 };
 
+// Named provider ID constants
+export const PROVIDER_NETFLIX = 8;
+export const PROVIDER_AMAZON_PRIME = 119;
+export const PROVIDER_DISNEY_PLUS = 122;
+export const PROVIDER_APPLE_TV = 350;
+export const PROVIDER_FILMIN = 63;
+export const PROVIDER_CRUNCHYROLL = 283;
+export const PROVIDER_HBO_MAX = 1899;
+export const PROVIDER_MOVISTAR_PLUS = 2241;
+
+// App-wide whitelist of allowed streaming providers
+export const ALLOWED_PROVIDER_IDS = [
+  PROVIDER_NETFLIX,
+  PROVIDER_AMAZON_PRIME,
+  PROVIDER_DISNEY_PLUS,
+  PROVIDER_APPLE_TV,
+  PROVIDER_FILMIN,
+  PROVIDER_CRUNCHYROLL,
+  PROVIDER_HBO_MAX,
+  PROVIDER_MOVISTAR_PLUS,
+];
+
 // Popular streaming providers for quick selection
 export const getPopularProviders = (): Provider[] => {
-  const popularProviderIds = [8, 119, 337, 350, 63, 283]; // Netflix, Amazon Prime, Disney+, Apple TV+, Filmin, Crunchyroll
-  return popularProviderIds
+  return ALLOWED_PROVIDER_IDS
     .map(id => getProviderById(id))
     .filter((provider): provider is Provider => provider !== undefined);
 };
 
-const AMAZON_PRIME_PROVIDER_IDS = [9, 119, 613, 2100];
+const AMAZON_PRIME_PROVIDER_IDS = [9, PROVIDER_AMAZON_PRIME];
 
 const CANONICAL_PROVIDER_ALIASES: Record<number, number[]> = {
   119: AMAZON_PRIME_PROVIDER_IDS,
@@ -156,7 +177,7 @@ const normalizeWatchProviders = (providers: WatchProvider[] = []): WatchProvider
     });
     }
 
-  return Array.from(unique.values());
+  return Array.from(unique.values()).filter(p => ALLOWED_PROVIDER_IDS.includes(p.provider_id));
 };
 
 export const getMovieProvidersForRegion = async (
