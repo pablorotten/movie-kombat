@@ -9,6 +9,9 @@ import type { Movie } from '../types'
 const searchMoviesMock = vi.fn()
 
 vi.mock('../services/tmdbService', () => ({
+  PROVIDER_NETFLIX: 8,
+  PROVIDER_AMAZON_PRIME: 119,
+  PROVIDER_DISNEY_PLUS: 122,
   searchMovies: (...args: unknown[]) => searchMoviesMock(...args),
   convertTMDBToAppMovie: (movie: { id: number; title: string; release_date: string }) => ({
     imdbID: `tmdb_${movie.id}`,

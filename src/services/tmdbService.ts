@@ -106,6 +106,7 @@ export const getProviderByName = (name: string): Provider | undefined => {
 export const PROVIDER_NETFLIX = 8;
 export const PROVIDER_AMAZON_PRIME = 119;
 export const PROVIDER_DISNEY_PLUS = 122;
+const PROVIDER_DISNEY_PLUS_LEGACY = 337; // "Disney Plus" id used by TMDB in most regions
 export const PROVIDER_APPLE_TV = 350;
 export const PROVIDER_FILMIN = 63;
 export const PROVIDER_CRUNCHYROLL = 283;
@@ -132,9 +133,11 @@ export const getPopularProviders = (): Provider[] => {
 };
 
 const AMAZON_PRIME_PROVIDER_IDS = [9, PROVIDER_AMAZON_PRIME];
+const DISNEY_PLUS_PROVIDER_IDS = [PROVIDER_DISNEY_PLUS, PROVIDER_DISNEY_PLUS_LEGACY];
 
 const CANONICAL_PROVIDER_ALIASES: Record<number, number[]> = {
   119: AMAZON_PRIME_PROVIDER_IDS,
+  122: DISNEY_PLUS_PROVIDER_IDS,
 };
 
 const getCanonicalProviderId = (providerId: number): number => {
@@ -160,26 +163,6 @@ const expandProviderIdsForDiscover = (providerIds: number[]): number[] => {
   return Array.from(expandedProviderIds);
 };
 
-const normalizeWatchProviders = (providers: WatchProvider[] = []): WatchProvider[] => {
-  const unique = new Map<number, WatchProvider>();
-  for (const provider of providers) {
-    const canonicalProviderId = getCanonicalProviderId(provider.provider_id);
-    if (unique.has(canonicalProviderId)) {
-      continue;
-    }
-
-    const canonicalProvider = getProviderById(canonicalProviderId);
-    unique.set(canonicalProviderId, {
-      ...provider,
-      provider_id: canonicalProviderId,
-      provider_name: canonicalProvider?.provider_name || provider.provider_name,
-      logo_path: canonicalProvider?.logo_path || provider.logo_path,
-    });
-    }
-
-  return Array.from(unique.values()).filter(p => ALLOWED_PROVIDER_IDS.includes(p.provider_id));
-};
-
 export const getMovieProvidersForRegion = async (
   movieId: number,
   region: string
@@ -202,13 +185,7 @@ export const getMovieProvidersForRegion = async (
     return [];
   }
 
-  const mergedProviders = [
-    ...(regionalProviders.flatrate || []),
-    ...(regionalProviders.rent || []),
-    ...(regionalProviders.buy || []),
-  ];
-
-  return normalizeWatchProviders(mergedProviders);
+  return regionalProviders.flatrate || [];
 };
 
 // Convert TMDB poster path to full URL

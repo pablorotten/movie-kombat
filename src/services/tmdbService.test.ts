@@ -253,13 +253,14 @@ describe('getMovieProvidersForRegion', () => {
   beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
   afterEach(() => vi.unstubAllGlobals())
 
-  it('returns only allowed providers for the requested region', async () => {
+  it('returns all flatrate providers and excludes rent and buy', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
       id: 11970,
       results: {
         BE: {
           flatrate: [
             { provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.png' },
+            { provider_id: 35, provider_name: 'Rakuten TV', logo_path: '/rakuten.png' },
           ],
           rent: [
             { provider_id: 2, provider_name: 'Apple TV Store', logo_path: '/apple.png' },
@@ -274,9 +275,28 @@ describe('getMovieProvidersForRegion', () => {
     const providers = await getMovieProvidersForRegion(11970, 'BE')
     const providerIds = providers.map((provider) => provider.provider_id)
 
-    expect(providerIds).toContain(8)    // Netflix is allowed
-    expect(providerIds).not.toContain(2)  // Apple TV Store (id 2) is not in the whitelist
-    expect(providerIds).not.toContain(10) // Amazon Video (id 10) is not in the whitelist
+    expect(providerIds).toContain(8)    // Netflix (flatrate)
+    expect(providerIds).toContain(35)   // Rakuten TV (flatrate, non-whitelisted — still shown)
+    expect(providerIds).not.toContain(2)  // Apple TV Store (rent only)
+    expect(providerIds).not.toContain(10) // Amazon Video (buy only)
+  })
+
+  it('returns Disney Plus as-is (provider_id 337) without normalization', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 330457,
+      results: {
+        BE: {
+          flatrate: [
+            { provider_id: 337, provider_name: 'Disney Plus', logo_path: '/disney-legacy.png' },
+          ],
+        },
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(330457, 'BE')
+    const providerIds = providers.map((provider) => provider.provider_id)
+
+    expect(providerIds).toContain(337)  // returned as-is from TMDB
   })
 
   it('returns empty array when region has no providers', async () => {
