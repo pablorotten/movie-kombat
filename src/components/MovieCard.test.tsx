@@ -162,6 +162,8 @@ describe('MovieCard', () => {
     expect(screen.getAllByAltText('Disney+ logo')).toHaveLength(1)
     expect(screen.getAllByAltText('Amazon Prime Video logo')).toHaveLength(1)
     expect(screen.queryByAltText('Rakuten TV logo')).not.toBeInTheDocument()
+    expect(fetch).toHaveBeenCalled()
+    expect(String(vi.mocked(fetch).mock.calls[0][0])).toContain('/movie/999998/watch/providers')
 
     vi.unstubAllGlobals()
     localStorage.removeItem('selectedRegion')

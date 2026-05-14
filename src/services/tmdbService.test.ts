@@ -372,9 +372,12 @@ describe('getMovieProvidersForRegion', () => {
     }))
 
     const providers = await getMovieProvidersForRegion(330457, 'ES')
+    const canonicalPrime = getProviderById(119)
 
     expect(providers).toHaveLength(1)
     expect(providers[0].provider_id).toBe(119)
     expect(providers[0].provider_name).toBe('Amazon Prime Video')
+    expect(providers[0].logo_path).toBe(canonicalPrime?.logo_path)
+    expect(providers[0].display_priority).toBe(canonicalPrime?.display_priority)
   })
 })
