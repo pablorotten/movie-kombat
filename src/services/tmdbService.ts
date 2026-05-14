@@ -187,7 +187,7 @@ export const getMovieProvidersForRegion = async (
     return [];
   }
 
-  if (regionalProviders.flatrate && regionalProviders.flatrate.length > 0) {
+  if (regionalProviders.flatrate?.length) {
     return regionalProviders.flatrate;
   }
 
@@ -202,12 +202,7 @@ export const getMovieProvidersForRegion = async (
     return [];
   }
 
-  const uniqueFallbackProviders = new Map<number, WatchProvider>();
-  for (const provider of fallbackProviders) {
-    uniqueFallbackProviders.set(provider.provider_id, provider);
-  }
-
-  return Array.from(uniqueFallbackProviders.values());
+  return Array.from(new Map(fallbackProviders.map((provider) => [provider.provider_id, provider])).values());
 };
 
 // Convert TMDB poster path to full URL
