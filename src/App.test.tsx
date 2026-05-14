@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import App from './App'
 import { MovieProvider, useMovies } from './context/MovieContext'
+import { LANGUAGE_ES_ES } from './constants/languages'
 import type { Movie } from './types'
 
 vi.mock('./pages/SearchPage', () => ({
@@ -129,6 +130,18 @@ describe('App kombat start flow', () => {
     expect(screen.getByText('Too many movies')).toBeInTheDocument()
     expect(
       screen.getByText("There're too many movies!!!. I recommend to select 20 max! I can randomly select them and start the Kombat"),
+    ).toBeInTheDocument()
+  })
+
+  it('shows updated spanish pick-20 message without "Hay demasiadas películas"', () => {
+    localStorage.setItem('searchLanguage', LANGUAGE_ES_ES)
+    renderApp(Array.from({ length: 21 }, (_, index) => makeMovie(index + 1)))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Empezar Kombat' }))
+
+    expect(screen.getByText('Demasiadas películas')).toBeInTheDocument()
+    expect(
+      screen.getByText('Te recomiendo seleccionar un máximo de 20. Puedo seleccionarlas al azar y empezar el Kombat.'),
     ).toBeInTheDocument()
   })
 

@@ -187,22 +187,19 @@ export const getMovieProvidersForRegion = async (
     return [];
   }
 
-  if (regionalProviders.flatrate?.length) {
-    return regionalProviders.flatrate;
-  }
-
-  const fallbackProviders = [
+  const allAvailableProviders = [
+    ...(regionalProviders.flatrate || []),
     ...(regionalProviders.free || []),
     ...(regionalProviders.ads || []),
     ...(regionalProviders.rent || []),
     ...(regionalProviders.buy || []),
   ];
 
-  if (fallbackProviders.length === 0) {
+  if (allAvailableProviders.length === 0) {
     return [];
   }
 
-  return Array.from(new Map(fallbackProviders.map((provider) => [provider.provider_id, provider])).values());
+  return Array.from(new Map(allAvailableProviders.map((provider) => [provider.provider_id, provider])).values());
 };
 
 // Convert TMDB poster path to full URL

@@ -58,7 +58,7 @@ function App() {
             : `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
         pick20Title: "Demasiadas películas",
         pick20Message:
-          "Hay demasiadas películas!!!. Recomiendo seleccionar un máximo de 20. Puedo seleccionarlas al azar y empezar el Kombat.",
+          "Te recomiendo seleccionar un máximo de 20. Puedo seleccionarlas al azar y empezar el Kombat.",
         pick20Confirm: "OK",
         understood: "Entendido",
         country: "Pais",

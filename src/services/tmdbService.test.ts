@@ -253,7 +253,7 @@ describe('getMovieProvidersForRegion', () => {
   beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
   afterEach(() => vi.unstubAllGlobals())
 
-  it('returns all flatrate providers and excludes rent and buy', async () => {
+  it('returns all available providers in region (flatrate/free/ads/rent/buy)', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
       id: 11970,
       results: {
@@ -261,6 +261,9 @@ describe('getMovieProvidersForRegion', () => {
           flatrate: [
             { provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.png' },
             { provider_id: 35, provider_name: 'Rakuten TV', logo_path: '/rakuten.png' },
+          ],
+          free: [
+            { provider_id: 337, provider_name: 'Disney Plus', logo_path: '/disney.png' },
           ],
           rent: [
             { provider_id: 2, provider_name: 'Apple TV Store', logo_path: '/apple.png' },
@@ -277,8 +280,9 @@ describe('getMovieProvidersForRegion', () => {
 
     expect(providerIds).toContain(8)    // Netflix (flatrate)
     expect(providerIds).toContain(35)   // Rakuten TV (flatrate, non-whitelisted — still shown)
-    expect(providerIds).not.toContain(2)  // Apple TV Store (rent only)
-    expect(providerIds).not.toContain(10) // Amazon Video (buy only)
+    expect(providerIds).toContain(337)  // Disney Plus (free)
+    expect(providerIds).toContain(2)    // Apple TV Store (rent)
+    expect(providerIds).toContain(10)   // Amazon Video (buy)
   })
 
   it('returns Disney Plus as-is (provider_id 337) without normalization', async () => {
@@ -318,6 +322,28 @@ describe('getMovieProvidersForRegion', () => {
       results: {
         ES: {
           rent: [
+            { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
+          ],
+        },
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(330457, 'ES')
+
+    expect(providers).toEqual([
+      { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
+    ])
+  })
+
+  it('deduplicates providers that appear in multiple availability buckets', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 330457,
+      results: {
+        ES: {
+          flatrate: [
+            { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
+          ],
+          buy: [
             { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
           ],
         },
