@@ -133,7 +133,7 @@ describe('App kombat start flow', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows updated spanish pick-20 message without "Hay demasiadas películas"', () => {
+  it('shows updated Spanish pick-20 message without "Hay demasiadas películas"', () => {
     localStorage.setItem('searchLanguage', LANGUAGE_ES_ES)
     renderApp(Array.from({ length: 21 }, (_, index) => makeMovie(index + 1)))
 
