@@ -311,4 +311,23 @@ describe('getMovieProvidersForRegion', () => {
 
     expect(providers).toEqual([])
   })
+
+  it('falls back to non-flatrate providers when flatrate is missing', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 330457,
+      results: {
+        ES: {
+          rent: [
+            { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
+          ],
+        },
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(330457, 'ES')
+
+    expect(providers).toEqual([
+      { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
+    ])
+  })
 })

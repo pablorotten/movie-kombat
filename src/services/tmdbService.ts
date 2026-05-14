@@ -51,6 +51,8 @@ export interface WatchProvider {
 
 interface WatchProviderRegionResult {
   flatrate?: WatchProvider[];
+  free?: WatchProvider[];
+  ads?: WatchProvider[];
   rent?: WatchProvider[];
   buy?: WatchProvider[];
 }
@@ -185,7 +187,27 @@ export const getMovieProvidersForRegion = async (
     return [];
   }
 
-  return regionalProviders.flatrate || [];
+  if (regionalProviders.flatrate && regionalProviders.flatrate.length > 0) {
+    return regionalProviders.flatrate;
+  }
+
+  const fallbackProviders = [
+    ...(regionalProviders.free || []),
+    ...(regionalProviders.ads || []),
+    ...(regionalProviders.rent || []),
+    ...(regionalProviders.buy || []),
+  ];
+
+  if (fallbackProviders.length === 0) {
+    return [];
+  }
+
+  const uniqueFallbackProviders = new Map<number, WatchProvider>();
+  for (const provider of fallbackProviders) {
+    uniqueFallbackProviders.set(provider.provider_id, provider);
+  }
+
+  return Array.from(uniqueFallbackProviders.values());
 };
 
 // Convert TMDB poster path to full URL
