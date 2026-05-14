@@ -283,48 +283,85 @@ export default function KombatPage() {
 
   const handleChooseWinner = (roundWinner: KombatOption) => {
     const updatedStages = [...stages];
-    const currentMatch = updatedStages[currentStage][currentRound];
+    const isTbdOption = (option: KombatOption) => option.id.startsWith("tbd");
+    const resolveMatch = (
+      stageIndex: number,
+      roundIndex: number,
+      winnerOption: KombatOption,
+    ): KombatOption | null => {
+      const match = updatedStages[stageIndex][roundIndex];
+      match.winnerTitle = winnerOption.title;
 
-    // Set the winner for the current match
-    currentMatch.winnerTitle = roundWinner.title;
-
-    // Is there a next stage?
-    const isFinalStage = currentStage === stages.length - 1;
-
-    if (!isFinalStage) {
-      const nextMatchIndex = Math.floor(currentRound / 2);
-      const nextStageMatch = updatedStages[currentStage + 1][nextMatchIndex];
-
-      // Place winner in the 'first' or 'second' slot of the next match
-      if (currentRound % 2 === 0) {
-        nextStageMatch.first = roundWinner;
-      } else {
-        nextStageMatch.second = roundWinner;
+      const isFinalStage = stageIndex === updatedStages.length - 1;
+      if (isFinalStage) {
+        return winnerOption;
       }
-    } else {
-      // This was the final match, we have a kombat winner!
-      setWinner(roundWinner);
+
+      const nextMatchIndex = Math.floor(roundIndex / 2);
+      const nextStageMatch = updatedStages[stageIndex + 1][nextMatchIndex];
+      if (roundIndex % 2 === 0) {
+        nextStageMatch.first = winnerOption;
+      } else {
+        nextStageMatch.second = winnerOption;
+      }
+
+      return null;
+    };
+
+    const finalWinner = resolveMatch(currentStage, currentRound, roundWinner);
+    if (finalWinner) {
+      setWinner(finalWinner);
       setStages(updatedStages);
       return;
     }
 
-    setStages(updatedStages);
+    // Move to the next unresolved playable match, auto-resolving BYEs on the way.
+    let nextStageIndex = currentStage;
+    let nextRoundIndex = currentRound + 1;
+    while (nextStageIndex < updatedStages.length) {
+      while (nextRoundIndex < updatedStages[nextStageIndex].length) {
+        const nextMatch = updatedStages[nextStageIndex][nextRoundIndex];
+        if (nextMatch.winnerTitle) {
+          nextRoundIndex += 1;
+          continue;
+        }
 
-    // Move to the next round or next stage
-    const nextRoundIndex = currentRound + 1;
-    if (nextRoundIndex < stages[currentStage].length) {
-      // If the next match is a BYE, resolve it and skip
-      const nextMatch = stages[currentStage][nextRoundIndex];
-      if (nextMatch.second.id.startsWith("tbd")) {
-        handleChooseWinner(nextMatch.first);
-      } else {
+        const firstIsTbd = isTbdOption(nextMatch.first);
+        const secondIsTbd = isTbdOption(nextMatch.second);
+
+        if (firstIsTbd && secondIsTbd) {
+          nextMatch.winnerTitle = "TBD";
+          nextRoundIndex += 1;
+          continue;
+        }
+
+        if (firstIsTbd !== secondIsTbd) {
+          const autoWinner = firstIsTbd ? nextMatch.second : nextMatch.first;
+          const autoFinalWinner = resolveMatch(
+            nextStageIndex,
+            nextRoundIndex,
+            autoWinner,
+          );
+          if (autoFinalWinner) {
+            setWinner(autoFinalWinner);
+            setStages(updatedStages);
+            return;
+          }
+          nextRoundIndex += 1;
+          continue;
+        }
+
+        setStages(updatedStages);
+        setCurrentStage(nextStageIndex);
         setCurrentRound(nextRoundIndex);
+        return;
       }
-    } else {
-      // End of stage, move to the next one
-      setCurrentStage(currentStage + 1);
-      setCurrentRound(0);
+
+      nextStageIndex += 1;
+      nextRoundIndex = 0;
     }
+
+    setStages(updatedStages);
   };
 
   if (movieList.length < 2) {

@@ -40,11 +40,11 @@ describe('createInitialStages', () => {
     expect(stages[2]).toHaveLength(1)
   })
 
-  it('10 movies → padded to 16, with auto-advanced BYEs in first round', () => {
+  it('10 movies → padded to 16, first round includes TBD vs TBD matches', () => {
     const stages = createInitialStages(Array.from({ length: 10 }, (_, index) => makeMovie(index + 1)))
     expect(stages).toHaveLength(4)
     expect(stages[0]).toHaveLength(8)
-    expect(stages[0].filter((match) => match.winnerTitle !== '')).toHaveLength(3)
+    expect(stages[0].filter((match) => match.first.id.startsWith('tbd') && match.second.id.startsWith('tbd'))).toHaveLength(3)
   })
 
   it('3 movies → padded to 4, last slot is TBD', () => {

@@ -115,21 +115,29 @@ export const createInitialStages = (movies: Movie[]): BracketMatch[][] => {
     stages.push(nextRound);
   }
 
-  // Handle BYE rounds automatically advancing
-  stages[0].forEach((match, roundIndex) => {
-    if (match.second.id.startsWith('tbd')) {
+  // Handle BYE rounds automatically advancing for prefilled matches.
+  for (let stageIndex = 0; stageIndex < stages.length; stageIndex += 1) {
+    stages[stageIndex].forEach((match, roundIndex) => {
+      const hasRealFirstOption = !match.first.id.startsWith('tbd');
+      if (match.winnerTitle || !hasRealFirstOption || !match.second.id.startsWith('tbd')) {
+        return;
+      }
+
       const winner = match.first;
       match.winnerTitle = winner.title;
-      const nextMatchIndex = Math.floor(roundIndex / 2);
-      if (stages[1]) {
+
+      const nextStage = stages[stageIndex + 1];
+      if (nextStage) {
+        const nextMatchIndex = Math.floor(roundIndex / 2);
+        const nextStageMatch = nextStage[nextMatchIndex];
         if (roundIndex % 2 === 0) {
-          stages[1][nextMatchIndex].first = winner;
+          nextStageMatch.first = winner;
         } else {
-          stages[1][nextMatchIndex].second = winner;
+          nextStageMatch.second = winner;
         }
       }
-    }
-  });
+    });
+  }
 
   return stages;
 };

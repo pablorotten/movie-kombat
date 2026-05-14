@@ -208,4 +208,17 @@ describe('KombatPage fight animation flow', () => {
       })
     }).not.toThrow()
   })
+
+  it('advances past round 10/16 with 20 movies and continues to next stage', () => {
+    renderKombatPage({ movies: Array.from({ length: 20 }, (_, index) => makeMovie(index + 1)) })
+
+    for (let round = 0; round < 10; round += 1) {
+      fireEvent.click(screen.getAllByRole('button', { name: 'Choose' })[0])
+      act(() => {
+        vi.advanceTimersByTime(2300)
+      })
+    }
+
+    expect(screen.getByText('Round 1 of 8')).toBeInTheDocument()
+  })
 })
