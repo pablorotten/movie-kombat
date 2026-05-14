@@ -114,4 +114,56 @@ describe('MovieCard', () => {
 
     vi.unstubAllGlobals()
   })
+
+  it('shows one icon per offered platform when TMDB returns duplicate aliases', async () => {
+    localStorage.setItem('selectedRegion', 'ES')
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id: 999999,
+              results: {
+                ES: {
+                  flatrate: [
+                    { provider_id: 337, provider_name: 'Disney Plus', logo_path: '/disney-legacy.png' },
+                    { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
+                    { provider_id: 9, provider_name: 'Amazon Prime Video', logo_path: '/prime-a.png' },
+                    { provider_id: 119, provider_name: 'Amazon Prime Video', logo_path: '/prime-b.png' },
+                    { provider_id: 35, provider_name: 'Rakuten TV', logo_path: '/rakuten.png' },
+                  ],
+                },
+              },
+            }),
+            {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          ),
+        ),
+      ),
+    )
+
+    renderWithContext(
+      <MovieCard
+        title="Inception"
+        poster="/poster.jpg"
+        imdbID="tmdb_999998"
+        onDelete={vi.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByAltText('Disney+ logo')).toBeInTheDocument()
+    })
+
+    expect(screen.getAllByAltText('Disney+ logo')).toHaveLength(1)
+    expect(screen.getAllByAltText('Amazon Prime Video logo')).toHaveLength(1)
+    expect(screen.queryByAltText('Rakuten TV logo')).not.toBeInTheDocument()
+
+    vi.unstubAllGlobals()
+    localStorage.removeItem('selectedRegion')
+  })
 })

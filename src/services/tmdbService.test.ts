@@ -253,7 +253,7 @@ describe('getMovieProvidersForRegion', () => {
   beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
   afterEach(() => vi.unstubAllGlobals())
 
-  it('returns all available providers in region (flatrate/free/ads/rent/buy)', async () => {
+  it('returns only allowed providers across all availability buckets', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
       id: 11970,
       results: {
@@ -278,14 +278,14 @@ describe('getMovieProvidersForRegion', () => {
     const providers = await getMovieProvidersForRegion(11970, 'BE')
     const providerIds = providers.map((provider) => provider.provider_id)
 
-    expect(providerIds).toContain(8)    // Netflix (flatrate)
-    expect(providerIds).toContain(35)   // Rakuten TV (flatrate, non-whitelisted — still shown)
-    expect(providerIds).toContain(337)  // Disney Plus (free)
-    expect(providerIds).toContain(2)    // Apple TV Store (rent)
-    expect(providerIds).toContain(10)   // Amazon Video (buy)
+    expect(providerIds).toContain(8)    // Netflix (allowed)
+    expect(providerIds).toContain(122)  // Disney+ canonical id (allowed)
+    expect(providerIds).not.toContain(35) // Rakuten TV (not offered in app)
+    expect(providerIds).not.toContain(2)  // Apple TV Store (not offered in app)
+    expect(providerIds).not.toContain(10) // Amazon Video buy alias (not offered in app)
   })
 
-  it('returns Disney Plus as-is (provider_id 337) without normalization', async () => {
+  it('normalizes Disney Plus legacy id 337 to canonical provider id 122', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
       id: 330457,
       results: {
@@ -300,7 +300,8 @@ describe('getMovieProvidersForRegion', () => {
     const providers = await getMovieProvidersForRegion(330457, 'BE')
     const providerIds = providers.map((provider) => provider.provider_id)
 
-    expect(providerIds).toContain(337)  // returned as-is from TMDB
+    expect(providerIds).toContain(122)
+    expect(providerIds).not.toContain(337)
   })
 
   it('returns empty array when region has no providers', async () => {
@@ -330,9 +331,8 @@ describe('getMovieProvidersForRegion', () => {
 
     const providers = await getMovieProvidersForRegion(330457, 'ES')
 
-    expect(providers).toEqual([
-      { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
-    ])
+    expect(providers).toHaveLength(1)
+    expect(providers[0]).toMatchObject({ provider_id: 122, provider_name: 'Disney+' })
   })
 
   it('deduplicates providers that appear in multiple availability buckets', async () => {
@@ -352,8 +352,29 @@ describe('getMovieProvidersForRegion', () => {
 
     const providers = await getMovieProvidersForRegion(330457, 'ES')
 
-    expect(providers).toEqual([
-      { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
-    ])
+    expect(providers).toHaveLength(1)
+    expect(providers[0]).toMatchObject({ provider_id: 122, provider_name: 'Disney+' })
+  })
+
+  it('deduplicates Amazon Prime aliases to a single canonical provider icon', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 330457,
+      results: {
+        ES: {
+          flatrate: [
+            { provider_id: 9, provider_name: 'Amazon Prime Video', logo_path: '/prime-video.png' },
+          ],
+          buy: [
+            { provider_id: 119, provider_name: 'Amazon Prime Video', logo_path: '/prime-video-alt.png' },
+          ],
+        },
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(330457, 'ES')
+
+    expect(providers).toHaveLength(1)
+    expect(providers[0].provider_id).toBe(119)
+    expect(providers[0].provider_name).toBe('Amazon Prime Video')
   })
 })
