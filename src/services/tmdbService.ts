@@ -212,20 +212,16 @@ export const getMovieProvidersForRegion = async (
     }
 
     const canonicalProvider = getProviderById(canonicalProviderId);
-    canonicalProviders.set(
-      canonicalProviderId,
-      canonicalProvider
-        ? {
-            provider_id: canonicalProvider.provider_id,
-            provider_name: canonicalProvider.provider_name,
-            logo_path: canonicalProvider.logo_path,
-            display_priority: canonicalProvider.display_priority,
-          }
-        : {
-            ...provider,
-            provider_id: canonicalProviderId,
-          }
-    );
+    if (!canonicalProvider) {
+      continue;
+    }
+
+    canonicalProviders.set(canonicalProviderId, {
+      provider_id: canonicalProvider.provider_id,
+      provider_name: canonicalProvider.provider_name,
+      logo_path: canonicalProvider.logo_path,
+      display_priority: canonicalProvider.display_priority,
+    });
   }
 
   return Array.from(canonicalProviders.values());
