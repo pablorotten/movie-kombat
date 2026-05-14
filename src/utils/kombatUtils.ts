@@ -2,25 +2,19 @@ import { BracketMatch, KombatOption } from "../components/Kombat/KombatModels";
 import { Movie } from "../types";
 
 export const MIN_KOMBAT_MOVIES = 4;
-export const MAX_KOMBAT_MOVIES = 16;
+export const MAX_KOMBAT_MOVIES = 20;
 
 export type KombatStartRequirement =
   | {
       status: "ready";
-      targetMovieCount: 4 | 8 | 16;
+      targetMovieCount: number;
     }
   | {
       status: "add-movies";
       missingMovies: number;
     }
   | {
-      status: "pick-4";
-    }
-  | {
-      status: "pick-8";
-    }
-  | {
-      status: "pick-16";
+      status: "pick-20";
     };
 
 // A placeholder for empty slots or "BYE" rounds
@@ -39,38 +33,18 @@ export const getKombatStartRequirement = (movieCount: number): KombatStartRequir
     };
   }
 
-  // Exactly 4: Ready
-  if (movieCount === 4) {
-    return { status: "ready", targetMovieCount: 4 };
+  // 4-20: Ready
+  if (movieCount <= MAX_KOMBAT_MOVIES) {
+    return { status: "ready", targetMovieCount: movieCount };
   }
 
-  // 5-7: Show dialog to pick 4
-  if (movieCount >= 5 && movieCount <= 7) {
-    return { status: "pick-4" };
+  // More than 20: Show dialog to pick 20
+  if (movieCount > MAX_KOMBAT_MOVIES) {
+    return { status: "pick-20" };
   }
 
-  // Exactly 8: Ready
-  if (movieCount === 8) {
-    return { status: "ready", targetMovieCount: 8 };
-  }
-
-  // 9-15: Show dialog to pick 8
-  if (movieCount >= 9 && movieCount <= 15) {
-    return { status: "pick-8" };
-  }
-
-  // Exactly 16: Ready
-  if (movieCount === 16) {
-    return { status: "ready", targetMovieCount: 16 };
-  }
-
-  // 17 or more: Show dialog to pick 16
-  if (movieCount >= 17) {
-    return { status: "pick-16" };
-  }
-
-  // Fallback, should not happen because all cases are covered
-  return { status: "ready", targetMovieCount: 16 };
+  // Fallback, should not happen because all cases are covered.
+  return { status: "ready", targetMovieCount: MAX_KOMBAT_MOVIES };
 };
 
 export const selectRandomMovies = <T,>(

@@ -20,6 +20,7 @@ import tmdbLogo from "./assets/TMDB.svg";
 import { getPopularProviders, getRegions } from "./services/tmdbService";
 import { getFlagComponent, selectedCountries } from "./constants/countries";
 import {
+  MAX_KOMBAT_MOVIES,
   getKombatStartRequirement,
   selectRandomMovies,
 } from "./utils/kombatUtils";
@@ -55,15 +56,10 @@ function App() {
           missingMovies === 4
             ? "Agrega peliculas para empezar el Kombat"
             : `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
-        pick4Title: "Empezar Kombat?",
-        pick4Message: "Se seleccionaran 4 peliculas al azar.",
-        pick4Confirm: "OK",
-        pick8Title: "Empezar Kombat?",
-        pick8Message: "Se seleccionaran 8 peliculas al azar.",
-        pick8Confirm: "OK",
-        pick16Title: "Empezar Kombat?",
-        pick16Message: "Se seleccionaran 16 peliculas al azar.",
-        pick16Confirm: "OK",
+        pick20Title: "Demasiadas peliculas",
+        pick20Message:
+          "Hay demasiadas peliculas!!!. Recomiendo seleccionar un maximo de 20. Puedo seleccionarlas al azar y empezar el Kombat.",
+        pick20Confirm: "OK",
         understood: "Entendido",
         country: "Pais",
         countryPlaceholder: "Selecciona un pais",
@@ -94,15 +90,10 @@ function App() {
           missingMovies === 4
             ? "Add movies to start the Kombat"
             : `Add ${missingMovies} movie${missingMovies === 1 ? "" : "s"} to start!`,
-        pick4Title: "Start Kombat?",
-        pick4Message: "4 movies will be randomly selected.",
-        pick4Confirm: "OK",
-        pick8Title: "Start Kombat?",
-        pick8Message: "8 movies will be randomly selected.",
-        pick8Confirm: "OK",
-        pick16Title: "Start Kombat?",
-        pick16Message: "16 movies will be randomly selected.",
-        pick16Confirm: "OK",
+        pick20Title: "Too many movies",
+        pick20Message:
+          "There're too many movies!!!. I recommend to select 20 max! I can randomly select them and start the Kombat",
+        pick20Confirm: "OK",
         understood: "Understood",
         country: "Country",
         countryPlaceholder: "Select a country",
@@ -125,7 +116,7 @@ function App() {
   const [isNotEnoughMoviesDialogOpen, setIsNotEnoughMoviesDialogOpen] =
     useState(false);
   const [isPickMoviesDialogOpen, setIsPickMoviesDialogOpen] = useState<
-    null | "4" | "8" | "16"
+    null | "20"
   >(null);
   const [shouldAutoStartKombat, setShouldAutoStartKombat] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
@@ -243,25 +234,15 @@ function App() {
       return;
     }
 
-    if (kombatStartRequirement.status === "pick-4") {
-      setIsPickMoviesDialogOpen("4");
-      return;
-    }
-
-    if (kombatStartRequirement.status === "pick-8") {
-      setIsPickMoviesDialogOpen("8");
-      return;
-    }
-
-    if (kombatStartRequirement.status === "pick-16") {
-      setIsPickMoviesDialogOpen("16");
+    if (kombatStartRequirement.status === "pick-20") {
+      setIsPickMoviesDialogOpen("20");
       return;
     }
 
     handleStartKombat();
   };
 
-  const handleConfirmRandomSelection = (targetCount: 4 | 8 | 16) => {
+  const handleConfirmRandomSelection = (targetCount: number) => {
     setMovieList((currentMovies) =>
       selectRandomMovies(currentMovies, targetCount),
     );
@@ -326,39 +307,15 @@ function App() {
       />
 
       <Dialog
-        open={isPickMoviesDialogOpen === "4"}
+        open={isPickMoviesDialogOpen === "20"}
         onClose={() => setIsPickMoviesDialogOpen(null)}
-        title={ui.pick4Title}
-        onConfirm={() => handleConfirmRandomSelection(4)}
+        title={ui.pick20Title}
+        onConfirm={() => handleConfirmRandomSelection(MAX_KOMBAT_MOVIES)}
         onCancel={() => setIsPickMoviesDialogOpen(null)}
-        confirmText={ui.pick4Confirm}
+        confirmText={ui.pick20Confirm}
         cancelText={ui.cancel}
       >
-        <p>{ui.pick4Message}</p>
-      </Dialog>
-
-      <Dialog
-        open={isPickMoviesDialogOpen === "8"}
-        onClose={() => setIsPickMoviesDialogOpen(null)}
-        title={ui.pick8Title}
-        onConfirm={() => handleConfirmRandomSelection(8)}
-        onCancel={() => setIsPickMoviesDialogOpen(null)}
-        confirmText={ui.pick8Confirm}
-        cancelText={ui.cancel}
-      >
-        <p>{ui.pick8Message}</p>
-      </Dialog>
-
-      <Dialog
-        open={isPickMoviesDialogOpen === "16"}
-        onClose={() => setIsPickMoviesDialogOpen(null)}
-        title={ui.pick16Title}
-        onConfirm={() => handleConfirmRandomSelection(16)}
-        onCancel={() => setIsPickMoviesDialogOpen(null)}
-        confirmText={ui.pick16Confirm}
-        cancelText={ui.cancel}
-      >
-        <p>{ui.pick16Message}</p>
+        <p>{ui.pick20Message}</p>
       </Dialog>
 
       <div className="min-h-screen flex flex-col pb-24">

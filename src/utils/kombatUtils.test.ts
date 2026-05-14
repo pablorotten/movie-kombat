@@ -40,6 +40,13 @@ describe('createInitialStages', () => {
     expect(stages[2]).toHaveLength(1)
   })
 
+  it('10 movies → padded to 16, with auto-advanced BYEs in first round', () => {
+    const stages = createInitialStages(Array.from({ length: 10 }, (_, index) => makeMovie(index + 1)))
+    expect(stages).toHaveLength(4)
+    expect(stages[0]).toHaveLength(8)
+    expect(stages[0].filter((match) => match.winnerTitle !== '')).toHaveLength(3)
+  })
+
   it('3 movies → padded to 4, last slot is TBD', () => {
     const stages = createInitialStages([1, 2, 3].map(makeMovie))
     expect(stages).toHaveLength(2)
@@ -81,31 +88,25 @@ describe('getKombatStartRequirement', () => {
     expect(getKombatStartRequirement(4)).toEqual({ status: 'ready', targetMovieCount: 4 })
   })
 
-  it('shows pick-4 dialog when count is 5-7', () => {
-    expect(getKombatStartRequirement(5)).toEqual({ status: 'pick-4' })
-    expect(getKombatStartRequirement(6)).toEqual({ status: 'pick-4' })
-    expect(getKombatStartRequirement(7)).toEqual({ status: 'pick-4' })
-  })
-
   it('allows starting immediately when exactly 8 movies are selected', () => {
     expect(getKombatStartRequirement(8)).toEqual({ status: 'ready', targetMovieCount: 8 })
   })
 
-  it('shows pick-8 dialog when count is 9-15', () => {
-    expect(getKombatStartRequirement(9)).toEqual({ status: 'pick-8' })
-    expect(getKombatStartRequirement(12)).toEqual({ status: 'pick-8' })
-    expect(getKombatStartRequirement(15)).toEqual({ status: 'pick-8' })
+  it('allows starting immediately when count is between 5 and 20', () => {
+    expect(getKombatStartRequirement(5)).toEqual({ status: 'ready', targetMovieCount: 5 })
+    expect(getKombatStartRequirement(12)).toEqual({ status: 'ready', targetMovieCount: 12 })
+    expect(getKombatStartRequirement(15)).toEqual({ status: 'ready', targetMovieCount: 15 })
+    expect(getKombatStartRequirement(20)).toEqual({ status: 'ready', targetMovieCount: 20 })
   })
 
   it('allows starting immediately when exactly 16 movies are selected', () => {
     expect(getKombatStartRequirement(16)).toEqual({ status: 'ready', targetMovieCount: 16 })
   })
 
-  it('shows pick-16 dialog when count is 17 or more', () => {
-    expect(getKombatStartRequirement(17)).toEqual({ status: 'pick-16' })
-    expect(getKombatStartRequirement(20)).toEqual({ status: 'pick-16' })
-    expect(getKombatStartRequirement(32)).toEqual({ status: 'pick-16' })
-    expect(getKombatStartRequirement(100)).toEqual({ status: 'pick-16' })
+  it('shows pick-20 dialog when count is more than 20', () => {
+    expect(getKombatStartRequirement(21)).toEqual({ status: 'pick-20' })
+    expect(getKombatStartRequirement(32)).toEqual({ status: 'pick-20' })
+    expect(getKombatStartRequirement(100)).toEqual({ status: 'pick-20' })
   })
 })
 
