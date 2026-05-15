@@ -24,9 +24,36 @@ https://api.themoviedb.org/3/movie/{movie_id}/watch/providers
 
 ### Intro
 
-Tired of netflix doomscrolling? Do you have a huge watchlist but can't decide?
+- Saturday night
+- Ready to watch a movie
+- Only have to decide which one
+- Open your streaming service
+- Start scrolling, scrolling, scrolling
+- scrolling
+- scro... zZZzZZZZz
 
-Just let those movies fight into a battle and find out which one is the best!
+Sounds familiar?
+
+That's "The paradox of choice"
+
+We think having more options is better, beyond a certain point, it becomes paralyzing.
+**Video extract**
+
+But what if let those movies fight into a battle and find out which one is the best??!
+
+- In movie kombat you can just select the most popular movies of youre network
+- The Genre you feel like watching
+- Import movies from ready-made collections
+- or just search for your favorite movies and add them to the battle.
+
+Then, start the Kombat and let the movies fight until only one is left standing.
+
+Stop the headache of choosing from your entire movie library. 
+**Doomscrolling video with a 🚫 and a sound like ecomonos**
+We’ve narrowed it down to just two choices: left or right, better or worse. It’s that simple.
+
+Want to be totally unbiased? Click use the "blind mode" and don't let the movie posters influence your decision.
+
 
 ### Movie Kombat demo
 
