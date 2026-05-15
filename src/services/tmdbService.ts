@@ -187,44 +187,11 @@ export const getMovieProvidersForRegion = async (
     return [];
   }
 
-  const allAvailableProviders = [
-    ...(regionalProviders.flatrate || []),
-    ...(regionalProviders.free || []),
-    ...(regionalProviders.ads || []),
-    ...(regionalProviders.rent || []),
-    ...(regionalProviders.buy || []),
-  ];
+  const flatrateProviders = regionalProviders.flatrate || [];
 
-  if (allAvailableProviders.length === 0) {
-    return [];
-  }
-
-  const canonicalProviders = new Map<number, WatchProvider>();
-
-  for (const provider of allAvailableProviders) {
-    const canonicalProviderId = getCanonicalProviderId(provider.provider_id);
-    if (!ALLOWED_PROVIDER_IDS.includes(canonicalProviderId)) {
-      continue;
-    }
-
-    if (canonicalProviders.has(canonicalProviderId)) {
-      continue;
-    }
-
-    const canonicalProvider = getProviderById(canonicalProviderId);
-    if (!canonicalProvider) {
-      continue;
-    }
-
-    canonicalProviders.set(canonicalProviderId, {
-      provider_id: canonicalProvider.provider_id,
-      provider_name: canonicalProvider.provider_name,
-      logo_path: canonicalProvider.logo_path,
-      display_priority: canonicalProvider.display_priority,
-    });
-  }
-
-  return Array.from(canonicalProviders.values());
+  return flatrateProviders
+    .slice()
+    .sort((a, b) => (a.display_priority ?? 999) - (b.display_priority ?? 999));
 };
 
 // Convert TMDB poster path to full URL
