@@ -318,7 +318,7 @@ function App() {
         <p>{ui.pick20Message}</p>
       </Dialog>
 
-      <div className="min-h-screen flex flex-col pb-24">
+      <div className="min-h-screen flex flex-col">
         <header
           className={`sticky top-0 z-40 flex items-center justify-between gap-2 p-3 sm:p-4 bg-gray-800 text-white transition-transform duration-300 will-change-transform ${
             isHeaderVisible ? "translate-y-0" : "-translate-y-full"
@@ -541,14 +541,14 @@ function App() {
           </div>
         </header>
 
-        <main className="flex-1">
+        <main className="flex-1 pb-24">
           <Routes>
             <Route path="/" element={<SearchPage />} />
             <Route path="/kombat" element={<KombatPage />} />
           </Routes>
         </main>
 
-        <footer className="border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+        <footer className="mt-auto border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-2 sm:py-3 flex flex-col items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
             <div className="w-full flex justify-center">
               <div className="flex items-center gap-1">
