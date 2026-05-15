@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import {
   Routes,
   Route,
@@ -56,9 +57,10 @@ function App() {
           missingMovies === 4
             ? "Agrega peliculas para empezar el Kombat"
             : `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
-        pick20Title: "Demasiadas películas",
+        pick20Title: "Demasiadas películas!!!",
+        pick20MessageStrong: "Selecciona un máximo de 20!",
         pick20Message:
-          "Te recomiendo seleccionar un máximo de 20. Puedo seleccionarlas al azar y empezar el Kombat.",
+          "Puedo seleccionarlas al azar y empezar el Kombat.",
         pick20Confirm: "OK",
         understood: "Entendido",
         country: "Tu pais",
@@ -88,9 +90,10 @@ function App() {
           missingMovies === 4
             ? "Add movies to start the Kombat"
             : `Add ${missingMovies} movie${missingMovies === 1 ? "" : "s"} to start!`,
-        pick20Title: "Too many movies",
+        pick20Title: "Too many movies!!!",
+        pick20MessageStrong: "Select 20 max!",
         pick20Message:
-          "There're too many movies!!!. I recommend to select 20 max! I can randomly select them and start the Kombat",
+          "I can randomly select them and start the Kombat",
         pick20Confirm: "OK",
         understood: "Understood",
         country: "Your Country",
@@ -114,7 +117,6 @@ function App() {
   const [isPickMoviesDialogOpen, setIsPickMoviesDialogOpen] = useState<
     null | "20"
   >(null);
-  const [shouldAutoStartKombat, setShouldAutoStartKombat] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
   const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState(false);
@@ -217,20 +219,6 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!shouldAutoStartKombat) {
-      return;
-    }
-
-    // Auto-start only when we reach a valid bracket size (ready status)
-    if (kombatStartRequirement.status !== "ready") {
-      return;
-    }
-
-    setShouldAutoStartKombat(false);
-    handleStartKombat();
-  }, [handleStartKombat, kombatStartRequirement, shouldAutoStartKombat]);
-
   const handleStartButtonClick = () => {
     if (kombatStartRequirement.status === "add-movies") {
       setIsNotEnoughMoviesDialogOpen(true);
@@ -246,11 +234,12 @@ function App() {
   };
 
   const handleConfirmRandomSelection = (targetCount: number) => {
-    setMovieList((currentMovies) =>
-      selectRandomMovies(currentMovies, targetCount),
-    );
+    const selectedMovies = selectRandomMovies(movieList, targetCount);
+    flushSync(() => {
+      setMovieList(selectedMovies);
+    });
     setIsPickMoviesDialogOpen(null);
-    setShouldAutoStartKombat(true);
+    navigate("/kombat");
   };
 
   const handleCompletePreferences = () => {
@@ -311,7 +300,9 @@ function App() {
         confirmText={ui.pick20Confirm}
         cancelText={ui.cancel}
       >
-        <p>{ui.pick20Message}</p>
+        <p>
+          <strong>{ui.pick20MessageStrong}</strong> {ui.pick20Message}
+        </p>
       </Dialog>
 
       <div className="min-h-screen flex flex-col">
