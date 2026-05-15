@@ -5,7 +5,11 @@ import {
   BracketMatch,
   KombatOption,
 } from "../components/Kombat/KombatModels";
-import { createInitialStages, getStageName } from "../utils/kombatUtils";
+import {
+  createInitialStages,
+  calculateTotalRounds,
+  calculateCurrentRoundNumber,
+} from "../utils/kombatUtils";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
 import PosterImage from "../components/PosterImage";
@@ -382,8 +386,9 @@ export default function KombatPage() {
   }
 
   const currentMatch = stages[currentStage]?.[currentRound];
-  const totalStages = stages.length;
-  const stageName = getStageName(currentStage, totalStages);
+  const totalRounds = calculateTotalRounds(stages);
+  const currentRoundNumber = calculateCurrentRoundNumber(stages, currentStage, currentRound);
+  const isFinal = currentStage === stages.length - 1;
   const regionName = getRegionByCode(selectedRegion)?.english_name || selectedRegion;
 
   return (
@@ -473,10 +478,9 @@ export default function KombatPage() {
           <div>
             {/* Current Match */}
             <div className="text-center">
-              <h1 className="text-3xl font-bold mb-2">{stageName}</h1>
-              <p className="text-gray-400 mb-8">
-                {ui.round} {currentRound + 1} {ui.of} {stages[currentStage].length}
-              </p>
+              <h1 className="text-3xl font-bold mb-8">
+                {isFinal ? '👑' : `${ui.round} ${currentRoundNumber}/${totalRounds}`}
+              </h1>
               <KombatMatchup
                 key={`${currentMatch.first.id}-${currentMatch.second.id}`}
                 match={currentMatch}

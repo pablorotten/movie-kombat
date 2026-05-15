@@ -4,6 +4,8 @@ import {
   getKombatStartRequirement,
   getStageName,
   selectRandomMovies,
+  calculateTotalRounds,
+  calculateCurrentRoundNumber,
 } from './kombatUtils'
 import { Movie } from '../types'
 
@@ -156,5 +158,57 @@ describe('getStageName', () => {
   it('earlier stages use powers of two', () => {
     expect(getStageName(0, 5)).toBe('1/16')
     expect(getStageName(1, 6)).toBe('1/16')
+  })
+})
+
+describe('calculateTotalRounds', () => {
+  it('2 movies (1 stage) → 1 total round', () => {
+    const stages = createInitialStages([makeMovie(1), makeMovie(2)])
+    expect(calculateTotalRounds(stages)).toBe(1)
+  })
+
+  it('4 movies (2 stages) → 3 total rounds', () => {
+    const stages = createInitialStages([1, 2, 3, 4].map(makeMovie))
+    expect(calculateTotalRounds(stages)).toBe(3)
+  })
+
+  it('8 movies (3 stages) → 7 total rounds', () => {
+    const stages = createInitialStages([1, 2, 3, 4, 5, 6, 7, 8].map(makeMovie))
+    expect(calculateTotalRounds(stages)).toBe(7)
+  })
+
+  it('16 movies (4 stages) → 15 total rounds', () => {
+    const stages = createInitialStages(Array.from({ length: 16 }, (_, i) => makeMovie(i + 1)))
+    expect(calculateTotalRounds(stages)).toBe(15)
+  })
+})
+
+describe('calculateCurrentRoundNumber', () => {
+  it('first round of 4-movie tournament → round 1', () => {
+    const stages = createInitialStages([1, 2, 3, 4].map(makeMovie))
+    expect(calculateCurrentRoundNumber(stages, 0, 0)).toBe(1)
+    expect(calculateCurrentRoundNumber(stages, 0, 1)).toBe(2)
+  })
+
+  it('final round of 4-movie tournament → round 3', () => {
+    const stages = createInitialStages([1, 2, 3, 4].map(makeMovie))
+    expect(calculateCurrentRoundNumber(stages, 1, 0)).toBe(3)
+  })
+
+  it('8-movie tournament rounds progress correctly', () => {
+    const stages = createInitialStages([1, 2, 3, 4, 5, 6, 7, 8].map(makeMovie))
+    // Stage 0: rounds 1-4
+    expect(calculateCurrentRoundNumber(stages, 0, 0)).toBe(1)
+    expect(calculateCurrentRoundNumber(stages, 0, 3)).toBe(4)
+    // Stage 1: rounds 5-6
+    expect(calculateCurrentRoundNumber(stages, 1, 0)).toBe(5)
+    expect(calculateCurrentRoundNumber(stages, 1, 1)).toBe(6)
+    // Stage 2: round 7
+    expect(calculateCurrentRoundNumber(stages, 2, 0)).toBe(7)
+  })
+
+  it('16-movie tournament final round → round 15', () => {
+    const stages = createInitialStages(Array.from({ length: 16 }, (_, i) => makeMovie(i + 1)))
+    expect(calculateCurrentRoundNumber(stages, 3, 0)).toBe(15)
   })
 })

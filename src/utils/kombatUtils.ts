@@ -142,9 +142,27 @@ export const createInitialStages = (movies: Movie[]): BracketMatch[][] => {
   return stages;
 };
 
-// Helper to get stage names
+// Helper to get stage names (deprecated - kept for backwards compatibility)
 export const getStageName = (stageIndex: number, totalStages: number): string => {
     const stagesFromFinal = totalStages - 1 - stageIndex;
     if (stagesFromFinal === 0) return '👑';
     return `1/${2 ** stagesFromFinal}`;
-}
+};
+
+// Calculate total number of rounds in the tournament
+export const calculateTotalRounds = (stages: BracketMatch[][]): number => {
+  return stages.reduce((sum, stage) => sum + stage.length, 0);
+};
+
+// Calculate the current round number across all stages (1-indexed)
+export const calculateCurrentRoundNumber = (
+  stages: BracketMatch[][],
+  currentStage: number,
+  currentRound: number,
+): number => {
+  let roundCount = 0;
+  for (let stageIdx = 0; stageIdx < currentStage; stageIdx++) {
+    roundCount += stages[stageIdx].length;
+  }
+  return roundCount + currentRound + 1;
+};
