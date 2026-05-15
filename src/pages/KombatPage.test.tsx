@@ -208,4 +208,24 @@ describe('KombatPage fight animation flow', () => {
       })
     }).not.toThrow()
   })
+
+  it('advances through a 20-movie bracket and stays playable after 10 picks', () => {
+    renderKombatPage({ movies: Array.from({ length: 20 }, (_, index) => makeMovie(index + 1)) })
+
+    for (let round = 0; round < 10; round += 1) {
+      fireEvent.click(screen.getAllByRole('button', { name: 'Choose' })[0])
+      act(() => {
+        vi.advanceTimersByTime(2300)
+      })
+    }
+
+    expect(screen.queryByText('🏆 The Winner Is! 🏆')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Choose' })).toHaveLength(2)
+
+    const roundHeading = screen.getByRole('heading', { level: 1 })
+    expect(roundHeading.textContent).toMatch(/^Round \d+\/31$/)
+
+    const currentRound = Number(roundHeading.textContent?.match(/^Round (\d+)\/31$/)?.[1] ?? 0)
+    expect(currentRound).toBeGreaterThan(10)
+  })
 })

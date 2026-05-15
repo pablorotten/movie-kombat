@@ -2,25 +2,19 @@ import { BracketMatch, KombatOption } from "../components/Kombat/KombatModels";
 import { Movie } from "../types";
 
 export const MIN_KOMBAT_MOVIES = 4;
-export const MAX_KOMBAT_MOVIES = 16;
+export const MAX_KOMBAT_MOVIES = 20;
 
 export type KombatStartRequirement =
   | {
       status: "ready";
-      targetMovieCount: 4 | 8 | 16;
+      targetMovieCount: number;
     }
   | {
       status: "add-movies";
       missingMovies: number;
     }
   | {
-      status: "pick-4";
-    }
-  | {
-      status: "pick-8";
-    }
-  | {
-      status: "pick-16";
+      status: "pick-20";
     };
 
 // A placeholder for empty slots or "BYE" rounds
@@ -39,38 +33,18 @@ export const getKombatStartRequirement = (movieCount: number): KombatStartRequir
     };
   }
 
-  // Exactly 4: Ready
-  if (movieCount === 4) {
-    return { status: "ready", targetMovieCount: 4 };
+  // 4-20: Ready
+  if (movieCount <= MAX_KOMBAT_MOVIES) {
+    return { status: "ready", targetMovieCount: movieCount };
   }
 
-  // 5-7: Show dialog to pick 4
-  if (movieCount >= 5 && movieCount <= 7) {
-    return { status: "pick-4" };
+  // More than 20: Show dialog to pick 20
+  if (movieCount > MAX_KOMBAT_MOVIES) {
+    return { status: "pick-20" };
   }
 
-  // Exactly 8: Ready
-  if (movieCount === 8) {
-    return { status: "ready", targetMovieCount: 8 };
-  }
-
-  // 9-15: Show dialog to pick 8
-  if (movieCount >= 9 && movieCount <= 15) {
-    return { status: "pick-8" };
-  }
-
-  // Exactly 16: Ready
-  if (movieCount === 16) {
-    return { status: "ready", targetMovieCount: 16 };
-  }
-
-  // 17 or more: Show dialog to pick 16
-  if (movieCount >= 17) {
-    return { status: "pick-16" };
-  }
-
-  // Fallback, should not happen because all cases are covered
-  return { status: "ready", targetMovieCount: 16 };
+  // Fallback, should not happen because all cases are covered.
+  return { status: "ready", targetMovieCount: MAX_KOMBAT_MOVIES };
 };
 
 export const selectRandomMovies = <T,>(
@@ -141,28 +115,54 @@ export const createInitialStages = (movies: Movie[]): BracketMatch[][] => {
     stages.push(nextRound);
   }
 
-  // Handle BYE rounds automatically advancing
-  stages[0].forEach((match, roundIndex) => {
-    if (match.second.id.startsWith('tbd')) {
+  // Handle BYE rounds automatically advancing for prefilled matches.
+  for (let stageIndex = 0; stageIndex < stages.length; stageIndex += 1) {
+    stages[stageIndex].forEach((match, roundIndex) => {
+      const hasRealFirstOption = !match.first.id.startsWith('tbd');
+      if (match.winnerTitle || !hasRealFirstOption || !match.second.id.startsWith('tbd')) {
+        return;
+      }
+
       const winner = match.first;
       match.winnerTitle = winner.title;
-      const nextMatchIndex = Math.floor(roundIndex / 2);
-      if (stages[1]) {
+
+      const nextStage = stages[stageIndex + 1];
+      if (nextStage) {
+        const nextMatchIndex = Math.floor(roundIndex / 2);
+        const nextStageMatch = nextStage[nextMatchIndex];
         if (roundIndex % 2 === 0) {
-          stages[1][nextMatchIndex].first = winner;
+          nextStageMatch.first = winner;
         } else {
-          stages[1][nextMatchIndex].second = winner;
+          nextStageMatch.second = winner;
         }
       }
-    }
-  });
+    });
+  }
 
   return stages;
 };
 
-// Helper to get stage names
+// Helper to get stage names (deprecated - kept for backwards compatibility)
 export const getStageName = (stageIndex: number, totalStages: number): string => {
     const stagesFromFinal = totalStages - 1 - stageIndex;
     if (stagesFromFinal === 0) return '👑';
     return `1/${2 ** stagesFromFinal}`;
-}
+};
+
+// Calculate total number of rounds in the tournament
+export const calculateTotalRounds = (stages: BracketMatch[][]): number => {
+  return stages.reduce((sum, stage) => sum + stage.length, 0);
+};
+
+// Calculate the current round number across all stages (1-indexed)
+export const calculateCurrentRoundNumber = (
+  stages: BracketMatch[][],
+  currentStage: number,
+  currentRound: number,
+): number => {
+  let roundCount = 0;
+  for (let stageIdx = 0; stageIdx < currentStage; stageIdx++) {
+    roundCount += stages[stageIdx].length;
+  }
+  return roundCount + currentRound + 1;
+};

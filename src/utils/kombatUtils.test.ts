@@ -4,6 +4,8 @@ import {
   getKombatStartRequirement,
   getStageName,
   selectRandomMovies,
+  calculateTotalRounds,
+  calculateCurrentRoundNumber,
 } from './kombatUtils'
 import { Movie } from '../types'
 
@@ -38,6 +40,13 @@ describe('createInitialStages', () => {
     expect(stages[0]).toHaveLength(4)
     expect(stages[1]).toHaveLength(2)
     expect(stages[2]).toHaveLength(1)
+  })
+
+  it('10 movies → padded to 16, first round includes TBD vs TBD matches', () => {
+    const stages = createInitialStages(Array.from({ length: 10 }, (_, index) => makeMovie(index + 1)))
+    expect(stages).toHaveLength(4)
+    expect(stages[0]).toHaveLength(8)
+    expect(stages[0].filter((match) => match.first.id.startsWith('tbd') && match.second.id.startsWith('tbd'))).toHaveLength(3)
   })
 
   it('3 movies → padded to 4, last slot is TBD', () => {
@@ -81,31 +90,25 @@ describe('getKombatStartRequirement', () => {
     expect(getKombatStartRequirement(4)).toEqual({ status: 'ready', targetMovieCount: 4 })
   })
 
-  it('shows pick-4 dialog when count is 5-7', () => {
-    expect(getKombatStartRequirement(5)).toEqual({ status: 'pick-4' })
-    expect(getKombatStartRequirement(6)).toEqual({ status: 'pick-4' })
-    expect(getKombatStartRequirement(7)).toEqual({ status: 'pick-4' })
-  })
-
   it('allows starting immediately when exactly 8 movies are selected', () => {
     expect(getKombatStartRequirement(8)).toEqual({ status: 'ready', targetMovieCount: 8 })
   })
 
-  it('shows pick-8 dialog when count is 9-15', () => {
-    expect(getKombatStartRequirement(9)).toEqual({ status: 'pick-8' })
-    expect(getKombatStartRequirement(12)).toEqual({ status: 'pick-8' })
-    expect(getKombatStartRequirement(15)).toEqual({ status: 'pick-8' })
+  it('allows starting immediately when count is between 5 and 20', () => {
+    expect(getKombatStartRequirement(5)).toEqual({ status: 'ready', targetMovieCount: 5 })
+    expect(getKombatStartRequirement(12)).toEqual({ status: 'ready', targetMovieCount: 12 })
+    expect(getKombatStartRequirement(15)).toEqual({ status: 'ready', targetMovieCount: 15 })
+    expect(getKombatStartRequirement(20)).toEqual({ status: 'ready', targetMovieCount: 20 })
   })
 
   it('allows starting immediately when exactly 16 movies are selected', () => {
     expect(getKombatStartRequirement(16)).toEqual({ status: 'ready', targetMovieCount: 16 })
   })
 
-  it('shows pick-16 dialog when count is 17 or more', () => {
-    expect(getKombatStartRequirement(17)).toEqual({ status: 'pick-16' })
-    expect(getKombatStartRequirement(20)).toEqual({ status: 'pick-16' })
-    expect(getKombatStartRequirement(32)).toEqual({ status: 'pick-16' })
-    expect(getKombatStartRequirement(100)).toEqual({ status: 'pick-16' })
+  it('shows pick-20 dialog when count is more than 20', () => {
+    expect(getKombatStartRequirement(21)).toEqual({ status: 'pick-20' })
+    expect(getKombatStartRequirement(32)).toEqual({ status: 'pick-20' })
+    expect(getKombatStartRequirement(100)).toEqual({ status: 'pick-20' })
   })
 })
 
@@ -155,5 +158,57 @@ describe('getStageName', () => {
   it('earlier stages use powers of two', () => {
     expect(getStageName(0, 5)).toBe('1/16')
     expect(getStageName(1, 6)).toBe('1/16')
+  })
+})
+
+describe('calculateTotalRounds', () => {
+  it('2 movies (1 stage) → 1 total round', () => {
+    const stages = createInitialStages([makeMovie(1), makeMovie(2)])
+    expect(calculateTotalRounds(stages)).toBe(1)
+  })
+
+  it('4 movies (2 stages) → 3 total rounds', () => {
+    const stages = createInitialStages([1, 2, 3, 4].map(makeMovie))
+    expect(calculateTotalRounds(stages)).toBe(3)
+  })
+
+  it('8 movies (3 stages) → 7 total rounds', () => {
+    const stages = createInitialStages([1, 2, 3, 4, 5, 6, 7, 8].map(makeMovie))
+    expect(calculateTotalRounds(stages)).toBe(7)
+  })
+
+  it('16 movies (4 stages) → 15 total rounds', () => {
+    const stages = createInitialStages(Array.from({ length: 16 }, (_, i) => makeMovie(i + 1)))
+    expect(calculateTotalRounds(stages)).toBe(15)
+  })
+})
+
+describe('calculateCurrentRoundNumber', () => {
+  it('first round of 4-movie tournament → round 1', () => {
+    const stages = createInitialStages([1, 2, 3, 4].map(makeMovie))
+    expect(calculateCurrentRoundNumber(stages, 0, 0)).toBe(1)
+    expect(calculateCurrentRoundNumber(stages, 0, 1)).toBe(2)
+  })
+
+  it('final round of 4-movie tournament → round 3', () => {
+    const stages = createInitialStages([1, 2, 3, 4].map(makeMovie))
+    expect(calculateCurrentRoundNumber(stages, 1, 0)).toBe(3)
+  })
+
+  it('8-movie tournament rounds progress correctly', () => {
+    const stages = createInitialStages([1, 2, 3, 4, 5, 6, 7, 8].map(makeMovie))
+    // Stage 0: rounds 1-4
+    expect(calculateCurrentRoundNumber(stages, 0, 0)).toBe(1)
+    expect(calculateCurrentRoundNumber(stages, 0, 3)).toBe(4)
+    // Stage 1: rounds 5-6
+    expect(calculateCurrentRoundNumber(stages, 1, 0)).toBe(5)
+    expect(calculateCurrentRoundNumber(stages, 1, 1)).toBe(6)
+    // Stage 2: round 7
+    expect(calculateCurrentRoundNumber(stages, 2, 0)).toBe(7)
+  })
+
+  it('16-movie tournament final round → round 15', () => {
+    const stages = createInitialStages(Array.from({ length: 16 }, (_, i) => makeMovie(i + 1)))
+    expect(calculateCurrentRoundNumber(stages, 3, 0)).toBe(15)
   })
 })

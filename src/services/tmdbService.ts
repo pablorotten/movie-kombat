@@ -51,6 +51,8 @@ export interface WatchProvider {
 
 interface WatchProviderRegionResult {
   flatrate?: WatchProvider[];
+  free?: WatchProvider[];
+  ads?: WatchProvider[];
   rent?: WatchProvider[];
   buy?: WatchProvider[];
 }
@@ -185,7 +187,11 @@ export const getMovieProvidersForRegion = async (
     return [];
   }
 
-  return regionalProviders.flatrate || [];
+  const flatrateProviders = regionalProviders.flatrate || [];
+
+  return flatrateProviders
+    .slice()
+    .sort((a, b) => (a.display_priority ?? 999) - (b.display_priority ?? 999));
 };
 
 // Convert TMDB poster path to full URL
