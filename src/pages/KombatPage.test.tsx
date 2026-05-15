@@ -209,7 +209,7 @@ describe('KombatPage fight animation flow', () => {
     }).not.toThrow()
   })
 
-  it('advances past round 10/16 with 20 movies and continues to next stage', () => {
+  it('advances through a 20-movie bracket and stays playable after 10 picks', () => {
     renderKombatPage({ movies: Array.from({ length: 20 }, (_, index) => makeMovie(index + 1)) })
 
     for (let round = 0; round < 10; round += 1) {
@@ -219,6 +219,13 @@ describe('KombatPage fight animation flow', () => {
       })
     }
 
-    expect(screen.getByText('Round 1 of 8')).toBeInTheDocument()
+    expect(screen.queryByText('🏆 The Winner Is! 🏆')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Choose' })).toHaveLength(2)
+
+    const roundHeading = screen.getByRole('heading', { level: 1 })
+    expect(roundHeading.textContent).toMatch(/^Round \d+\/31$/)
+
+    const currentRound = Number(roundHeading.textContent?.match(/^Round (\d+)\/31$/)?.[1] ?? 0)
+    expect(currentRound).toBeGreaterThan(10)
   })
 })

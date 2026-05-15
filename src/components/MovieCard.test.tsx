@@ -115,7 +115,7 @@ describe('MovieCard', () => {
     vi.unstubAllGlobals()
   })
 
-  it('shows one icon per offered platform when TMDB returns duplicate aliases', async () => {
+  it('shows all flatrate platform icons returned by TMDB', async () => {
     localStorage.setItem('selectedRegion', 'ES')
 
     vi.stubGlobal(
@@ -159,9 +159,11 @@ describe('MovieCard', () => {
       expect(screen.getByAltText('Disney+ logo')).toBeInTheDocument()
     })
 
-    expect(screen.getAllByAltText('Disney+ logo')).toHaveLength(1)
-    expect(screen.getAllByAltText('Amazon Prime Video logo')).toHaveLength(1)
-    expect(screen.queryByAltText('Rakuten TV logo')).not.toBeInTheDocument()
+    expect(screen.getByAltText('Disney Plus logo')).toBeInTheDocument()
+    expect(screen.getByAltText('Disney+ logo')).toBeInTheDocument()
+    expect(screen.getAllByAltText('Amazon Prime Video logo')).toHaveLength(2)
+    expect(screen.getByAltText('Rakuten TV logo')).toBeInTheDocument()
+    expect(screen.getAllByAltText(/ logo$/)).toHaveLength(5)
     expect(fetch).toHaveBeenCalled()
     expect(String(vi.mocked(fetch).mock.calls[0][0])).toContain('/movie/999998/watch/providers')
 
