@@ -43,7 +43,13 @@ const LoadingSpinner = () => (
   </div>
 );
 
-export default function SearchPage() {
+interface SearchPageProps {
+  onDiscoveryExpandedChange?: (isExpanded: boolean) => void;
+}
+
+export default function SearchPage({
+  onDiscoveryExpandedChange,
+}: SearchPageProps) {
   const { addMovie, movieList, removeMovie, searchLanguage, setMovieList } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
   const hasRestoredFromUrl = useRef(false);
@@ -135,6 +141,13 @@ export default function SearchPage() {
   const [activeCollectionId, setActiveCollectionId] = useState<string | null>(null);
   const addedMoviesRef = useRef<HTMLDivElement>(null);
   const localCollections = useMemo(() => loadLocalMovieCollections(), []);
+
+  useEffect(() => {
+    onDiscoveryExpandedChange?.(isDiscoveryExpanded);
+    return () => {
+      onDiscoveryExpandedChange?.(false);
+    };
+  }, [isDiscoveryExpanded, onDiscoveryExpandedChange]);
 
   const showMovieLimitDialog = (message: string) => {
     setMovieLimitDialogMessage(message);

@@ -127,9 +127,10 @@ describe('App kombat start flow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
 
-    expect(screen.getByText('Too many movies')).toBeInTheDocument()
+    expect(screen.getByText('Too many movies!!!')).toBeInTheDocument()
+    expect(screen.getByText('Select 20 max!')).toBeInTheDocument()
     expect(
-      screen.getByText("There're too many movies!!!. I recommend to select 20 max! I can randomly select them and start the Kombat"),
+      screen.getByText('I can randomly select them and start the Kombat'),
     ).toBeInTheDocument()
   })
 
@@ -139,9 +140,10 @@ describe('App kombat start flow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Empezar Kombat' }))
 
-    expect(screen.getByText('Demasiadas películas')).toBeInTheDocument()
+    expect(screen.getByText('Demasiadas películas!!!')).toBeInTheDocument()
+    expect(screen.getByText('Selecciona un máximo de 20!')).toBeInTheDocument()
     expect(
-      screen.getByText('Te recomiendo seleccionar un máximo de 20. Puedo seleccionarlas al azar y empezar el Kombat.'),
+      screen.getByText('Puedo seleccionarlas al azar y empezar el Kombat.'),
     ).toBeInTheDocument()
   })
 
@@ -157,11 +159,11 @@ describe('App kombat start flow', () => {
     renderApp(Array.from({ length: 21 }, (_, index) => makeMovie(index + 1)))
 
     fireEvent.click(screen.getByRole('button', { name: 'Start Kombat' }))
-    expect(screen.getByText('Too many movies')).toBeInTheDocument()
+    expect(screen.getByText('Too many movies!!!')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
 
-    expect(screen.queryByText('Too many movies')).not.toBeInTheDocument()
+    expect(screen.queryByText('Too many movies!!!')).not.toBeInTheDocument()
     expect(screen.getByText('Search Page')).toBeInTheDocument()
   })
 

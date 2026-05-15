@@ -223,9 +223,9 @@ describe('KombatPage fight animation flow', () => {
     expect(screen.getAllByRole('button', { name: 'Choose' })).toHaveLength(2)
 
     const roundHeading = screen.getByRole('heading', { level: 1 })
-    expect(roundHeading.textContent).toMatch(/^Round \d+\/31$/)
+    expect(roundHeading.textContent).toMatch(/^Round \d+\/19$/)
 
-    const currentRound = Number(roundHeading.textContent?.match(/^Round (\d+)\/31$/)?.[1] ?? 0)
+    const currentRound = Number(roundHeading.textContent?.match(/^Round (\d+)\/19$/)?.[1] ?? 0)
     expect(currentRound).toBeGreaterThan(10)
   })
 })

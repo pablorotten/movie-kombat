@@ -7,8 +7,6 @@ import {
 } from "../components/Kombat/KombatModels";
 import {
   createInitialStages,
-  calculateTotalRounds,
-  calculateCurrentRoundNumber,
 } from "../utils/kombatUtils";
 import { useNavigate } from "react-router-dom";
 import Button from "../components/Button";
@@ -208,6 +206,7 @@ export default function KombatPage() {
   const [stages, setStages] = useState<BracketMatch[][]>([]);
   const [currentStage, setCurrentStage] = useState(0);
   const [currentRound, setCurrentRound] = useState(0);
+  const [playedRounds, setPlayedRounds] = useState(0);
   const [winner, setWinner] = useState<KombatOption | null>(null);
   const [winnerProviders, setWinnerProviders] = useState<WatchProvider[]>([]);
   const [isBracketOpen, setIsBracketOpen] = useState(false);
@@ -240,6 +239,7 @@ export default function KombatPage() {
     if (movieList.length > 0) {
       const initialStages = createInitialStages(shuffleMovies(movieList));
       setStages(initialStages);
+      setPlayedRounds(0);
 
       // Find the first playable match
       const firstPlayableRound = initialStages[0].findIndex(
@@ -286,6 +286,7 @@ export default function KombatPage() {
   }, [winner, selectedRegion]);
 
   const handleChooseWinner = (roundWinner: KombatOption) => {
+    setPlayedRounds((currentRounds) => currentRounds + 1);
     const updatedStages = [...stages];
     const isTbdOption = (option: KombatOption) => option.id.startsWith("tbd");
     const resolveMatch = (
@@ -386,8 +387,8 @@ export default function KombatPage() {
   }
 
   const currentMatch = stages[currentStage]?.[currentRound];
-  const totalRounds = calculateTotalRounds(stages);
-  const currentRoundNumber = calculateCurrentRoundNumber(stages, currentStage, currentRound);
+  const totalRounds = Math.max(1, movieList.length - 1);
+  const currentRoundNumber = Math.min(playedRounds + 1, totalRounds);
   const isFinal = currentStage === stages.length - 1;
   const regionName = getRegionByCode(selectedRegion)?.english_name || selectedRegion;
 
