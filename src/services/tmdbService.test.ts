@@ -253,14 +253,17 @@ describe('getMovieProvidersForRegion', () => {
   beforeEach(() => vi.stubGlobal('fetch', vi.fn()))
   afterEach(() => vi.unstubAllGlobals())
 
-  it('returns all flatrate providers and excludes rent and buy', async () => {
+  it('returns only flatrate providers regardless of other buckets', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
       id: 11970,
       results: {
         BE: {
           flatrate: [
-            { provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.png' },
-            { provider_id: 35, provider_name: 'Rakuten TV', logo_path: '/rakuten.png' },
+            { provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.png', display_priority: 1 },
+            { provider_id: 35, provider_name: 'Rakuten TV', logo_path: '/rakuten.png', display_priority: 2 },
+          ],
+          free: [
+            { provider_id: 337, provider_name: 'Disney Plus', logo_path: '/disney.png' },
           ],
           rent: [
             { provider_id: 2, provider_name: 'Apple TV Store', logo_path: '/apple.png' },
@@ -276,18 +279,19 @@ describe('getMovieProvidersForRegion', () => {
     const providerIds = providers.map((provider) => provider.provider_id)
 
     expect(providerIds).toContain(8)    // Netflix (flatrate)
-    expect(providerIds).toContain(35)   // Rakuten TV (flatrate, non-whitelisted — still shown)
-    expect(providerIds).not.toContain(2)  // Apple TV Store (rent only)
-    expect(providerIds).not.toContain(10) // Amazon Video (buy only)
+    expect(providerIds).toContain(35)   // Rakuten TV (flatrate)
+    expect(providerIds).not.toContain(337) // Disney Plus (free, not flatrate)
+    expect(providerIds).not.toContain(2)   // Apple TV Store (rent, not flatrate)
+    expect(providerIds).not.toContain(10)  // Amazon Video (buy, not flatrate)
   })
 
-  it('returns Disney Plus as-is (provider_id 337) without normalization', async () => {
+  it('returns flatrate provider ids as-is without canonicalization', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
       id: 330457,
       results: {
         BE: {
           flatrate: [
-            { provider_id: 337, provider_name: 'Disney Plus', logo_path: '/disney-legacy.png' },
+            { provider_id: 337, provider_name: 'Disney Plus', logo_path: '/disney-legacy.png', display_priority: 1 },
           ],
         },
       },
@@ -296,7 +300,8 @@ describe('getMovieProvidersForRegion', () => {
     const providers = await getMovieProvidersForRegion(330457, 'BE')
     const providerIds = providers.map((provider) => provider.provider_id)
 
-    expect(providerIds).toContain(337)  // returned as-is from TMDB
+    expect(providerIds).toContain(337)
+    expect(providerIds).not.toContain(122)
   })
 
   it('returns empty array when region has no providers', async () => {
@@ -310,5 +315,41 @@ describe('getMovieProvidersForRegion', () => {
     const providers = await getMovieProvidersForRegion(11970, 'BE')
 
     expect(providers).toEqual([])
+  })
+
+  it('returns empty array when there are no flatrate providers', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 330457,
+      results: {
+        ES: {
+          rent: [
+            { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png' },
+          ],
+        },
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(330457, 'ES')
+
+    expect(providers).toHaveLength(0)
+  })
+
+  it('sorts flatrate providers by display_priority ascending', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(mockJsonResponse({
+      id: 330457,
+      results: {
+        ES: {
+          flatrate: [
+            { provider_id: 8, provider_name: 'Netflix', logo_path: '/netflix.png', display_priority: 10 },
+            { provider_id: 122, provider_name: 'Disney+', logo_path: '/disney.png', display_priority: 3 },
+            { provider_id: 350, provider_name: 'Apple TV+', logo_path: '/apple.png', display_priority: 7 },
+          ],
+        },
+      },
+    }))
+
+    const providers = await getMovieProvidersForRegion(330457, 'ES')
+
+    expect(providers.map(p => p.provider_id)).toEqual([122, 350, 8])
   })
 })

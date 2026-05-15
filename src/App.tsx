@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import {
   Routes,
   Route,
@@ -20,6 +21,7 @@ import tmdbLogo from "./assets/TMDB.svg";
 import { getPopularProviders, getRegions } from "./services/tmdbService";
 import { getFlagComponent, selectedCountries } from "./constants/countries";
 import {
+  MAX_KOMBAT_MOVIES,
   getKombatStartRequirement,
   selectRandomMovies,
 } from "./utils/kombatUtils";
@@ -55,27 +57,21 @@ function App() {
           missingMovies === 4
             ? "Agrega peliculas para empezar el Kombat"
             : `Agrega ${missingMovies} pelicula${missingMovies === 1 ? "" : "s"} para empezar!`,
-        pick4Title: "Empezar Kombat?",
-        pick4Message: "Se seleccionaran 4 peliculas al azar.",
-        pick4Confirm: "OK",
-        pick8Title: "Empezar Kombat?",
-        pick8Message: "Se seleccionaran 8 peliculas al azar.",
-        pick8Confirm: "OK",
-        pick16Title: "Empezar Kombat?",
-        pick16Message: "Se seleccionaran 16 peliculas al azar.",
-        pick16Confirm: "OK",
+        pick20Title: "Demasiadas películas!!!",
+        pick20MessageStrong: "Selecciona un máximo de 20!",
+        pick20Message:
+          "Puedo seleccionarlas al azar y empezar el Kombat.",
+        pick20Confirm: "OK",
         understood: "Entendido",
-        country: "Pais",
+        country: "Tu pais",
         countryPlaceholder: "Selecciona un pais",
         platform: "Plataformas",
         platformPlaceholder: "Selecciona plataformas",
         selectedPlatforms: "Plataformas seleccionadas",
         onboardingTitle: "Antes de empezar",
         onboardingDescription:
-          "Elige tu pais y las plataformas que quieres usar para descubrir peliculas.",
+          "Elige tu pais para empezar a descubrir peliculas.",
         onboardingContinue: "Continuar",
-        onboardingPlatformHint: "Toca para seleccionar o quitar plataformas.",
-        onboardingPlatformError: "Selecciona al menos una plataforma.",
         onboardingCountryError: "Selecciona un pais para continuar.",
         tmdbDataSource: "Datos proporcionados por",
         tmdbAttribution:
@@ -94,27 +90,21 @@ function App() {
           missingMovies === 4
             ? "Add movies to start the Kombat"
             : `Add ${missingMovies} movie${missingMovies === 1 ? "" : "s"} to start!`,
-        pick4Title: "Start Kombat?",
-        pick4Message: "4 movies will be randomly selected.",
-        pick4Confirm: "OK",
-        pick8Title: "Start Kombat?",
-        pick8Message: "8 movies will be randomly selected.",
-        pick8Confirm: "OK",
-        pick16Title: "Start Kombat?",
-        pick16Message: "16 movies will be randomly selected.",
-        pick16Confirm: "OK",
+        pick20Title: "Too many movies!!!",
+        pick20MessageStrong: "Select 20 max!",
+        pick20Message:
+          "I can randomly select them and start the Kombat",
+        pick20Confirm: "OK",
         understood: "Understood",
-        country: "Country",
+        country: "Your Country",
         countryPlaceholder: "Select a country",
         platform: "Platforms",
         platformPlaceholder: "Select platforms",
         selectedPlatforms: "Selected platforms",
         onboardingTitle: "Before you start",
         onboardingDescription:
-          "Choose your country and the streaming platforms you want to use for discovery.",
+          "Choose your country to start discovering movies.",
         onboardingContinue: "Continue",
-        onboardingPlatformHint: "Tap to select or unselect platforms.",
-        onboardingPlatformError: "Select at least one platform.",
         onboardingCountryError: "Select a country to continue.",
         tmdbDataSource: "Data provided by",
         tmdbAttribution:
@@ -125,11 +115,11 @@ function App() {
   const [isNotEnoughMoviesDialogOpen, setIsNotEnoughMoviesDialogOpen] =
     useState(false);
   const [isPickMoviesDialogOpen, setIsPickMoviesDialogOpen] = useState<
-    null | "4" | "8" | "16"
+    null | "20"
   >(null);
-  const [shouldAutoStartKombat, setShouldAutoStartKombat] = useState(false);
   const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
   const [isPlatformDropdownOpen, setIsPlatformDropdownOpen] = useState(false);
+  const [isDiscoveryExpanded, setIsDiscoveryExpanded] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
   const platformDropdownRef = useRef<HTMLDivElement>(null);
@@ -196,6 +186,12 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (location.pathname !== "/" || !isDiscoveryExpanded) {
+      setIsPlatformDropdownOpen(false);
+    }
+  }, [isDiscoveryExpanded, location.pathname]);
+
+  useEffect(() => {
     lastScrollYRef.current = window.scrollY;
 
     const handleScroll = () => {
@@ -223,58 +219,31 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!shouldAutoStartKombat) {
-      return;
-    }
-
-    // Auto-start only when we reach a valid bracket size (ready status)
-    if (kombatStartRequirement.status !== "ready") {
-      return;
-    }
-
-    setShouldAutoStartKombat(false);
-    handleStartKombat();
-  }, [handleStartKombat, kombatStartRequirement, shouldAutoStartKombat]);
-
   const handleStartButtonClick = () => {
     if (kombatStartRequirement.status === "add-movies") {
       setIsNotEnoughMoviesDialogOpen(true);
       return;
     }
 
-    if (kombatStartRequirement.status === "pick-4") {
-      setIsPickMoviesDialogOpen("4");
-      return;
-    }
-
-    if (kombatStartRequirement.status === "pick-8") {
-      setIsPickMoviesDialogOpen("8");
-      return;
-    }
-
-    if (kombatStartRequirement.status === "pick-16") {
-      setIsPickMoviesDialogOpen("16");
+    if (kombatStartRequirement.status === "pick-20") {
+      setIsPickMoviesDialogOpen("20");
       return;
     }
 
     handleStartKombat();
   };
 
-  const handleConfirmRandomSelection = (targetCount: 4 | 8 | 16) => {
-    setMovieList((currentMovies) =>
-      selectRandomMovies(currentMovies, targetCount),
-    );
+  const handleConfirmRandomSelection = (targetCount: number) => {
+    const selectedMovies = selectRandomMovies(movieList, targetCount);
+    flushSync(() => {
+      setMovieList(selectedMovies);
+    });
     setIsPickMoviesDialogOpen(null);
-    setShouldAutoStartKombat(true);
+    navigate("/kombat");
   };
 
   const handleCompletePreferences = () => {
     if (!selectedRegion) {
-      return;
-    }
-
-    if (selectedProviderIds.length === 0) {
       return;
     }
 
@@ -286,11 +255,8 @@ function App() {
       <InitialPreferencesScreen
         ui={ui}
         filteredRegions={filteredRegions}
-        providers={providers}
         selectedRegion={selectedRegion}
-        selectedProviderIds={selectedProviderIds}
         setSelectedRegion={setSelectedRegion}
-        toggleSelectedProvider={toggleSelectedProvider}
         searchLanguage={searchLanguage}
         setSearchLanguage={setSearchLanguage}
         onCompletePreferences={handleCompletePreferences}
@@ -326,42 +292,20 @@ function App() {
       />
 
       <Dialog
-        open={isPickMoviesDialogOpen === "4"}
+        open={isPickMoviesDialogOpen === "20"}
         onClose={() => setIsPickMoviesDialogOpen(null)}
-        title={ui.pick4Title}
-        onConfirm={() => handleConfirmRandomSelection(4)}
+        title={ui.pick20Title}
+        onConfirm={() => handleConfirmRandomSelection(MAX_KOMBAT_MOVIES)}
         onCancel={() => setIsPickMoviesDialogOpen(null)}
-        confirmText={ui.pick4Confirm}
+        confirmText={ui.pick20Confirm}
         cancelText={ui.cancel}
       >
-        <p>{ui.pick4Message}</p>
+        <p>
+          <strong>{ui.pick20MessageStrong}</strong> {ui.pick20Message}
+        </p>
       </Dialog>
 
-      <Dialog
-        open={isPickMoviesDialogOpen === "8"}
-        onClose={() => setIsPickMoviesDialogOpen(null)}
-        title={ui.pick8Title}
-        onConfirm={() => handleConfirmRandomSelection(8)}
-        onCancel={() => setIsPickMoviesDialogOpen(null)}
-        confirmText={ui.pick8Confirm}
-        cancelText={ui.cancel}
-      >
-        <p>{ui.pick8Message}</p>
-      </Dialog>
-
-      <Dialog
-        open={isPickMoviesDialogOpen === "16"}
-        onClose={() => setIsPickMoviesDialogOpen(null)}
-        title={ui.pick16Title}
-        onConfirm={() => handleConfirmRandomSelection(16)}
-        onCancel={() => setIsPickMoviesDialogOpen(null)}
-        confirmText={ui.pick16Confirm}
-        cancelText={ui.cancel}
-      >
-        <p>{ui.pick16Message}</p>
-      </Dialog>
-
-      <div className="min-h-screen flex flex-col pb-24">
+      <div className="min-h-screen flex flex-col">
         <header
           className={`sticky top-0 z-40 flex items-center justify-between gap-2 p-3 sm:p-4 bg-gray-800 text-white transition-transform duration-300 will-change-transform ${
             isHeaderVisible ? "translate-y-0" : "-translate-y-full"
@@ -488,7 +432,8 @@ function App() {
               )}
             </div>
 
-            <div className="relative" ref={platformDropdownRef}>
+            {location.pathname === "/" && isDiscoveryExpanded && (
+              <div className="relative" ref={platformDropdownRef}>
               <button
                 type="button"
                 onClick={() =>
@@ -580,18 +525,26 @@ function App() {
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
         </header>
 
-        <main className="flex-1">
+        <main className="flex-1 pb-24">
           <Routes>
-            <Route path="/" element={<SearchPage />} />
+            <Route
+              path="/"
+              element={
+                <SearchPage
+                  onDiscoveryExpandedChange={setIsDiscoveryExpanded}
+                />
+              }
+            />
             <Route path="/kombat" element={<KombatPage />} />
           </Routes>
         </main>
 
-        <footer className="border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+        <footer className="mt-auto border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 py-2 sm:py-3 flex flex-col items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
             <div className="w-full flex justify-center">
               <div className="flex items-center gap-1">

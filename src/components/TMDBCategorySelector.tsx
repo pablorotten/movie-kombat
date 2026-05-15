@@ -40,6 +40,8 @@ export default function TMDBCategorySelector({
   const ui = isSpanish
     ? {
       selectGenreAndApi: 'Selecciona un genero para continuar',
+        selectAllGenres: 'Seleccionar todo',
+        unselectAllGenres: 'Deseleccionar todo',
         selectCountry: 'Selecciona un pais para continuar',
         selectPlatform: 'Selecciona al menos una plataforma',
         noMoviesFound: 'No se encontraron peliculas',
@@ -61,6 +63,8 @@ export default function TMDBCategorySelector({
       }
     : {
       selectGenreAndApi: 'Please select a genre to continue',
+        selectAllGenres: 'Select all',
+        unselectAllGenres: 'Unselect all',
         selectCountry: 'Please select a country to continue',
         selectPlatform: 'Please select at least one platform',
         noMoviesFound: 'No movies found',
@@ -119,6 +123,8 @@ export default function TMDBCategorySelector({
   const [providers] = useState<Provider[]>(getPopularProviders());
   const [regions] = useState<Region[]>(getRegions());
   const targetSelectionCount = Math.min(16, Math.max(0, maxMoviesToSelect ?? 16));
+  const hasGenreSelection = selectedGenreIds.length > 0;
+  const areAllGenresSelected = genres.length > 0 && selectedGenreIds.length === genres.length;
 
   const handleLoadMovies = async () => {
     if (targetSelectionCount <= 0) {
@@ -126,7 +132,7 @@ export default function TMDBCategorySelector({
       return;
     }
 
-    if (selectedGenreIds.length === 0) {
+    if (!hasGenreSelection) {
       setError(ui.selectGenreAndApi);
       return;
     }
@@ -212,6 +218,17 @@ export default function TMDBCategorySelector({
     );
   };
 
+  const toggleAllGenres = () => {
+    setSelectedGenreIds((currentGenreIds) => {
+      const currentlyAllSelected = genres.length > 0 && currentGenreIds.length === genres.length;
+      if (currentlyAllSelected) {
+        return [];
+      }
+
+      return genres.map((genre) => genre.id);
+    });
+  };
+
   const getSelectedGenreNames = (): string[] => {
     return genres
       .filter((genre) => selectedGenreIds.includes(genre.id))
@@ -274,9 +291,21 @@ export default function TMDBCategorySelector({
           <div className={`px-6 pb-6 transition-all duration-250 ease-in-out ${isClosing ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[2000px] opacity-100'}`}>
             <div className="grid grid-cols-1 gap-4 mb-4">
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {ui.genre} *
-            </label>
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {ui.genre} *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    toggleAllGenres();
+                  }}
+                  className="rounded-md border border-gray-300 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-500 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-600"
+                >
+                  {areAllGenresSelected ? ui.unselectAllGenres : ui.selectAllGenres}
+                </button>
+              </div>
             <div className="rounded-lg border border-gray-300 bg-white p-2.5 dark:border-gray-600 dark:bg-gray-700">
               <div className="flex flex-wrap gap-2">
                 {genres.map((genre) => {
@@ -301,7 +330,7 @@ export default function TMDBCategorySelector({
                 })}
               </div>
             </div>
-            {selectedGenreIds.length > 0 && (
+            {hasGenreSelection && (
               <div className="mt-2 text-xs text-gray-500 dark:text-gray-300">
                 {ui.selectedGenres}: {getSelectedGenreNames().join(', ')}
               </div>
@@ -348,7 +377,7 @@ export default function TMDBCategorySelector({
             <div className="mb-4 flex justify-center">
               <button
                 onClick={handleLoadMovies}
-                disabled={selectedGenreIds.length === 0 || !selectedRegion || selectedProviderIds.length === 0 || isLoading}
+                disabled={!hasGenreSelection || !selectedRegion || selectedProviderIds.length === 0 || isLoading}
                 className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-3 rounded-lg text-xs transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 shadow-md"
               >
                 {isLoading ? (
