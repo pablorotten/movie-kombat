@@ -25,6 +25,7 @@ import {
   getKombatStartRequirement,
   selectRandomMovies,
 } from "./utils/kombatUtils";
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   const navigate = useNavigate();
@@ -666,6 +667,7 @@ function App() {
           </>
         )}
       </div>
+      <Analytics />
     </>
   );
 }
