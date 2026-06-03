@@ -32,7 +32,6 @@ backup
 
 # Affinity files
 *.af~lock~
-promo/Media/*
 
 # Business files
 Business/
