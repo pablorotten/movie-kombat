@@ -677,7 +677,7 @@ function App() {
                 </span>
               )}
             </button>
-            {/* Dummy shadow layer behind the real button; visual-only, never interactive */}
+            {/* Dummy shadow layer behind the real button; visual-only, not interactive */}
             {canStartKombat && (
               <div
                 aria-hidden="true"

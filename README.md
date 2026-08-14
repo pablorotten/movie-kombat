@@ -45,8 +45,6 @@ Example (`movies/my-collection.md`):
 * Movie Title 11
 * Movie Title 12
 * Movie Title 13
-* Movie Title 14
-* Movie Title 15
 ... (add more if you want)
 ```
 

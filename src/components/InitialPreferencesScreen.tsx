@@ -91,7 +91,7 @@ export default function InitialPreferencesScreen({
         void setRegionFromCoordinates(position.coords.latitude, position.coords.longitude);
       },
       () => {
-        // Permission denied or unavailable; keep empty.
+        // Permission denied or unavailable --> keep empty.
       },
       {
         enableHighAccuracy: false,
